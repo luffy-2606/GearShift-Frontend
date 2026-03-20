@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
 import supabase from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
+import apiClient from '../lib/apiClient';
 
 const OAuthCallback = () => {
   const navigate = useNavigate();
@@ -26,13 +26,13 @@ const OAuthCallback = () => {
         const accessToken = data.session.access_token;
 
         // Exchange Supabase access token for backend JWT
-        const response = await axios.post('/api/auth/supabase/exchange', {
+        const response = await apiClient.post('/api/auth/supabase/exchange', {
           access_token: accessToken,
         });
 
         const { token } = response.data;
         localStorage.setItem('token', token);
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
         // Sign out of the Supabase session — backend JWT handles everything from here
         await supabase.auth.signOut();

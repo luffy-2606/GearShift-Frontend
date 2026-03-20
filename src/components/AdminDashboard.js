@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import axios from 'axios';
+import apiClient from '../lib/apiClient';
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
@@ -14,7 +14,7 @@ const AdminDashboard = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get('/api/admin/users');
+      const response = await apiClient.get('/api/admin/users');
       setUsers(response.data);
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -26,7 +26,7 @@ const AdminDashboard = () => {
 
   const handleSuspendUser = async (userId) => {
     try {
-      await axios.put(`/api/admin/users/${userId}/suspend`);
+      await apiClient.put(`/api/admin/users/${userId}/suspend`);
       setMessage('User suspended successfully');
       fetchUsers();
     } catch (error) {
@@ -36,7 +36,7 @@ const AdminDashboard = () => {
 
   const handleReactivateUser = async (userId) => {
     try {
-      await axios.put(`/api/admin/users/${userId}/reactivate`);
+      await apiClient.put(`/api/admin/users/${userId}/reactivate`);
       setMessage('User reactivated successfully');
       fetchUsers();
     } catch (error) {
@@ -47,7 +47,7 @@ const AdminDashboard = () => {
   const handleDeleteUser = async (userId) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
-        await axios.delete(`/api/admin/users/${userId}`);
+        await apiClient.delete(`/api/admin/users/${userId}`);
         setMessage('User deleted successfully');
         fetchUsers();
       } catch (error) {
