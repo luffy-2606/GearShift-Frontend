@@ -40,7 +40,7 @@ const Login = () => {
     setLoading(true);
     const result = await login(formData.email, formData.password);
     if (result.success) {
-      navigate('/dashboard');
+      navigate(result.role === 'admin' ? '/admin/dashboard' : '/dashboard');
     } else {
       setError(result.message);
     }

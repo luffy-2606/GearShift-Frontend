@@ -30,7 +30,7 @@ const OAuthCallback = () => {
           access_token: accessToken,
         });
 
-        const { token } = response.data;
+        const { token, user } = response.data;
         localStorage.setItem('token', token);
         apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
@@ -40,7 +40,7 @@ const OAuthCallback = () => {
         // Ensure AuthContext gets the latest user profile so ProtectedRoute doesn't redirect
         await refreshUser();
 
-        if (!cancelled) navigate('/dashboard', { replace: true });
+        if (!cancelled) navigate(user?.role === 'admin' ? '/admin/dashboard' : '/dashboard', { replace: true });
       } catch (err) {
         if (!cancelled) {
           setError(

@@ -46,13 +46,14 @@ function App() {
               }
             />
             <Route
-              path="/admin"
+              path="/admin/dashboard"
               element={
                 <ProtectedRoute adminOnly>
                   <AdminDashboard />
                 </ProtectedRoute>
               }
             />
+            <Route path="/admin" element={<Navigate to="/admin/dashboard" />} />
             <Route path="/" element={<Navigate to="/dashboard" />} />
           </Routes>
         </div>

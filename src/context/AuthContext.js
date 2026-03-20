@@ -100,6 +100,22 @@ export const AuthProvider = ({ children }) => {
             message: 'Please verify your email before signing in. Check your inbox for the confirmation link.',
           };
         }
+        const msg = error?.message?.toLowerCase?.() || '';
+
+        if (
+          msg.includes('invalid login credentials') ||
+          msg.includes('invalid credentials') ||
+          msg.includes('invalid user')
+        ) {
+          const response = await apiClient.post('/api/auth/login', { email, password });
+          const { token, user } = response.data;
+
+          applyBackendToken(token);
+          setUser(user);
+
+          return { success: true, role: user?.role };
+        }
+
         return { success: false, message: error.message };
       }
 
@@ -112,7 +128,7 @@ export const AuthProvider = ({ children }) => {
       // Sign out of Supabase session — we only need the backend JWT going forward
       await supabase.auth.signOut();
 
-      return { success: true };
+      return { success: true, role: userData?.role };
     } catch (err) {
       return {
         success: false,
