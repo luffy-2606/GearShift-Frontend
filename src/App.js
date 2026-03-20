@@ -5,19 +5,26 @@ import Login from './components/Login';
 import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import AdminDashboard from './components/AdminDashboard';
+import OAuthCallback from './components/OAuthCallback';
 import './App.css';
 
 function ProtectedRoute({ children, adminOnly = false }) {
   const { user, loading } = useAuth();
 
-  if (loading) return <div>Loading...</div>;
-  
+  if (loading) {
+    return (
+      <div className="auth-page">
+        <div style={{ color: 'white', fontSize: 16 }}>Loading…</div>
+      </div>
+    );
+  }
+
   if (!user) return <Navigate to="/login" />;
-  
+
   if (adminOnly && user.role !== 'admin') {
     return <Navigate to="/dashboard" />;
   }
-  
+
   return children;
 }
 
@@ -29,21 +36,22 @@ function App() {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route 
-              path="/dashboard" 
+            <Route path="/auth/callback" element={<OAuthCallback />} />
+            <Route
+              path="/dashboard"
               element={
                 <ProtectedRoute>
                   <Dashboard />
                 </ProtectedRoute>
-              } 
+              }
             />
-            <Route 
-              path="/admin" 
+            <Route
+              path="/admin"
               element={
                 <ProtectedRoute adminOnly>
                   <AdminDashboard />
                 </ProtectedRoute>
-              } 
+              }
             />
             <Route path="/" element={<Navigate to="/dashboard" />} />
           </Routes>
