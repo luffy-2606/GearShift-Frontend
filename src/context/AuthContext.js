@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     const response = await axios.get('/api/users/profile');
     setUser(response.data);
-  }, [refreshUser]);
+  }, []);
 
   // On mount: check for existing backend JWT and verify it
   useEffect(() => {
@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }) => {
     } else {
       setLoading(false);
     }
-  }, []);
+  }, [refreshUser]);
 
   // Register: use Supabase signUp (sends verification email).
   // Does NOT auto-login; user must verify email first.
