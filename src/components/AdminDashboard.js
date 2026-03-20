@@ -65,7 +65,7 @@ const AdminDashboard = () => {
       <div className="dashboard-header">
         <h1>Admin Dashboard</h1>
         <div className="user-info">
-          <span>Admin: {user?.firstName} {user?.lastName}</span>
+          <span>Admin: {user?.firstName ?? user?.first_name} {user?.lastName ?? user?.last_name}</span>
           <button onClick={logout} className="btn-logout">
             Logout
           </button>
@@ -94,9 +94,9 @@ const AdminDashboard = () => {
           </thead>
           <tbody>
             {users.map((userItem) => (
-              <tr key={userItem._id}>
-                <td>{userItem._id.slice(-8)}</td>
-                <td>{userItem.firstName} {userItem.lastName}</td>
+              <tr key={userItem.id ?? userItem._id}>
+                <td>{(userItem.id ?? userItem._id)?.slice(-8)}</td>
+                <td>{userItem.firstName ?? userItem.first_name} {userItem.lastName ?? userItem.last_name}</td>
                 <td>{userItem.email}</td>
                 <td>{userItem.role}</td>
                 <td>
@@ -104,13 +104,13 @@ const AdminDashboard = () => {
                     {userItem.status}
                   </span>
                 </td>
-                <td>{new Date(userItem.createdAt).toLocaleDateString()}</td>
+                <td>{new Date(userItem.createdAt ?? userItem.created_at).toLocaleDateString()}</td>
                 <td>
                   <div className="action-buttons">
                     {userItem.status === 'active' ? (
                       <button
                         className="btn-small btn-danger"
-                        onClick={() => handleSuspendUser(userItem._id)}
+                        onClick={() => handleSuspendUser(userItem.id ?? userItem._id)}
                       >
                         Suspend
                       </button>
@@ -118,15 +118,15 @@ const AdminDashboard = () => {
                       <button
                         className="btn-small"
                         style={{ backgroundColor: '#28a745', color: 'white' }}
-                        onClick={() => handleReactivateUser(userItem._id)}
+                        onClick={() => handleReactivateUser(userItem.id ?? userItem._id)}
                       >
                         Reactivate
                       </button>
                     )}
                     <button
                       className="btn-small btn-danger"
-                      onClick={() => handleDeleteUser(userItem._id)}
-                      disabled={userItem._id === user?._id}
+                      onClick={() => handleDeleteUser(userItem.id ?? userItem._id)}
+                      disabled={(userItem.id ?? userItem._id) === (user?.id ?? user?._id)}
                     >
                       Delete
                     </button>

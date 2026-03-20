@@ -3,13 +3,15 @@ import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
+  const firstName = user?.firstName ?? user?.first_name;
+  const lastName = user?.lastName ?? user?.last_name;
 
   return (
     <div className="container">
       <div className="dashboard-header">
         <h1>Welcome to GearShift</h1>
         <div className="user-info">
-          <span>Welcome, {user?.firstName} {user?.lastName}</span>
+          <span>Welcome, {firstName} {lastName}</span>
           <button onClick={logout} className="btn-logout">
             Logout
           </button>
