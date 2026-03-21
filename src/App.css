@@ -549,3 +549,296 @@ body {
   border-color: rgba(0,0,0,0.15);
   border-top-color: var(--gray-700);
 }
+
+/* =========================================================
+   Admin tabs
+   ========================================================= */
+.admin-tabs {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.admin-tab-nav {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--gray-100);
+  background: var(--gray-50);
+  overflow-x: auto;
+}
+
+.admin-tab-btn {
+  padding: 13px 22px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--gray-600);
+  background: transparent;
+  border: none;
+  border-bottom: 3px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.admin-tab-btn:hover {
+  color: var(--gray-900);
+  background: var(--gray-100);
+}
+
+.admin-tab-btn.active {
+  color: var(--brand);
+  border-bottom-color: var(--brand);
+  background: var(--white);
+  font-weight: 600;
+}
+
+.admin-tab-panel {
+  padding: 0;
+}
+
+.admin-tab-panel-header {
+  padding: 20px 24px 12px;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.admin-tab-panel-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+/* =========================================================
+   Admin toolbar / search
+   ========================================================= */
+.admin-tab-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.admin-search {
+  flex: 1;
+  max-width: 520px;
+  padding: 8px 12px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-xs);
+  font-size: 14px;
+  color: var(--gray-900);
+  background: var(--white);
+  transition: border-color 0.15s;
+}
+
+/* Keep admin toolbar buttons tight (global `.btn` uses width: 100%) */
+.admin-tab-toolbar .btn {
+  width: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.admin-search:focus {
+  outline: none;
+  border-color: var(--brand);
+}
+
+/* =========================================================
+   Admin create-user form
+   ========================================================= */
+.admin-create-form {
+  margin: 0 24px 8px;
+  padding: 20px 24px;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+}
+
+.admin-create-form h3 {
+  margin: 0 0 16px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.admin-create-form .form-group {
+  margin-bottom: 14px;
+}
+
+.admin-create-form .form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-700);
+  margin-bottom: 5px;
+}
+
+.admin-create-form input,
+.admin-create-form select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-xs);
+  font-size: 14px;
+  color: var(--gray-900);
+  background: var(--white);
+  box-sizing: border-box;
+}
+
+.admin-create-form input:focus,
+.admin-create-form select:focus {
+  outline: none;
+  border-color: var(--brand);
+}
+
+/* =========================================================
+   Admin flash messages
+   ========================================================= */
+.admin-flash {
+  margin: 0 24px 12px;
+  padding: 10px 16px;
+  border-radius: var(--radius-xs);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.admin-flash-success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.admin-flash-error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* =========================================================
+   Role edit cell
+   ========================================================= */
+.role-edit-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.role-select {
+  padding: 4px 8px;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-xs);
+  font-size: 13px;
+  color: var(--gray-900);
+  background: var(--white);
+  cursor: pointer;
+}
+
+.role-select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.role-select:focus {
+  outline: none;
+  border-color: var(--brand);
+}
+
+.btn-role-save {
+  background: var(--brand);
+  color: var(--white);
+  border: none;
+  padding: 4px 9px;
+  border-radius: var(--radius-xs);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.btn-role-save:hover {
+  opacity: 0.85;
+}
+
+/* =========================================================
+   Role badge
+   ========================================================= */
+.role-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.role-admin    { background: #ede9fe; color: #5b21b6; }
+.role-mechanic { background: #fef9c3; color: #854d0e; }
+.role-user     { background: var(--gray-100); color: var(--gray-600); }
+
+/* =========================================================
+   Button variants used in admin
+   ========================================================= */
+.btn-warning {
+  background: #f59e0b;
+  color: var(--white);
+  border: none;
+}
+
+.btn-warning:hover { background: #d97706; }
+
+.btn-success {
+  background: #16a34a;
+  color: var(--white);
+  border: none;
+}
+
+.btn-success:hover { background: #15803d; }
+
+.btn-small-pad {
+  padding: 8px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+/* =========================================================
+   Admin table count / empty state
+   ========================================================= */
+.admin-table-count {
+  padding: 10px 24px;
+  font-size: 12px;
+  color: var(--gray-400);
+  margin: 0;
+}
+
+.admin-tab-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 32px;
+  color: var(--gray-500);
+  text-align: center;
+}
+
+.admin-tab-empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.admin-tab-empty h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+.admin-tab-empty p {
+  margin: 0;
+  font-size: 14px;
+  max-width: 400px;
+  line-height: 1.6;
+}

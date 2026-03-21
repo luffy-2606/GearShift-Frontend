@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
 import supabase from '../lib/supabaseClient';
+import apiClient from '../lib/apiClient';
 
 const AuthContext = createContext();
 
@@ -11,7 +11,7 @@ export const useAuth = () => {
 };
 
 async function exchangeSupabaseToken(supabaseAccessToken) {
-  const response = await axios.post('/api/auth/supabase/exchange', {
+  const response = await apiClient.post('/api/auth/supabase/exchange', {
     access_token: supabaseAccessToken,
   });
   return response.data; // { token, user }
@@ -19,12 +19,12 @@ async function exchangeSupabaseToken(supabaseAccessToken) {
 
 function applyBackendToken(token) {
   localStorage.setItem('token', token);
-  axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 }
 
 function clearBackendToken() {
   localStorage.removeItem('token');
-  delete axios.defaults.headers.common['Authorization'];
+  delete apiClient.defaults.headers.common['Authorization'];
 }
 
 export const AuthProvider = ({ children }) => {
@@ -39,8 +39,8 @@ export const AuthProvider = ({ children }) => {
       return;
     }
 
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-    const response = await axios.get('/api/users/profile');
+    apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    const response = await apiClient.get('/api/users/profile');
     setUser(response.data);
   }, []);
 
@@ -48,14 +48,14 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      apiClient.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       refreshUser()
         .catch(() => clearBackendToken())
         .finally(() => setLoading(false));
     } else {
       setLoading(false);
     }
-  }, []);
+  }, [refreshUser]);
 
   // Register: use Supabase signUp (sends verification email).
   // Does NOT auto-login; user must verify email first.
@@ -100,6 +100,22 @@ export const AuthProvider = ({ children }) => {
             message: 'Please verify your email before signing in. Check your inbox for the confirmation link.',
           };
         }
+        const msg = error?.message?.toLowerCase?.() || '';
+
+        if (
+          msg.includes('invalid login credentials') ||
+          msg.includes('invalid credentials') ||
+          msg.includes('invalid user')
+        ) {
+          const response = await apiClient.post('/api/auth/login', { email, password });
+          const { token, user } = response.data;
+
+          applyBackendToken(token);
+          setUser(user);
+
+          return { success: true, role: user?.role };
+        }
+
         return { success: false, message: error.message };
       }
 
@@ -112,7 +128,7 @@ export const AuthProvider = ({ children }) => {
       // Sign out of Supabase session — we only need the backend JWT going forward
       await supabase.auth.signOut();
 
-      return { success: true };
+      return { success: true, role: userData?.role };
     } catch (err) {
       return {
         success: false,
@@ -123,7 +139,8 @@ export const AuthProvider = ({ children }) => {
 
   // Google OAuth: redirect to Google via Supabase
   const googleLogin = async () => {
-    const redirectTo = `${window.location.origin}/auth/callback`;
+    const frontendUrl = process.env.REACT_APP_FRONTEND_URL || window.location.origin;
+    const redirectTo = `${frontendUrl}/auth/callback`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo },
