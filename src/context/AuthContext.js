@@ -155,6 +155,10 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const updateUser = (userData) => {
+    setUser(userData);
+  };
+
   const value = {
     user,
     login,
@@ -162,6 +166,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     googleLogin,
     refreshUser,
+    updateUser,
     loading,
   };
 

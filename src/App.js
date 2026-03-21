@@ -6,6 +6,7 @@ import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import AdminDashboard from './components/AdminDashboard';
 import OAuthCallback from './components/OAuthCallback';
+import Profile from './components/Profile';
 import './App.css';
 
 function ProtectedRoute({ children, adminOnly = false }) {
@@ -42,6 +43,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
                 </ProtectedRoute>
               }
             />

@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -12,6 +13,9 @@ const Dashboard = () => {
         <h1>Welcome to GearShift</h1>
         <div className="user-info">
           <span>Welcome, {firstName} {lastName}</span>
+          <Link to="/profile" className="btn-profile">
+            Profile
+          </Link>
           <button onClick={logout} className="btn-logout">
             Logout
           </button>
