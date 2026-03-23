@@ -195,6 +195,13 @@ const Profile = () => {
         .profile-header {
           margin-bottom: 30px;
           text-align: center;
+          color: var(--white);
+        }
+
+        .profile-header h1 {
+          color: var(--white);
+          font-size: 28px;
+          font-weight: 700;
         }
 
         .profile-content {
@@ -204,9 +211,10 @@ const Profile = () => {
         }
 
         .profile-card {
-          background: white;
+          background: linear-gradient(135deg, #1e293b, #0f172a);
           border-radius: 12px;
-          box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           padding: 40px;
           width: 100%;
           max-width: 500px;
@@ -236,19 +244,21 @@ const Profile = () => {
 
         .profile-info {
           flex: 1;
+          width: 100%;
         }
 
         .profile-info h2 {
           margin: 0 0 20px 0;
-          color: var(--gray-900);
+          color: var(--brand-light);
           font-size: 24px;
           font-weight: 700;
+          text-align: center;
         }
 
         .profile-details {
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 4px;
           margin-bottom: 25px;
         }
 
@@ -256,18 +266,18 @@ const Profile = () => {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 8px 0;
-          border-bottom: 1px solid var(--gray-100);
+          padding: 10px 0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .detail-label {
           font-weight: 600;
-          color: var(--gray-600);
+          color: var(--gray-400);
           font-size: 14px;
         }
 
         .detail-value {
-          color: var(--gray-900);
+          color: var(--gray-100);
           font-size: 14px;
           font-weight: 500;
         }
@@ -293,13 +303,15 @@ const Profile = () => {
         }
 
         .status-badge.active {
-          background: #dcfce7;
-          color: #166534;
+          background: rgba(22, 163, 74, 0.2);
+          color: #4ade80;
+          border: 1px solid rgba(74, 222, 128, 0.3);
         }
 
         .status-badge.suspended {
-          background: #fee2e2;
-          color: #991b1b;
+          background: rgba(239, 68, 68, 0.2);
+          color: #f87171;
+          border: 1px solid rgba(248, 113, 113, 0.3);
         }
 
         .edit-btn {
@@ -315,7 +327,7 @@ const Profile = () => {
         }
 
         .back-btn {
-          background: var(--gray-600);
+          background: var(--gray-700);
           color: white;
           padding: 12px 20px;
           border-radius: 8px;
@@ -328,21 +340,23 @@ const Profile = () => {
         }
 
         .back-btn:hover {
-          background: var(--gray-700);
+          background: var(--gray-900);
         }
 
+        /* ── Edit mode ── */
         .profile-section {
-          background: white;
+          background: linear-gradient(135deg, #1e293b, #0f172a);
           padding: 30px;
           border-radius: 12px;
-          box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+          border: 1px solid rgba(255, 255, 255, 0.08);
           width: 100%;
           max-width: 500px;
         }
 
         .profile-section h2 {
           margin-bottom: 20px;
-          color: #333;
+          color: var(--brand-light);
           text-align: center;
         }
 
@@ -359,21 +373,29 @@ const Profile = () => {
 
         .form-group label {
           margin-bottom: 5px;
-          font-weight: 500;
-          color: #333;
+          font-weight: 600;
+          color: var(--gray-100);
+          font-size: 13px;
         }
 
         .form-group input {
           padding: 12px;
-          border: 1.5px solid var(--gray-200);
+          border: 1.5px solid rgba(255, 255, 255, 0.12);
           border-radius: 8px;
-          font-size: 16px;
-          transition: border-color 0.2s;
+          font-size: 15px;
+          background: rgba(255, 255, 255, 0.06);
+          color: var(--gray-100);
+          transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-group input::placeholder {
+          color: var(--gray-400);
         }
 
         .form-group input:focus {
           outline: none;
           border-color: var(--brand);
+          box-shadow: 0 0 0 3px rgba(232, 93, 4, 0.15);
         }
 
         .form-actions {
@@ -391,18 +413,19 @@ const Profile = () => {
           border-radius: 8px;
           margin-bottom: 20px;
           text-align: center;
+          font-size: 14px;
         }
 
         .alert-success {
-          background-color: #dcfce7;
-          color: #166534;
-          border: 1px solid #bbf7d0;
+          background-color: rgba(22, 163, 74, 0.15);
+          color: #4ade80;
+          border: 1px solid rgba(74, 222, 128, 0.3);
         }
 
         .alert-error {
-          background-color: #fee2e2;
-          color: #991b1b;
-          border: 1px solid #fecaca;
+          background-color: rgba(239, 68, 68, 0.15);
+          color: #f87171;
+          border: 1px solid rgba(248, 113, 113, 0.3);
         }
 
         @media (max-width: 768px) {

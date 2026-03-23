@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import supabase from '../lib/supabaseClient';
 import apiClient from '../lib/apiClient';
+import { useNavigate } from 'react-router-dom';
 
 const AuthContext = createContext();
 
@@ -30,6 +31,7 @@ function clearBackendToken() {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  
 
   const refreshUser = useCallback(async () => {
     const token = localStorage.getItem('token');

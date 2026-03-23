@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './components/Login';
 import Register from './components/Register';
@@ -15,7 +15,7 @@ function ProtectedRoute({ children, adminOnly = false }) {
   if (loading) {
     return (
       <div className="auth-page">
-        <div style={{ color: 'white', fontSize: 16 }}>Loading…</div>
+        <div className="loading-text">Loading…</div>
       </div>
     );
   }
@@ -29,11 +29,52 @@ function ProtectedRoute({ children, adminOnly = false }) {
   return children;
 }
 
+function Layout({ children }) {
+  const { user, logout } = useAuth();   // get logout from context
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();              // clears token + user
+    navigate("/login");    // redirect to login page
+  };
+
+  // Hide header/footer on login/register/auth pages
+  const hideLayout =
+    location.pathname.startsWith('/login') ||
+    location.pathname.startsWith('/register') ||
+    location.pathname.startsWith('/auth');
+
+  return (
+    <div className="App">
+      {!hideLayout && user && (
+        <header className="app-header">
+          <h1 className="brand-title">🚗 GearShift</h1>
+          <nav className="nav-links">
+            <a href="/profile" className="btn-profile">Profile</a>
+            <button className="btn-logout" onClick={handleLogout}>
+              Logout
+            </button>
+          </nav>
+        </header>
+      )}
+
+      {children}
+
+      {!hideLayout && user && (
+        <footer className="app-footer">
+          <p>© 2026 GearShift Project — Afras Shahnawaz</p>
+        </footer>
+      )}
+    </div>
+  );
+}
+
 function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="App">
+        <Layout>
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -65,7 +106,7 @@ function App() {
             <Route path="/admin" element={<Navigate to="/admin/dashboard" />} />
             <Route path="/" element={<Navigate to="/dashboard" />} />
           </Routes>
-        </div>
+        </Layout>
       </Router>
     </AuthProvider>
   );
