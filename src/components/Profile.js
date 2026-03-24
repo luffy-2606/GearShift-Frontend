@@ -97,39 +97,42 @@ const Profile = () => {
         )}
 
         <div className="profile-content">
-          <div className="profile-section">
-            <form onSubmit={handleProfileUpdate} className="profile-form">
-              <div className="form-group">
-                <label htmlFor="firstName">First Name</label>
-                <input
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="lastName">Last Name</label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              <div className="form-actions">
-                <button type="submit" className="btn btn-primary" disabled={loading}>
-                  {loading ? 'Updating...' : 'Save Changes'}
-                </button>
-                <button type="button" className="btn btn-secondary" onClick={handleEditToggle} disabled={loading}>
-                  Cancel
-                </button>
-              </div>
-            </form>
+          <div className="edit-card">
+            <div className="edit-info">
+              <h2>Edit Your Information</h2>
+              <form onSubmit={handleProfileUpdate} className="edit-form">
+                <div className="form-group">
+                  <label htmlFor="firstName">First Name</label>
+                  <input
+                    type="text"
+                    id="firstName"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="lastName">Last Name</label>
+                  <input
+                    type="text"
+                    id="lastName"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleInputChange}
+                    required
+                  />
+                </div>
+                <div className="form-actions">
+                  <button type="button" className="btn btn-secondary" onClick={handleEditToggle} disabled={loading}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn btn-primary" disabled={loading}>
+                    {loading ? 'Updating...' : 'Save Changes'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       </div>
@@ -150,29 +153,26 @@ const Profile = () => {
 
       <div className="profile-content">
         <div className="profile-card">
-          <div className="profile-avatar">
+          <div className="profile-header-section">
             <div className="avatar-circle">
               {user?.firstName?.[0]?.toUpperCase() || user?.first_name?.[0]?.toUpperCase() || 'U'}
             </div>
+            <h2 className="profile-name">{user?.first_name || user?.firstName} {user?.last_name || user?.lastName}</h2>
+            <p className="profile-email">{user?.email}</p>
           </div>
           
-          <div className="profile-info">
-            <h2>{user?.first_name || user?.firstName} {user?.last_name || user?.lastName}</h2>
+          <div className="profile-body">
             <div className="profile-details">
               <div className="detail-item">
-                <span className="detail-label">Email:</span>
-                <span className="detail-value">{user?.email}</span>
-              </div>
-              <div className="detail-item">
-                <span className="detail-label">Role:</span>
+                <span className="detail-label">Role</span>
                 <span className="detail-value role-badge">{user?.role}</span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Member Since:</span>
+                <span className="detail-label">Member Since</span>
                 <span className="detail-value">{user?.created_at ? formatDate(user.created_at) : 'Unknown'}</span>
               </div>
               <div className="detail-item">
-                <span className="detail-label">Status:</span>
+                <span className="detail-label">Status</span>
                 <span className={`detail-value status-badge ${user?.status}`}>
                   {user?.status}
                 </span>
@@ -180,10 +180,10 @@ const Profile = () => {
             </div>
             
             <div className="button-group">
-              <button className="btn btn-secondary back-btn" onClick={() => navigate('/dashboard')}>
+              <button className="btn back-btn" onClick={() => navigate('/dashboard')}>
                 Back to Dashboard
               </button>
-              <button className="btn btn-primary edit-btn" onClick={handleEditToggle}>
+              <button className="btn edit-btn" onClick={handleEditToggle}>
                 Edit Profile
               </button>
             </div>
@@ -191,105 +191,144 @@ const Profile = () => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
+        .container {
+          max-width: 1200px;
+          margin: 0 auto;
+          padding: 20px;
+          background: var(--gray-50);
+          min-height: 100vh;
+        }
+
         .profile-header {
-          margin-bottom: 30px;
-          text-align: center;
+          background: var(--white);
+          padding: 18px 24px;
+          border-radius: var(--radius);
+          box-shadow: var(--shadow-sm);
+          margin-bottom: 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .profile-header h1 {
+          margin: 0;
+          font-size: 22px;
+          font-weight: 700;
+          color: var(--gray-900);
         }
 
         .profile-content {
           display: flex;
           justify-content: center;
-          align-items: center;
         }
 
         .profile-card {
-          background: white;
-          border-radius: 12px;
-          box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-          padding: 40px;
+          background: var(--white);
+          border-radius: var(--radius);
+          box-shadow: var(--shadow-sm);
+          padding: 0;
           width: 100%;
           max-width: 500px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 25px;
+          overflow: hidden;
         }
 
-        .profile-avatar {
-          flex-shrink: 0;
+        .profile-header-section {
+          background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+          padding: 32px;
+          text-align: center;
+          position: relative;
         }
 
         .avatar-circle {
           width: 80px;
           height: 80px;
           border-radius: 50%;
-          background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+          background: var(--white);
           display: flex;
           align-items: center;
           justify-content: center;
-          color: white;
+          color: var(--brand);
           font-size: 32px;
           font-weight: 700;
-          letter-spacing: -1px;
+          margin: 0 auto 16px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
-        .profile-info {
-          flex: 1;
-        }
-
-        .profile-info h2 {
-          margin: 0 0 20px 0;
-          color: var(--gray-900);
-          font-size: 24px;
+        .profile-name {
+          color: var(--white);
+          font-size: 1.5rem;
           font-weight: 700;
+          margin: 0 0 4px;
+          letter-spacing: -0.5px;
+        }
+
+        .profile-email {
+          color: rgba(255, 255, 255, 0.85);
+          font-size: 0.9rem;
+          margin: 0;
+          font-weight: 500;
+        }
+
+        .profile-body {
+          padding: 32px;
         }
 
         .profile-details {
           display: flex;
           flex-direction: column;
-          gap: 12px;
-          margin-bottom: 25px;
+          gap: 16px;
+          margin-bottom: 28px;
         }
 
         .detail-item {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: 8px 0;
-          border-bottom: 1px solid var(--gray-100);
+          padding: 16px 20px;
+          background: var(--gray-50);
+          border-radius: var(--radius-sm);
+          border: 1px solid var(--gray-100);
+          transition: all 0.15s ease;
+        }
+
+        .detail-item:hover {
+          background: var(--gray-100);
+          border-color: var(--gray-200);
         }
 
         .detail-label {
           font-weight: 600;
           color: var(--gray-600);
           font-size: 14px;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
         }
 
         .detail-value {
           color: var(--gray-900);
           font-size: 14px;
-          font-weight: 500;
+          font-weight: 600;
         }
 
         .role-badge {
           background: var(--blue);
-          color: white;
-          padding: 4px 12px;
+          color: var(--white);
+          padding: 4px 10px;
           border-radius: 20px;
-          font-size: 12px;
-          font-weight: 600;
+          font-size: 11px;
+          font-weight: 700;
           text-transform: uppercase;
-          letter-spacing: 0.5px;
+          letter-spacing: 0.04em;
         }
 
         .status-badge {
-          padding: 4px 12px;
+          padding: 4px 10px;
           border-radius: 20px;
-          font-size: 12px;
-          font-weight: 600;
+          font-size: 11px;
+          font-weight: 700;
           text-transform: uppercase;
-          letter-spacing: 0.5px;
+          letter-spacing: 0.04em;
         }
 
         .status-badge.active {
@@ -302,54 +341,84 @@ const Profile = () => {
           color: #991b1b;
         }
 
-        .edit-btn {
-          width: auto;
-          padding: 12px 24px;
-        }
-
         .button-group {
           display: flex;
           gap: 12px;
+        }
+
+        .btn {
+          display: flex;
+          align-items: center;
           justify-content: center;
-          width: 100%;
+          gap: 8px;
+          flex: 1;
+          padding: 12px 20px;
+          border: none;
+          border-radius: var(--radius-xs);
+          font-size: 15px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          text-decoration: none;
+          line-height: 1;
+        }
+
+        .btn:active {
+          transform: translateY(1px);
+        }
+
+        .btn:disabled {
+          opacity: 0.55;
+          cursor: not-allowed;
+          transform: none;
         }
 
         .back-btn {
-          background: var(--gray-600);
-          color: white;
-          padding: 12px 20px;
-          border-radius: 8px;
-          font-size: 14px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: background 0.2s;
-          border: none;
-          width: auto;
-        }
-
-        .back-btn:hover {
           background: var(--gray-700);
+          color: var(--white);
         }
 
-        .profile-section {
-          background: white;
-          padding: 30px;
-          border-radius: 12px;
-          box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        .back-btn:hover:not(:disabled) {
+          background: var(--gray-900);
+        }
+
+        .edit-btn {
+          background: var(--brand);
+          color: var(--white);
+          box-shadow: 0 2px 6px rgba(232, 93, 4, 0.30);
+        }
+
+        .edit-btn:hover:not(:disabled) {
+          background: var(--brand-dark);
+          box-shadow: 0 4px 10px rgba(232, 93, 4, 0.35);
+        }
+
+        .edit-card {
+          background: var(--white);
+          border-radius: var(--radius);
+          box-shadow: var(--shadow-sm);
+          padding: 32px;
           width: 100%;
           max-width: 500px;
         }
 
-        .profile-section h2 {
-          margin-bottom: 20px;
-          color: #333;
+        .edit-card h2 {
+          color: var(--gray-900);
+          font-size: 20px;
+          font-weight: 700;
           text-align: center;
+          margin: 0 0 24px;
+          letter-spacing: -0.4px;
         }
 
-        .profile-form {
+        .edit-info {
+          width: 100%;
+        }
+
+        .edit-form {
           display: flex;
           flex-direction: column;
-          gap: 15px;
+          gap: 18px;
         }
 
         .form-group {
@@ -358,72 +427,127 @@ const Profile = () => {
         }
 
         .form-group label {
-          margin-bottom: 5px;
-          font-weight: 500;
-          color: #333;
+          display: block;
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--gray-700);
+          margin-bottom: 6px;
+          letter-spacing: 0.01em;
         }
 
         .form-group input {
-          padding: 12px;
+          width: 100%;
+          padding: 11px 14px;
           border: 1.5px solid var(--gray-200);
-          border-radius: 8px;
-          font-size: 16px;
-          transition: border-color 0.2s;
+          border-radius: var(--radius-xs);
+          font-size: 15px;
+          color: var(--gray-900);
+          background: var(--white);
+          transition: border-color 0.2s, box-shadow 0.2s;
+          outline: none;
         }
 
         .form-group input:focus {
-          outline: none;
           border-color: var(--brand);
+          box-shadow: 0 0 0 3px rgba(232, 93, 4, 0.12);
         }
 
         .form-actions {
           display: flex;
           gap: 12px;
-          margin-top: 10px;
+          margin-top: 8px;
         }
 
         .form-actions .btn {
           flex: 1;
         }
 
+        .btn-secondary {
+          background: var(--gray-700);
+          color: var(--white);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+          background: var(--gray-900);
+        }
+
+        .btn-primary {
+          background: var(--brand);
+          color: var(--white);
+          box-shadow: 0 2px 6px rgba(232, 93, 4, 0.30);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+          background: var(--brand-dark);
+          box-shadow: 0 4px 10px rgba(232, 93, 4, 0.35);
+        }
+
         .alert {
-          padding: 15px;
-          border-radius: 8px;
-          margin-bottom: 20px;
-          text-align: center;
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          padding: 12px 14px;
+          border-radius: var(--radius-xs);
+          font-size: 14px;
+          line-height: 1.5;
+          margin-bottom: 18px;
         }
 
         .alert-success {
-          background-color: #dcfce7;
-          color: #166534;
+          background: var(--green-bg);
+          color: #15803d;
           border: 1px solid #bbf7d0;
         }
 
         .alert-error {
-          background-color: #fee2e2;
-          color: #991b1b;
+          background: var(--red-bg);
+          color: #b91c1c;
           border: 1px solid #fecaca;
         }
 
         @media (max-width: 768px) {
-          .profile-card {
-            padding: 30px 20px;
-            gap: 20px;
+          .container {
+            padding: 16px;
+          }
+
+          .profile-header {
+            padding: 16px 20px;
+            flex-direction: column;
+            gap: 12px;
+            text-align: center;
+          }
+
+          .profile-header h1 {
+            font-size: 20px;
+          }
+
+          .profile-card,
+          .edit-card {
+            max-width: 100%;
+          }
+
+          .profile-header-section {
+            padding: 24px;
+          }
+
+          .profile-body {
+            padding: 24px;
           }
 
           .detail-item {
             flex-direction: column;
-            gap: 4px;
+            gap: 8px;
             align-items: flex-start;
+            text-align: left;
           }
 
-          .button-group {
-            flex-direction: column;
-            gap: 10px;
-          }
-
+          .button-group,
           .form-actions {
             flex-direction: column;
+          }
+
+          .btn {
+            width: 100%;
           }
         }
       `}</style>
