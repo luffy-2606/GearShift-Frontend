@@ -42,7 +42,7 @@ frontend/
 
 ```bash
 # 1. Clone the repo
-git clone https://github.com/naumaniqbal2005/GearShift-Frontend.git
+git clone https://github.com/luffy-2606/GearShift-Frontend.git
 cd GearShift-Frontend
 
 # 2. Install dependencies
