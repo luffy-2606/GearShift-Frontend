@@ -35,6 +35,9 @@ const Dashboard = () => {
             <Link to="/shops" className="btn" style={{ textDecoration: 'none', display: 'inline-block' }}>
               Find Shops
             </Link>
+            <Link to="/mechanics" className="btn" style={{ textDecoration: 'none', display: 'inline-block' }}>
+              Find Mechanics
+            </Link>
             <Link to="/service-history" className="btn" style={{ textDecoration: 'none', display: 'inline-block' }}>
               Service History
             </Link>

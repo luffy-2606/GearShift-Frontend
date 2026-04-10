@@ -9,6 +9,7 @@ import OAuthCallback from './components/OAuthCallback';
 import Profile from './components/Profile';
 import ShopsList from './components/ShopsList';
 import ServiceHistory from './components/ServiceHistory';
+import MechanicsList from './components/MechanicsList';
 import SystemMessages from './components/SystemMessages';
 import './App.css';
 
@@ -63,6 +64,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ShopsList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mechanics"
+              element={
+                <ProtectedRoute>
+                  <MechanicsList />
                 </ProtectedRoute>
               }
             />
