@@ -41,6 +41,9 @@ const Dashboard = () => {
             <Link to="/service-history" className="btn" style={{ textDecoration: 'none', display: 'inline-block' }}>
               Service History
             </Link>
+            <Link to="/cost-insights" className="btn" style={{ textDecoration: 'none', display: 'inline-block' }}>
+              Cost Insights
+            </Link>
             <Link to="/profile" className="btn" style={{ textDecoration: 'none', display: 'inline-block' }}>
               My Profile
             </Link>

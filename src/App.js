@@ -10,6 +10,7 @@ import Profile from './components/Profile';
 import ShopsList from './components/ShopsList';
 import ServiceHistory from './components/ServiceHistory';
 import MechanicsList from './components/MechanicsList';
+import CostInsights from './components/CostInsights';
 import SystemMessages from './components/SystemMessages';
 import './App.css';
 
@@ -80,6 +81,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <ServiceHistory />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/cost-insights"
+              element={
+                <ProtectedRoute>
+                  <CostInsights />
                 </ProtectedRoute>
               }
             />
