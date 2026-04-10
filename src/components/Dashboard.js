@@ -30,12 +30,34 @@ const Dashboard = () => {
         </p>
         
         <div style={{ marginTop: '30px' }}>
+          <h3>Quick Actions:</h3>
+          <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap' }}>
+            <Link to="/shops" className="btn" style={{ textDecoration: 'none', display: 'inline-block' }}>
+              Find Shops
+            </Link>
+            <Link to="/service-history" className="btn" style={{ textDecoration: 'none', display: 'inline-block' }}>
+              Service History
+            </Link>
+            <Link to="/profile" className="btn" style={{ textDecoration: 'none', display: 'inline-block' }}>
+              My Profile
+            </Link>
+          </div>
+        </div>
+        
+        <div style={{ marginTop: '30px' }}>
+          <h3>Features Available Now:</h3>
+          <ul style={{ color: '#666', lineHeight: '1.8' }}>
+            <li>Find and book trusted local mechanics</li>
+            <li>Service history tracking and maintenance reminders</li>
+            <li>Compare prices and services across shops</li>
+          </ul>
+        </div>
+        
+        <div style={{ marginTop: '30px' }}>
           <h3>Features Coming Soon:</h3>
           <ul style={{ color: '#666', lineHeight: '1.8' }}>
             <li>Vehicle diagnostic tools and error code interpretation</li>
-            <li>Find and book trusted local mechanics</li>
             <li>Compare prices for spare parts from multiple vendors</li>
-            <li>Service history tracking and maintenance reminders</li>
             <li>Real-time parts availability and pricing</li>
           </ul>
         </div>
