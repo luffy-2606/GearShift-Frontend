@@ -7,6 +7,11 @@ import Dashboard from './components/Dashboard';
 import AdminDashboard from './components/AdminDashboard';
 import OAuthCallback from './components/OAuthCallback';
 import Profile from './components/Profile';
+import ShopsList from './components/ShopsList';
+import ServiceHistory from './components/ServiceHistory';
+import MechanicsList from './components/MechanicsList';
+import CostInsights from './components/CostInsights';
+import SystemMessages from './components/SystemMessages';
 import './App.css';
 
 function ProtectedRoute({ children, adminOnly = false }) {
@@ -34,6 +39,7 @@ function App() {
     <AuthProvider>
       <Router>
         <div className="App">
+          <SystemMessages />
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -51,6 +57,38 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Profile />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/shops"
+              element={
+                <ProtectedRoute>
+                  <ShopsList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/mechanics"
+              element={
+                <ProtectedRoute>
+                  <MechanicsList />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/service-history"
+              element={
+                <ProtectedRoute>
+                  <ServiceHistory />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/cost-insights"
+              element={
+                <ProtectedRoute>
+                  <CostInsights />
                 </ProtectedRoute>
               }
             />
