@@ -41,11 +41,6 @@ const Footer = () => {
           }}>
             Connecting drivers with trusted automotive professionals through smart technology and transparent service.
           </p>
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <span style={{ color: 'var(--dark-text-secondary)', cursor: 'pointer', marginRight: '0.5rem' }}>📘</span>
-            <span style={{ color: 'var(--dark-text-secondary)', cursor: 'pointer', marginRight: '0.5rem' }}>🐦</span>
-            <span style={{ color: 'var(--dark-text-secondary)', cursor: 'pointer' }}>📷</span>
-          </div>
         </div>
 
         {/* Quick Links */}

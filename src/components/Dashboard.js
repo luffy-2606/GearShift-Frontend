@@ -12,8 +12,6 @@ import Footer from './Footer';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
-  const firstName = user?.firstName ?? user?.first_name;
-  const lastName = user?.lastName ?? user?.last_name;
 
   return (
     <div style={{ background: 'var(--dark-bg)' }}>
