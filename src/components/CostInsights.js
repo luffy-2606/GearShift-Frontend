@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../lib/apiClient';
 import './CostInsights.css';
 
 const CostInsights = () => {
@@ -16,7 +16,7 @@ const CostInsights = () => {
   const fetchCostInsights = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/cost-insights', {
+      const response = await apiClient.get('/api/cost-insights', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -33,7 +33,7 @@ const CostInsights = () => {
   const fetchSpendingTrends = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/cost-insights/trends', {
+      const response = await apiClient.get('/api/cost-insights/trends', {
         headers: { Authorization: `Bearer ${token}` }
       });
       

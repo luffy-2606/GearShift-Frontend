@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../lib/apiClient';
 import AppointmentBooking from './AppointmentBooking';
 import './ShopsList.css';
 
@@ -17,15 +17,6 @@ const ShopsList = () => {
     shop: null,
     selectedServices: []
   });
-
-  useEffect(() => {
-    fetchShops();
-    getUserLocation();
-  }, []);
-
-  useEffect(() => {
-    fetchShops();
-  }, [filters.service_type, filters.radius]);
 
   const getUserLocation = () => {
     if (navigator.geolocation) {
@@ -61,7 +52,7 @@ const ShopsList = () => {
         params.append('service_type', filters.service_type);
       }
 
-      const response = await axios.get(`/api/shops?${params}`);
+      const response = await apiClient.get(`/api/shops?${params}`);
       
       if (response.data.success) {
         setShops(response.data.data);
@@ -73,6 +64,15 @@ const ShopsList = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchShops();
+    getUserLocation();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    fetchShops();
+  }, [filters.service_type, filters.radius]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleServiceFilter = (serviceType) => {
     setFilters(prev => ({

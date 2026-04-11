@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../lib/apiClient';
 import './MechanicsList.css';
 
 const MechanicsList = () => {
@@ -12,15 +12,6 @@ const MechanicsList = () => {
     service_type: '',
     specialization: ''
   });
-
-  useEffect(() => {
-    fetchMechanics();
-    getUserLocation();
-  }, []);
-
-  useEffect(() => {
-    fetchMechanics();
-  }, [filters.service_type, filters.specialization, filters.radius]);
 
   const getUserLocation = () => {
     if (navigator.geolocation) {
@@ -60,7 +51,7 @@ const MechanicsList = () => {
         params.append('specialization', filters.specialization);
       }
 
-      const response = await axios.get(`/api/mechanics?${params}`);
+      const response = await apiClient.get(`/api/mechanics?${params}`);
       
       if (response.data.success) {
         setMechanics(response.data.data);
@@ -72,6 +63,15 @@ const MechanicsList = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchMechanics();
+    getUserLocation();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    fetchMechanics();
+  }, [filters.service_type, filters.specialization, filters.radius]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleServiceFilter = (serviceType) => {
     setFilters(prev => ({

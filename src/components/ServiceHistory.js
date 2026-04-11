@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../lib/apiClient';
 import { useSearchParams } from 'react-router-dom';
 
 const ServiceHistory = () => {
@@ -22,18 +22,18 @@ const ServiceHistory = () => {
         handleAppointmentConfirmation(confirmAppointmentId);
       }
     }
-  }, [vehicles]);
+  }, [vehicles, searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     if (selectedVehicle) {
       fetchServiceHistory();
     }
-  }, [selectedVehicle]);
+  }, [selectedVehicle]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchVehicles = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/vehicles', {
+      const response = await apiClient.get('/api/vehicles', {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -54,7 +54,7 @@ const ServiceHistory = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
-      const response = await axios.get(`/api/vehicles/${selectedVehicle}/service-history`, {
+      const response = await apiClient.get(`/api/vehicles/${selectedVehicle}/service-history`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       
@@ -80,7 +80,7 @@ const ServiceHistory = () => {
       const token = localStorage.getItem('token');
       
       // First, get appointment details
-      const appointmentResponse = await axios.get(`/api/appointments`, {
+      const appointmentResponse = await apiClient.get(`/api/appointments`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -93,7 +93,7 @@ const ServiceHistory = () => {
         
         if (appointment) {
           // Update appointment status to completed
-          const statusResponse = await axios.put(`/api/appointments/${appointmentId}/status`, 
+          const statusResponse = await apiClient.put(`/api/appointments/${appointmentId}/status`, 
             { status: 'completed' },
             { headers: { Authorization: `Bearer ${token}` } }
           );
@@ -119,7 +119,7 @@ const ServiceHistory = () => {
             
             console.log('Service history data:', serviceData);
             
-            const serviceResponse = await axios.post(`/api/appointments/${appointmentId}/service-history`, 
+            const serviceResponse = await apiClient.post(`/api/appointments/${appointmentId}/service-history`, 
               serviceData,
               { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -330,7 +330,6 @@ const AddServiceModal = ({ vehicleId, onClose, onSuccess }) => {
     
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
       
       // This would be a different endpoint for manual service entry
       // For now, we'll just close the modal
