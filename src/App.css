@@ -1350,6 +1350,7 @@ body {
 
 .footer-links li {
   margin-bottom: 0.5rem;
+  color: var(--dark-text-secondary);
 }
 
 .footer-links a {
