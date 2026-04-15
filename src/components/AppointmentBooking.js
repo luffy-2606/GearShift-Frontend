@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import apiClient from '../lib/apiClient';
 
 const AppointmentBooking = ({ shop, selectedServices, onClose }) => {
   const [vehicles, setVehicles] = useState([]);
@@ -16,10 +16,7 @@ const AppointmentBooking = ({ shop, selectedServices, onClose }) => {
 
   const fetchVehicles = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/vehicles', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await apiClient.get('/api/vehicles');
       
       if (response.data.success) {
         setVehicles(response.data.data);
@@ -56,9 +53,7 @@ const AppointmentBooking = ({ shop, selectedServices, onClose }) => {
         customer_notes: notes
       };
 
-      const response = await axios.post('/api/appointments', appointmentData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await apiClient.post('/api/appointments', appointmentData);
 
       if (response.data.success) {
         alert('Appointment booked successfully!');
