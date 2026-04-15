@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { MapPin, ArrowRight, Star, Shield, Zap } from 'lucide-react';
 
 const HeroSection = () => {

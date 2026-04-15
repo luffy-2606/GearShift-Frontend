@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Wrench, MapPin, Phone } from 'lucide-react';
+import { Wrench, MapPin, Phone, LucideMail } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -41,11 +41,6 @@ const Footer = () => {
           }}>
             Connecting drivers with trusted automotive professionals through smart technology and transparent service.
           </p>
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <span style={{ color: 'var(--dark-text-secondary)', cursor: 'pointer', marginRight: '0.5rem' }}>📘</span>
-            <span style={{ color: 'var(--dark-text-secondary)', cursor: 'pointer', marginRight: '0.5rem' }}>🐦</span>
-            <span style={{ color: 'var(--dark-text-secondary)', cursor: 'pointer' }}>📷</span>
-          </div>
         </div>
 
         {/* Quick Links */}
@@ -77,15 +72,15 @@ const Footer = () => {
           <h3>Contact Us</h3>
           <ul className="footer-links">
             <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <MapPin size={16} style={{ color: 'var(--dark-accent)' }} />
+              <MapPin size={16} style={{ color: 'var(--dark-text-secondary)' }} />
               <span>123 Automotive Blvd, Car City, CC 12345</span>
             </li>
             <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Phone size={16} style={{ color: 'var(--dark-accent)' }} />
+              <Phone size={16} style={{ color: 'var(--dark-text-secondary)' }} />
               <span>1-800-GEARSHIFT</span>
             </li>
             <li style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ color: 'var(--dark-accent)', marginRight: '0.5rem' }}>📧</span>
+              <LucideMail size={16} style={{ color: 'var(--dark-text-secondary)'}}/>
               <span>support@gearshift.com</span>
             </li>
           </ul>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Star, Shield, Zap, Wrench, Clock, DollarSign, Users, Award } from 'lucide-react';
+import { MapPin, Star, Shield, Zap, Wrench, Clock } from 'lucide-react';
 
 const FeaturesSection = () => {
   const features = [

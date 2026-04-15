@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Star, MapPin, Wrench, ArrowRight } from 'lucide-react';
+import { Star, MapPin, ArrowRight } from 'lucide-react';
 
 const ShopsSection = () => {
   const featuredShops = [
