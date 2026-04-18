@@ -93,27 +93,44 @@ const Dashboard = () => {
 
           {/* User Info - Right */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', position: 'absolute', left: '90%', transform: 'translateX(-50%)' }}>
-            <Link to="/profile" className="btn-profile" style={{
-              background: 'var(--dark-surface)',
-              border: '1px solid var(--dark-border)',
-              color: 'var(--dark-text)',
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--radius-sm)',
-              textDecoration: 'none',
-              fontSize: '0.875rem'
-            }}>
-              Profile
-            </Link>
-            <button onClick={logout} className="btn-logout" style={{
-              background: 'var(--dark-accent)',
-              color: 'var(--dark-text)',
-              border: 'none',
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--radius-sm)',
-              fontSize: '0.875rem'
-            }}>
-              Logout
-            </button>
+            {user ? (
+              <>
+                <Link to="/profile" className="btn-profile" style={{
+                  background: 'var(--dark-surface)',
+                  border: '1px solid var(--dark-border)',
+                  color: 'var(--dark-text)',
+                  padding: '0.5rem 1rem',
+                  borderRadius: 'var(--radius-sm)',
+                  textDecoration: 'none',
+                  fontSize: '0.875rem'
+                }}>
+                  Profile
+                </Link>
+                <button onClick={logout} className="btn-logout" style={{
+                  background: 'var(--dark-accent)',
+                  color: 'var(--dark-text)',
+                  border: 'none',
+                  padding: '0.5rem 1rem',
+                  borderRadius: 'var(--radius-sm)',
+                  fontSize: '0.875rem'
+                }}>
+                  Logout
+                </button>
+              </>
+            ) : (
+              <Link to="/login" style={{
+                background: 'var(--dark-accent)',
+                color: 'var(--dark-text)',
+                border: 'none',
+                padding: '0.5rem 1rem',
+                borderRadius: 'var(--radius-sm)',
+                textDecoration: 'none',
+                fontSize: '0.875rem',
+                display: 'inline-block'
+              }}>
+                Login
+              </Link>
+            )}
           </div>
         </div>
       </div>

@@ -12,6 +12,7 @@ import ServiceHistory from './components/ServiceHistory';
 import MechanicsList from './components/MechanicsList';
 import CostInsights from './components/CostInsights';
 import SystemMessages from './components/SystemMessages';
+import LandingPage from './components/LandingPage';
 import './App.css';
 
 function ProtectedRoute({ children, adminOnly = false }) {
@@ -101,7 +102,7 @@ function App() {
               }
             />
             <Route path="/admin" element={<Navigate to="/admin/dashboard" />} />
-            <Route path="/" element={<Navigate to="/dashboard" />} />
+            <Route path="/" element={<LandingPage />} />
           </Routes>
         </div>
       </Router>
