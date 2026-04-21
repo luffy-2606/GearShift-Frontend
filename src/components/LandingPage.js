@@ -2,7 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 import LP_hero from './LP_hero';
+import LP_Context from './LP_Context';
 import LP_Video from './LP_Video';
+import LP_Review from './LP_Review';
+import LP_Features from './LP_Features';
 
 const LandingPage = () => {
   const { user, logout } = useAuth();
@@ -189,9 +192,14 @@ const LandingPage = () => {
       <div>
         {/* Hero Section */}
         <LP_hero />
+        {/* Context Section */}
+        <LP_Context />
         {/* Video Section */}
         <LP_Video />
         {/* How It Works */}
+        <LP_Features />
+        {/* Reviews */}
+        <LP_Review />
         {/* Features */}
         {/* Shops */}
         {/* Testimonials */}

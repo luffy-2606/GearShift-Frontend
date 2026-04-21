@@ -1,10 +1,41 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 
 const LP_Video = () => {
   const [hoveredCard, setHoveredCard] = useState(null);
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        } else {
+          setIsVisible(false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, []);
 
   return (
-    <div style={{ position: 'relative', width: '100%', overflow: 'hidden' }}>
+    <div 
+      ref={sectionRef}
+      style={{ 
+        position: 'relative', 
+        width: '100%', 
+        overflow: 'hidden'
+      }}>
       {/* Video Background */}
       <video
         src="/Gearshift/video.mp4"
@@ -79,7 +110,10 @@ const LP_Video = () => {
           marginBottom: '50px',
           fontFamily: 'Times New Roman, serif',
           fontWeight: 'bold',
-          letterSpacing: '1px'
+          letterSpacing: '1px',
+          opacity: isVisible ? 1 : 0,
+          transform: isVisible ? 'translateX(0)' : 'translateX(-50px)',
+          transition: 'opacity 0.8s ease, transform 0.8s ease'
         }}>
           What We Offer
         </h2>
@@ -107,7 +141,8 @@ const LP_Video = () => {
               display: 'flex',
               flexDirection: 'column',
               minHeight: '250px',
-              height: '100%'
+              height: '100%',
+              transform: hoveredCard === 1 ? 'translateY(-8px)' : 'translateY(0)'
             }}
           >
             <h3 style={{
@@ -145,7 +180,8 @@ const LP_Video = () => {
               display: 'flex',
               flexDirection: 'column',
               minHeight: '250px',
-              height: '100%'
+              height: '100%',
+              transform: hoveredCard === 2 ? 'translateY(-8px)' : 'translateY(0)'
             }}
           >
             <h3 style={{
@@ -183,7 +219,8 @@ const LP_Video = () => {
               display: 'flex',
               flexDirection: 'column',
               minHeight: '250px',
-              height: '100%'
+              height: '100%',
+              transform: hoveredCard === 3 ? 'translateY(-8px)' : 'translateY(0)'
             }}
           >
             <h3 style={{
@@ -221,7 +258,8 @@ const LP_Video = () => {
               display: 'flex',
               flexDirection: 'column',
               minHeight: '250px',
-              height: '100%'
+              height: '100%',
+              transform: hoveredCard === 4 ? 'translateY(-8px)' : 'translateY(0)'
             }}
           >
             <h3 style={{
@@ -259,7 +297,8 @@ const LP_Video = () => {
               display: 'flex',
               flexDirection: 'column',
               minHeight: '250px',
-              height: '100%'
+              height: '100%',
+              transform: hoveredCard === 5 ? 'translateY(-8px)' : 'translateY(0)'
             }}
           >
             <h3 style={{
@@ -297,7 +336,8 @@ const LP_Video = () => {
               display: 'flex',
               flexDirection: 'column',
               minHeight: '250px',
-              height: '100%'
+              height: '100%',
+              transform: hoveredCard === 6 ? 'translateY(-8px)' : 'translateY(0)'
             }}
           >
             <h3 style={{
