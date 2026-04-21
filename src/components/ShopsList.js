@@ -150,8 +150,8 @@ const ShopCard = ({ shop, onBookAppointment }) => {
 
   const handleServiceToggle = (service) => {
     setSelectedServices(prev => 
-      prev.includes(service) 
-        ? prev.filter(s => s !== service)
+      prev.find(s => s.id === service.id) 
+        ? prev.filter(s => s.id !== service.id)
         : [...prev, service]
     );
   };
@@ -195,14 +195,14 @@ const ShopCard = ({ shop, onBookAppointment }) => {
         <div className="services-section">
           <h4>Available Services:</h4>
           <div className="services-list">
-            {shop.services_offered.map(service => (
-              <label key={service} className="service-item">
+            {(shop.available_services || []).map(service => (
+              <label key={service.id} className="service-item">
                 <input
                   type="checkbox"
-                  checked={selectedServices.includes(service)}
+                  checked={selectedServices.find(s => s.id === service.id)}
                   onChange={() => handleServiceToggle(service)}
                 />
-                {service}
+                {service.name} - ${service.base_price?.toFixed(2) || 'N/A'}
               </label>
             ))}
           </div>

@@ -18,8 +18,9 @@ const ServiceHistory = () => {
     // Check for appointment confirmation only after vehicles are loaded
     if (vehicles.length > 0) {
       const confirmAppointmentId = searchParams.get('confirm');
-      if (confirmAppointmentId) {
+      if (confirmAppointmentId && !sessionStorage.getItem(`confirmed-${confirmAppointmentId}`)) {
         handleAppointmentConfirmation(confirmAppointmentId);
+        sessionStorage.setItem(`confirmed-${confirmAppointmentId}`, 'true');
       }
     }
   }, [vehicles, searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -225,75 +226,95 @@ const ServiceHistoryCard = ({ service, onVisitConfirmation }) => {
 
   return (
     <div className="service-card">
-      <div className="service-header">
-        <h4>{service.service_type}</h4>
-        <div className="service-date">{formatDate(service.service_date)}</div>
-      </div>
-      
-      <div className="service-shop">
-        <strong>Shop:</strong> {service.shop?.name || 'Unknown'}
-      </div>
-      
-      <div className="service-summary">
-        <p><strong>Mileage at service:</strong> {service.mileage_at_service?.toLocaleString()} miles</p>
-        <p><strong>Cost:</strong> ${service.total_cost?.toFixed(2) || 'N/A'}</p>
-        <p><strong>Duration:</strong> {service.duration_minutes || 'N/A'} minutes</p>
+      {/* Main Service Info Card */}
+      <div className="service-info-card">
+        <div className="service-header">
+          <h4>{service.service_type}</h4>
+          <div className="service-date">{formatDate(service.service_date)}</div>
+        </div>
+        
+        {service.description && (
+          <div className="service-description">
+            <p>{service.description}</p>
+          </div>
+        )}
       </div>
 
-      {service.description && (
-        <div className="service-description">
-          <p>{service.description}</p>
+      {/* Shop Info Card */}
+      <div className="detail-card">
+        <div className="card-title">Shop</div>
+        <div className="card-content">
+          <p><strong>Name:</strong> {service.shop?.name || 'Unknown'}</p>
+          <p><strong>Address:</strong> {service.shop?.address || 'N/A'}</p>
+          <p><strong>Phone:</strong> {service.shop?.phone || 'N/A'}</p>
+        </div>
+      </div>
+
+      {/* Mechanic Card */}
+      <div className="detail-card">
+        <div className="card-title">Mechanic</div>
+        <div className="card-content">
+          <p>{service.mechanic?.first_name} {service.mechanic?.last_name}</p>
+        </div>
+      </div>
+
+      {/* Mileage Card */}
+      <div className="detail-card">
+        <div className="card-title">Mileage</div>
+        <div className="card-content">
+          <p><strong>At Service:</strong> {service.mileage_at_service?.toLocaleString()} miles</p>
+          <p><strong>Duration:</strong> {service.duration_minutes || 'N/A'} minutes</p>
+        </div>
+      </div>
+
+      {/* Cost Breakdown Card */}
+      <div className="detail-card">
+        <div className="card-title">Cost Breakdown</div>
+        <div className="card-content">
+          {service.labor_cost && (
+            <p><strong>Labor:</strong> ${service.labor_cost.toFixed(2)}</p>
+          )}
+          {service.parts_cost && (
+            <p><strong>Parts:</strong> ${service.parts_cost.toFixed(2)}</p>
+          )}
+          {service.tax_amount && (
+            <p><strong>Tax:</strong> ${service.tax_amount.toFixed(2)}</p>
+          )}
+          <p><strong>Total:</strong> ${service.total_cost?.toFixed(2) || 'N/A'}</p>
+        </div>
+      </div>
+
+      {/* Warranty Card */}
+      {service.warranty_months && (
+        <div className="detail-card">
+          <div className="card-title">Warranty</div>
+          <div className="card-content">
+            <p><strong>Duration:</strong> {service.warranty_months} months</p>
+            <p><strong>Mileage:</strong> {service.warranty_mileage?.toLocaleString()} miles</p>
+          </div>
         </div>
       )}
 
-      <button 
-        className="details-toggle"
-        onClick={() => setShowDetails(!showDetails)}
-      >
-        {showDetails ? 'Hide' : 'Show'} Details
-      </button>
+      {/* Next Service Card */}
+      {service.next_service_due_date && (
+        <div className="detail-card">
+          <div className="card-title">Next Service</div>
+          <div className="card-content">
+            <p><strong>Date:</strong> {formatDate(service.next_service_due_date)}</p>
+            {service.next_service_due_mileage && (
+              <p><strong>Mileage:</strong> {service.next_service_due_mileage?.toLocaleString()} miles</p>
+            )}
+          </div>
+        </div>
+      )}
 
-      {showDetails && (
-        <div className="service-details">
-          <div className="detail-row">
-            <strong>Shop Address:</strong> {service.shop?.address || 'N/A'}
+      {/* Notes Card */}
+      {service.notes && (
+        <div className="detail-card">
+          <div className="card-title">Notes</div>
+          <div className="card-content">
+            <p>{service.notes}</p>
           </div>
-          <div className="detail-row">
-            <strong>Shop Phone:</strong> {service.shop?.phone || 'N/A'}
-          </div>
-          <div className="detail-row">
-            <strong>Mechanic:</strong> {service.mechanic?.first_name} {service.mechanic?.last_name}
-          </div>
-          {service.labor_cost && (
-            <div className="detail-row">
-              <strong>Labor Cost:</strong> ${service.labor_cost.toFixed(2)}
-            </div>
-          )}
-          {service.parts_cost && (
-            <div className="detail-row">
-              <strong>Parts Cost:</strong> ${service.parts_cost.toFixed(2)}
-            </div>
-          )}
-          {service.tax_amount && (
-            <div className="detail-row">
-              <strong>Tax:</strong> ${service.tax_amount.toFixed(2)}
-            </div>
-          )}
-          {service.warranty_months && (
-            <div className="detail-row">
-              <strong>Warranty:</strong> {service.warranty_months} months / {service.warranty_mileage?.toLocaleString()} miles
-            </div>
-          )}
-          {service.next_service_due_date && (
-            <div className="detail-row">
-              <strong>Next Service Due:</strong> {formatDate(service.next_service_due_date)}
-            </div>
-          )}
-          {service.notes && (
-            <div className="detail-row">
-              <strong>Notes:</strong> {service.notes}
-            </div>
-          )}
         </div>
       )}
 
