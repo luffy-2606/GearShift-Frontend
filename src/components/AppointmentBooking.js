@@ -10,6 +10,9 @@ const AppointmentBooking = ({ shop, selectedServices, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1); // 1: vehicle selection, 2: date/time, 3: confirmation
 
+  // Calculate total cost from selected services base prices
+  const totalCost = selectedServices.reduce((sum, service) => sum + (service.base_price || 0), 0);
+
   useEffect(() => {
     fetchVehicles();
   }, []);
@@ -47,10 +50,12 @@ const AppointmentBooking = ({ shop, selectedServices, onClose }) => {
       const appointmentData = {
         shop_id: shop.id,
         vehicle_id: selectedVehicle,
-        service_name: selectedServices.join(', '),
-        service_description: `Services: ${selectedServices.join(', ')}`,
+        service_id: selectedServices[0]?.id || null,
+        service_name: selectedServices.map(s => s.name).join(', '),
+        service_description: `Services: ${selectedServices.map(s => s.name).join(', ')}`,
         scheduled_date: `${scheduledDate}T${scheduledTime}:00`,
-        customer_notes: notes
+        customer_notes: notes,
+        estimated_cost: totalCost
       };
 
       const response = await apiClient.post('/api/appointments', appointmentData);
@@ -191,13 +196,18 @@ const AppointmentBooking = ({ shop, selectedServices, onClose }) => {
           <div className="summary-section">
             <h4>Services:</h4>
             {selectedServices.map(service => (
-              <p key={service}>\u2022 {service}</p>
+              <p key={service.id}>\u2022 {service.name} - ${service.base_price?.toFixed(2) || 'N/A'}</p>
             ))}
           </div>
 
           <div className="summary-section">
             <h4>Date & Time:</h4>
             <p>{new Date(scheduledDate).toLocaleDateString()} at {scheduledTime}</p>
+          </div>
+
+          <div className="summary-section">
+            <h4>Total Cost:</h4>
+            <p>${totalCost.toFixed(2)}</p>
           </div>
 
           {notes && (
