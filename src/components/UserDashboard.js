@@ -131,13 +131,15 @@ const UserDashboard = () => {
       const fetchServiceHistory = async () => {
         try {
           const token = localStorage.getItem('token');
-          const firstVehicleId = vehicles[0].id;
-          console.log('Fetching service history for vehicle:', firstVehicleId);
-          const serviceHistoryResponse = await apiClient.get(`/api/vehicles/${firstVehicleId}/service-history`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          console.log('Service history response:', serviceHistoryResponse.data);
-          setServiceHistory(serviceHistoryResponse.data.data || []);
+          const historyResponses = await Promise.all(
+            vehicles.map((vehicle) =>
+              apiClient.get(`/api/vehicles/${vehicle.id}/service-history`, {
+                headers: { Authorization: `Bearer ${token}` }
+              })
+            )
+          );
+          const allHistory = historyResponses.flatMap((response) => response.data?.data || []);
+          setServiceHistory(allHistory);
         } catch (err) {
           console.error('Error fetching service history:', err);
           // Continue with empty service history
@@ -175,19 +177,18 @@ const UserDashboard = () => {
     const vehicle = vehicles.length > 0 ? vehicles[0] : null;
     const userName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || 'User';
 
-    console.log('Processing dashboard data - serviceHistory:', serviceHistory);
-    console.log('Processing dashboard data - vehicles:', vehicles);
-
     // Process service history to get shops visited and maintenance reminders
     const shopsMap = new Map();
     const maintenanceReminders = [];
+    const vehicleMileageById = new Map(
+      vehicles.map((v) => [v.id, Number(v.mileage) || 0])
+    );
 
-    // If no service history, use mock data for demonstration
+    // If no service history, return live empty reminders and neutral score
     if (!serviceHistory || serviceHistory.length === 0) {
-      console.log('No service history found, using mock data');
       return {
         userName,
-        garageCondition: 85,
+        garageCondition: 100,
         monthlyBudgetSpent: 62,
         vehicle: vehicle ? {
           make: vehicle.make || 'N/A',
@@ -206,30 +207,19 @@ const UserDashboard = () => {
           color: 'N/A',
           licensePlate: 'N/A'
         },
-        maintenanceReminders: [
-          { id: 1, service: 'Oil Change', dueDate: '2026-05-15', priority: 'high' },
-          { id: 2, service: 'Tire Rotation', dueDate: '2026-06-01', priority: 'medium' },
-          { id: 3, service: 'Brake Inspection', dueDate: '2026-07-10', priority: 'low' }
-        ],
-        shopsVisited: [
-          { id: 1, name: 'AutoFix Garage', visits: 5, lastVisit: '2026-04-20' },
-          { id: 2, name: 'QuickService Center', visits: 3, lastVisit: '2026-03-15' },
-          { id: 3, name: 'Premium Motors', visits: 2, lastVisit: '2026-02-28' }
-        ],
-        mechanicsWorkedWith: [
-          { id: 1, name: 'John Smith', specialty: 'Engine Specialist', rating: 4.8 },
-          { id: 2, name: 'Mike Johnson', specialty: 'Brake Expert', rating: 4.5 },
-          { id: 3, name: 'Sarah Williams', specialty: 'General Mechanic', rating: 4.9 }
-        ]
+        maintenanceReminders: [],
+        shopsVisited: [],
+        mechanicsWorkedWith: []
       };
     }
 
+    let dueOrOverdueCount = 0;
+    const upcomingThresholdMiles = 500;
+
     serviceHistory.forEach((service) => {
-      console.log('Processing service:', service);
       // Track shops
       if (service.shop) {
         const shopId = service.shop.id;
-        console.log('Found shop:', service.shop);
         if (shopsMap.has(shopId)) {
           const shopData = shopsMap.get(shopId);
           shopsMap.set(shopId, {
@@ -247,17 +237,25 @@ const UserDashboard = () => {
         }
       }
 
-      // Create maintenance reminders from service history
-      maintenanceReminders.push({
-        id: service.id,
-        service: service.service_type || 'Service',
-        dueDate: service.service_date,
-        priority: 'medium'
-      });
+      const currentMileage = vehicleMileageById.get(service.vehicle_id) || 0;
+      const nextDueMileage = Number(service.next_service_due_mileage);
+      if (!Number.isFinite(nextDueMileage) || nextDueMileage <= 0) return;
+
+      const milesRemaining = nextDueMileage - currentMileage;
+      if (milesRemaining <= upcomingThresholdMiles) {
+        const isDue = currentMileage >= nextDueMileage;
+        if (isDue) dueOrOverdueCount += 1;
+
+        maintenanceReminders.push({
+          id: service.id,
+          service: service.service_type || 'Service',
+          dueDate: isDue ? 'Due now' : `Due in ${milesRemaining.toLocaleString()} mi`,
+          priority: isDue ? 'high' : milesRemaining <= 250 ? 'medium' : 'low'
+        });
+      }
     });
 
     const shopsVisited = Array.from(shopsMap.values()).slice(0, 3);
-    console.log('Final shopsVisited:', shopsVisited);
 
     // Process mechanics from service history
     const mechanicsMap = new Map();
@@ -277,9 +275,11 @@ const UserDashboard = () => {
 
     const mechanicsWorkedWith = Array.from(mechanicsMap.values()).slice(0, 3);
 
+    const garageCondition = Math.max(0, 100 - (dueOrOverdueCount * 5));
+
     return {
       userName,
-      garageCondition: 85,
+      garageCondition,
       monthlyBudgetSpent: 62,
       vehicle: vehicle ? {
         make: vehicle.make || 'N/A',
@@ -298,7 +298,12 @@ const UserDashboard = () => {
         color: 'N/A',
         licensePlate: 'N/A'
       },
-      maintenanceReminders: maintenanceReminders.slice(0, 3),
+      maintenanceReminders: maintenanceReminders
+        .sort((a, b) => {
+          const priorityRank = { high: 0, medium: 1, low: 2 };
+          return priorityRank[a.priority] - priorityRank[b.priority];
+        })
+        .slice(0, 3),
       shopsVisited,
       mechanicsWorkedWith
     };
