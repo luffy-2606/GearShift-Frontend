@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../lib/apiClient';
 import { useSearchParams } from 'react-router-dom';
+import { updateSystemMessage } from '../lib/systemMessagesStore';
 import { Calendar, Car, DollarSign, Wrench, Clock, MapPin, Phone, User, FileText, AlertCircle, CheckCircle, Search, Filter } from 'lucide-react';
 import './ServiceHistory.css';
 
@@ -20,8 +21,9 @@ const ServiceHistory = () => {
     // Check for appointment confirmation only after vehicles are loaded
     if (vehicles.length > 0) {
       const confirmAppointmentId = searchParams.get('confirm');
+      const confirmMessageId = searchParams.get('msg');
       if (confirmAppointmentId && !sessionStorage.getItem(`confirmed-${confirmAppointmentId}`)) {
-        handleAppointmentConfirmation(confirmAppointmentId);
+        handleAppointmentConfirmation(confirmAppointmentId, confirmMessageId);
         sessionStorage.setItem(`confirmed-${confirmAppointmentId}`, 'true');
       }
     }
@@ -77,7 +79,7 @@ const ServiceHistory = () => {
     setShowAddService(true);
   };
 
-  const handleAppointmentConfirmation = async (appointmentId) => {
+  const handleAppointmentConfirmation = async (appointmentId, messageId) => {
     try {
       console.log('Confirming appointment:', appointmentId);
       const token = localStorage.getItem('token');
@@ -90,7 +92,7 @@ const ServiceHistory = () => {
       console.log('Appointments response:', appointmentResponse.data);
 
       if (appointmentResponse.data.success) {
-        const appointment = appointmentResponse.data.data.find(apt => apt.id === appointmentId);
+        const appointment = appointmentResponse.data.data.find(apt => String(apt.id) === String(appointmentId));
         
         console.log('Found appointment:', appointment);
         
@@ -131,6 +133,9 @@ const ServiceHistory = () => {
 
             if (serviceResponse.data.success) {
               alert('Service has been added to your vehicle history!');
+              if (messageId) {
+                updateSystemMessage(messageId, { status: 'completed', completedAt: new Date().toISOString() });
+              }
               fetchServiceHistory();
             } else {
               alert('Failed to add service history: ' + (serviceResponse.data.message || 'Unknown error'));

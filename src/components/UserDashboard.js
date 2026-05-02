@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../lib/apiClient';
-import { Calendar, DollarSign, Wrench, Car, User, Clock, TrendingUp, MapPin, Phone, Mail, Settings, ArrowRight } from 'lucide-react';
+import { Calendar, DollarSign, Wrench, Car, User, Clock, TrendingUp, MapPin, Phone, Mail, Settings, ArrowRight, Bell } from 'lucide-react';
+import { countSystemMessages } from '../lib/systemMessagesStore';
+import { useNavigate } from 'react-router-dom';
 
 const UserDashboard = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
@@ -14,6 +17,7 @@ const UserDashboard = () => {
   const [costInsights, setCostInsights] = useState(null);
   const [shops, setShops] = useState([]);
   const [error, setError] = useState(null);
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   // Fetch all dashboard data
   useEffect(() => {
@@ -101,6 +105,25 @@ const UserDashboard = () => {
 
     fetchDashboardData();
   }, []);
+
+  useEffect(() => {
+    const refresh = () => setUnreadMessages(countSystemMessages({ status: 'unread' }));
+    refresh();
+    const interval = setInterval(refresh, 5000);
+    const onStorage = (e) => {
+      if (e.key === 'systemMessagesV1' || e.key === 'pendingConfirmations') refresh();
+    };
+    window.addEventListener('storage', onStorage);
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('storage', onStorage);
+    };
+  }, []);
+
+  const systemMessagesLabel = useMemo(
+    () => `System Messages${unreadMessages > 0 ? ` (${unreadMessages})` : ''}`,
+    [unreadMessages]
+  );
 
   // Fetch service history after vehicles are loaded
   useEffect(() => {
@@ -925,6 +948,7 @@ const UserDashboard = () => {
         }}>
           {[
             { icon: Calendar, label: 'Book Appointment', color: '#dc2626' },
+            { icon: Bell, label: systemMessagesLabel, color: '#f59e0b', onClick: () => navigate('/system-messages') },
             { icon: MapPin, label: 'Find Shops', color: '#f59e0b' },
             { icon: Wrench, label: 'Contact Mechanics', color: '#10b981' },
             { icon: Car, label: 'My Vehicles', color: '#3b82f6' }
@@ -943,6 +967,7 @@ const UserDashboard = () => {
                 cursor: 'pointer',
                 transition: 'all 0.2s ease'
               }}
+              onClick={action.onClick}
               onMouseEnter={(e) => {
                 e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
                 e.currentTarget.style.borderColor = action.color;

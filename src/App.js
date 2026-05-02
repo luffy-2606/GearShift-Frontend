@@ -13,6 +13,7 @@ import MechanicsList from './components/MechanicsList';
 import CostInsights from './components/CostInsights';
 import SystemMessages from './components/SystemMessages';
 import LandingPage from './components/LandingPage';
+import SystemMessagesCenter from './components/SystemMessagesCenter';
 import './App.css';
 
 function ProtectedRoute({ children, adminOnly = false }) {
@@ -90,6 +91,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <CostInsights />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/system-messages"
+              element={
+                <ProtectedRoute>
+                  <SystemMessagesCenter />
                 </ProtectedRoute>
               }
             />
