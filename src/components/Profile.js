@@ -19,7 +19,7 @@ const defaultVehicleForm = {
 const Profile = () => {
   const { user, updateUser } = useAuth();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ firstName: '', lastName: '' });
+  const [formData, setFormData] = useState({ firstName: '', lastName: '', budget: '' });
   const [vehicleForm, setVehicleForm] = useState(defaultVehicleForm);
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -32,7 +32,11 @@ const Profile = () => {
     if (user) {
       setFormData({
         firstName: user.firstName || user.first_name || '',
-        lastName: user.lastName || user.last_name || ''
+        lastName: user.lastName || user.last_name || '',
+        budget:
+          user.budget != null && user.budget !== ''
+            ? String(user.budget)
+            : ''
       });
       fetchVehicles();
     }
@@ -65,7 +69,8 @@ const Profile = () => {
     try {
       const response = await apiClient.put('/api/users/profile', {
         firstName: formData.firstName,
-        lastName: formData.lastName
+        lastName: formData.lastName,
+        budget: formData.budget === '' ? null : Number(formData.budget)
       });
       updateUser(response.data.user);
       setMessage('Profile updated successfully.');
@@ -162,6 +167,22 @@ const Profile = () => {
               <div className="form-group">
                 <label>Email</label>
                 <input value={user?.email || ''} disabled />
+              </div>
+              <div className="form-group">
+                <label htmlFor="budget">Monthly spending budget (USD)</label>
+                <input
+                  id="budget"
+                  name="budget"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="e.g. 1000"
+                  value={formData.budget}
+                  onChange={handleInputChange}
+                />
+                <small style={{ color: 'var(--dark-text-secondary)', fontSize: 12 }}>
+                  Optional. Used on your dashboard to compare against this month&apos;s service spending.
+                </small>
               </div>
               <button type="submit" className="ui-btn primary" disabled={loading}>
                 {loading ? 'Saving...' : 'Save Profile'}

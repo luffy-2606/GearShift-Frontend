@@ -158,7 +158,10 @@ const UserDashboard = () => {
       return {
         userName: 'User',
         garageCondition: 85,
-        monthlyBudgetSpent: 62,
+        monthlyBudgetSpent: 0,
+        monthlySpentAmount: 0,
+        monthlyBudgetAmount: null,
+        hasMonthlyBudget: false,
         vehicle: {
           make: 'N/A',
           model: 'N/A', 
@@ -173,6 +176,31 @@ const UserDashboard = () => {
         mechanicsWorkedWith: []
       };
     }
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const monthlySpentAmount = (serviceHistory || []).reduce((sum, row) => {
+      const d = row.service_date ? new Date(row.service_date) : null;
+      if (!d || Number.isNaN(d.getTime())) return sum;
+      if (d < startOfMonth || d >= nextMonthStart) return sum;
+      return sum + (Number(row.total_cost) || 0);
+    }, 0);
+    const rawBudget = userData.budget;
+    const monthlyBudgetAmount =
+      rawBudget != null &&
+      rawBudget !== '' &&
+      Number.isFinite(Number(rawBudget)) &&
+      Number(rawBudget) > 0
+        ? Number(rawBudget)
+        : null;
+    const hasMonthlyBudget = monthlyBudgetAmount != null;
+    const monthlyBudgetSpent = hasMonthlyBudget
+      ? Math.min(100, Math.round((monthlySpentAmount / monthlyBudgetAmount) * 100))
+      : 0;
+    const lifetimeSpentAmount =
+      Number(costInsights?.totalSpent) ||
+      (serviceHistory || []).reduce((sum, row) => sum + (Number(row.total_cost) || 0), 0);
 
     const vehicle = vehicles.length > 0 ? vehicles[0] : null;
     const userName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || 'User';
@@ -189,7 +217,11 @@ const UserDashboard = () => {
       return {
         userName,
         garageCondition: 100,
-        monthlyBudgetSpent: 62,
+        monthlyBudgetSpent,
+        monthlySpentAmount,
+        lifetimeSpentAmount,
+        monthlyBudgetAmount,
+        hasMonthlyBudget,
         vehicle: vehicle ? {
           make: vehicle.make || 'N/A',
           model: vehicle.model || 'N/A',
@@ -280,7 +312,11 @@ const UserDashboard = () => {
     return {
       userName,
       garageCondition,
-      monthlyBudgetSpent: 62,
+      monthlyBudgetSpent,
+      monthlySpentAmount,
+      lifetimeSpentAmount,
+      monthlyBudgetAmount,
+      hasMonthlyBudget,
       vehicle: vehicle ? {
         make: vehicle.make || 'N/A',
         model: vehicle.model || 'N/A',
@@ -528,7 +564,9 @@ const UserDashboard = () => {
               width: '120px',
               height: '120px',
               borderRadius: '50%',
-              background: `conic-gradient(#dc2626 ${dashboardData.monthlyBudgetSpent}%, rgba(255, 255, 255, 0.1) 0)`,
+              background: dashboardData.hasMonthlyBudget
+                ? `conic-gradient(#dc2626 ${dashboardData.monthlyBudgetSpent}%, rgba(255, 255, 255, 0.1) 0)`
+                : 'rgba(255, 255, 255, 0.08)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -546,11 +584,15 @@ const UserDashboard = () => {
                 justifyContent: 'center'
               }}>
                 <span style={{
-                  fontSize: '2rem',
+                  fontSize: dashboardData.hasMonthlyBudget ? '2rem' : '1.25rem',
                   fontWeight: 700,
-                  color: '#ffffff'
+                  color: '#ffffff',
+                  textAlign: 'center',
+                  lineHeight: 1.1
                 }}>
-                  {dashboardData.monthlyBudgetSpent}%
+                  {dashboardData.hasMonthlyBudget
+                    ? `${dashboardData.monthlyBudgetSpent}%`
+                    : '—'}
                 </span>
               </div>
             </div>
@@ -561,7 +603,7 @@ const UserDashboard = () => {
                 marginBottom: '8px',
                 letterSpacing: '0.02em'
               }}>
-                Budget spent
+                Spent this month (service history)
               </p>
               <p style={{
                 fontSize: '1.5rem',
@@ -569,361 +611,30 @@ const UserDashboard = () => {
                 fontWeight: 600,
                 letterSpacing: '-0.01em'
               }}>
-                $620 / $1,000
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Vehicle Overview Card */}
-      <div 
-        style={cardStyle}
-        onMouseEnter={(e) => {
-          Object.assign(e.currentTarget.style, cardHoverStyle);
-        }}
-        onMouseLeave={(e) => {
-          Object.assign(e.currentTarget.style, cardStyle);
-        }}
-      >
-        <h3 style={{
-          fontSize: '1.5rem',
-          color: '#ffffff',
-          marginBottom: '32px',
-          fontWeight: 600,
-          letterSpacing: '-0.02em'
-        }}>
-          Vehicle Overview
-        </h3>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '24px'
-        }}>
-          {[
-            { label: 'Make', value: dashboardData.vehicle.make },
-            { label: 'Model', value: dashboardData.vehicle.model },
-            { label: 'Year', value: dashboardData.vehicle.year },
-            { label: 'Mileage', value: `${dashboardData.vehicle.mileage.toLocaleString()} mi` },
-            { label: 'VIN', value: dashboardData.vehicle.vin },
-            { label: 'Color', value: dashboardData.vehicle.color },
-            { label: 'License Plate', value: dashboardData.vehicle.licensePlate }
-          ].map((item, index) => (
-            <div key={index} style={{
-              padding: '20px',
-              background: 'rgba(255, 255, 255, 0.05)',
-              borderRadius: '16px',
-              border: '1px solid rgba(255, 255, 255, 0.08)'
-            }}>
-              <p style={{
-                fontSize: '0.75rem',
-                color: 'rgba(255, 255, 255, 0.4)',
-                marginBottom: '8px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                fontWeight: 600
-              }}>
-                {item.label}
+                {dashboardData.hasMonthlyBudget
+                  ? `$${dashboardData.monthlySpentAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })} / $${dashboardData.monthlyBudgetAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`
+                  : `$${dashboardData.monthlySpentAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`}
               </p>
               <p style={{
-                fontSize: '1.125rem',
-                color: '#ffffff',
-                fontWeight: 500,
-                letterSpacing: '-0.01em'
+                fontSize: '0.8rem',
+                color: 'rgba(255, 255, 255, 0.45)',
+                marginTop: 6,
+                marginBottom: 0
               }}>
-                {item.value}
+                Lifetime spent: ${dashboardData.lifetimeSpentAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
               </p>
+              {!dashboardData.hasMonthlyBudget && (
+                <p style={{
+                  fontSize: '0.8rem',
+                  color: 'rgba(255, 255, 255, 0.45)',
+                  marginTop: 6,
+                  marginBottom: 0
+                }}>
+                  Set a monthly budget in Profile to track progress.
+                </p>
+              )}
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Maintenance Reminders & Shops Visited */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))',
-        gap: '32px',
-        marginTop: '32px'
-      }}>
-        {/* Maintenance Reminders */}
-        <div 
-          style={cardStyle}
-          onMouseEnter={(e) => {
-            Object.assign(e.currentTarget.style, cardHoverStyle);
-          }}
-          onMouseLeave={(e) => {
-            Object.assign(e.currentTarget.style, cardStyle);
-          }}
-        >
-          <h3 style={{
-            fontSize: '1.5rem',
-            color: '#ffffff',
-            marginBottom: '32px',
-            fontWeight: 600,
-            letterSpacing: '-0.02em'
-          }}>
-            Maintenance Reminders
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {dashboardData.maintenanceReminders.length > 0 ? (
-              dashboardData.maintenanceReminders.map((reminder) => (
-                <div
-                  key={reminder.id}
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '16px',
-                    padding: '20px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                  }}
-                >
-                  <div>
-                    <p style={{
-                      fontSize: '1.125rem',
-                      color: '#ffffff',
-                      fontWeight: 600,
-                      marginBottom: '8px',
-                      letterSpacing: '-0.01em'
-                    }}>
-                      {reminder.service}
-                    </p>
-                    <p style={{
-                      fontSize: '0.875rem',
-                      color: 'rgba(255, 255, 255, 0.5)',
-                      letterSpacing: '0.01em'
-                    }}>
-                      Due: {reminder.dueDate}
-                    </p>
-                  </div>
-                  <div style={{
-                    width: '12px',
-                    height: '12px',
-                    borderRadius: '50%',
-                    background: getPriorityColor(reminder.priority),
-                    boxShadow: `0 0 20px ${getPriorityColor(reminder.priority)}`
-                  }} />
-                </div>
-              ))
-            ) : (
-              <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '1rem' }}>
-                No maintenance reminders
-              </p>
-            )}
           </div>
-        </div>
-
-        {/* Shops Visited */}
-        <div 
-          style={cardStyle}
-          onMouseEnter={(e) => {
-            Object.assign(e.currentTarget.style, cardHoverStyle);
-          }}
-          onMouseLeave={(e) => {
-            Object.assign(e.currentTarget.style, cardStyle);
-          }}
-        >
-          <h3 style={{
-            fontSize: '1.5rem',
-            color: '#ffffff',
-            marginBottom: '32px',
-            fontWeight: 600,
-            letterSpacing: '-0.02em'
-          }}>
-            Shops Visited
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {dashboardData.shopsVisited.length > 0 ? (
-              dashboardData.shopsVisited.map((shop) => (
-                <div
-                  key={shop.id}
-                  style={{
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    borderRadius: '16px',
-                    padding: '20px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                    e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                  }}
-                >
-                  <div>
-                    <p style={{
-                      fontSize: '1.125rem',
-                      color: '#ffffff',
-                      fontWeight: 600,
-                      marginBottom: '8px',
-                      letterSpacing: '-0.01em'
-                    }}>
-                      {shop.name}
-                    </p>
-                    <p style={{
-                      fontSize: '0.875rem',
-                      color: 'rgba(255, 255, 255, 0.5)',
-                      letterSpacing: '0.01em'
-                    }}>
-                      {shop.visits} visits • Last: {shop.lastVisit}
-                    </p>
-                  </div>
-                  <div style={{
-                    background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
-                    color: '#ffffff',
-                    padding: '8px 20px',
-                    borderRadius: '12px',
-                    fontSize: '1rem',
-                    fontWeight: 700,
-                    boxShadow: '0 4px 15px rgba(220, 38, 38, 0.3)'
-                  }}>
-                    {shop.visits}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '1rem' }}>
-                No shops visited yet
-              </p>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Mechanics Worked With */}
-      <div 
-        style={{ ...cardStyle, marginTop: '32px' }}
-        onMouseEnter={(e) => {
-          Object.assign(e.currentTarget.style, cardHoverStyle);
-        }}
-        onMouseLeave={(e) => {
-          Object.assign(e.currentTarget.style, cardStyle);
-        }}
-      >
-        <h3 style={{
-          fontSize: '1.5rem',
-          color: '#ffffff',
-          marginBottom: '32px',
-          fontWeight: 600,
-          letterSpacing: '-0.02em'
-        }}>
-          Mechanics Worked With
-        </h3>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '20px'
-        }}>
-          {dashboardData.mechanicsWorkedWith.length > 0 ? (
-            dashboardData.mechanicsWorkedWith.map((mechanic) => (
-              <div
-                key={mechanic.id}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '20px',
-                  padding: '24px',
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.2)';
-                  e.currentTarget.style.transform = 'translateY(-4px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }}
-              >
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '16px',
-                  marginBottom: '16px'
-                }}>
-                  <div style={{
-                    width: '56px',
-                    height: '56px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1.5rem',
-                    fontWeight: 700,
-                    color: '#ffffff',
-                    boxShadow: '0 8px 20px rgba(220, 38, 38, 0.3)'
-                  }}>
-                    {mechanic.name.charAt(0)}
-                  </div>
-                  <div>
-                    <p style={{
-                      fontSize: '1.125rem',
-                      color: '#ffffff',
-                      fontWeight: 600,
-                      marginBottom: '4px',
-                      letterSpacing: '-0.01em'
-                    }}>
-                      {mechanic.name}
-                    </p>
-                    <p style={{
-                      fontSize: '0.875rem',
-                      color: 'rgba(255, 255, 255, 0.5)',
-                      letterSpacing: '0.01em'
-                    }}>
-                      {mechanic.specialty}
-                    </p>
-                  </div>
-                </div>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '12px 16px',
-                  background: 'rgba(220, 38, 38, 0.1)',
-                  borderRadius: '12px',
-                  border: '1px solid ' + 'rgba(220, 38, 38, 0.2)'
-                }}>
-                  <span style={{
-                    fontSize: '1.5rem',
-                    fontWeight: 700,
-                    color: '#dc2626',
-                    letterSpacing: '-0.02em'
-                  }}>
-                    {mechanic.rating}
-                  </span>
-                  <span style={{
-                    fontSize: '0.875rem',
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    fontWeight: 500
-                  }}>
-                    / 5.0
-                  </span>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '1rem' }}>
-              No mechanics worked with yet
-            </p>
-          )}
         </div>
       </div>
 
@@ -998,7 +709,7 @@ const UserDashboard = () => {
         </div>
       </div>
 
-      {/* Profile Summary */}
+      {/* My Vehicle Catalogue */}
       <div 
         style={{ ...cardStyle, marginTop: '32px' }}
         onMouseEnter={(e) => {
@@ -1008,123 +719,59 @@ const UserDashboard = () => {
           Object.assign(e.currentTarget.style, cardStyle);
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
-          <User size={24} style={{ color: '#dc2626' }} />
-          <h3 style={{
-            fontSize: '1.5rem',
-            color: '#ffffff',
-            fontWeight: 600,
-            margin: 0,
-            letterSpacing: '-0.02em'
-          }}>
-            Profile Summary
-          </h3>
-        </div>
+        <h3 style={{
+          fontSize: '1.5rem',
+          color: '#ffffff',
+          marginBottom: '32px',
+          fontWeight: 600,
+          letterSpacing: '-0.02em'
+        }}>
+          My Vehicle Catalogue
+        </h3>
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
           gap: '24px'
         }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            padding: '20px',
-            background: 'rgba(255, 255, 255, 0.05)',
-            borderRadius: '16px',
-            border: '1px solid rgba(255, 255, 255, 0.08)'
-          }}>
-            <User size={20} style={{ color: 'rgba(255, 255, 255, 0.5)' }} />
-            <div>
+          {vehicles.length > 0 ? vehicles.map((vehicle) => (
+            <div key={vehicle.id} style={{
+              padding: '20px',
+              background: 'rgba(255, 255, 255, 0.05)',
+              borderRadius: '16px',
+              border: '1px solid rgba(255, 255, 255, 0.08)'
+            }}>
               <p style={{
-                fontSize: '0.75rem',
-                color: 'rgba(255, 255, 255, 0.4)',
-                marginBottom: '4px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                fontWeight: 600
-              }}>
-                Name
-              </p>
-              <p style={{
-                fontSize: '1rem',
+                fontSize: '1.05rem',
                 color: '#ffffff',
-                fontWeight: 500,
-                margin: 0
+                fontWeight: 600,
+                marginBottom: '8px'
               }}>
-                {dashboardData.userName}
+                {vehicle.year} {vehicle.make} {vehicle.model}
+              </p>
+              <p style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.55)', marginBottom: '6px' }}>
+                Plate: {vehicle.license_plate || 'N/A'}
+              </p>
+              <p style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.55)', marginBottom: 0 }}>
+                Mileage: {(vehicle.mileage || 0).toLocaleString()} mi
               </p>
             </div>
-          </div>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            padding: '20px',
-            background: 'rgba(255, 255, 255, 0.05)',
-            borderRadius: '16px',
-            border: '1px solid rgba(255, 255, 255, 0.08)'
-          }}>
-            <Car size={20} style={{ color: 'rgba(255, 255, 255, 0.5)' }} />
-            <div>
-              <p style={{
-                fontSize: '0.75rem',
-                color: 'rgba(255, 255, 255, 0.4)',
-                marginBottom: '4px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                fontWeight: 600
-              }}>
-                Vehicles
-              </p>
-              <p style={{
-                fontSize: '1rem',
-                color: '#ffffff',
-                fontWeight: 500,
-                margin: 0
-              }}>
-                {vehicles.length} {vehicles.length === 1 ? 'Vehicle' : 'Vehicles'}
-              </p>
-            </div>
-          </div>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '16px',
-            padding: '20px',
-            background: 'rgba(255, 255, 255, 0.05)',
-            borderRadius: '16px',
-            border: '1px solid rgba(255, 255, 255, 0.08)'
-          }}>
-            <Clock size={20} style={{ color: 'rgba(255, 255, 255, 0.5)' }} />
-            <div>
-              <p style={{
-                fontSize: '0.75rem',
-                color: 'rgba(255, 255, 255, 0.4)',
-                marginBottom: '4px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                fontWeight: 600
-              }}>
-                Services
-              </p>
-              <p style={{
-                fontSize: '1rem',
-                color: '#ffffff',
-                fontWeight: 500,
-                margin: 0
-              }}>
-                {serviceHistory.length} Total
-              </p>
-            </div>
-          </div>
+          )) : (
+            <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '1rem' }}>
+              No vehicles added yet.
+            </p>
+          )}
         </div>
       </div>
 
-      {/* Service History Preview */}
-      {serviceHistory.length > 0 && (
+      {/* Maintenance Reminders & Shops Frequently Visited */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))',
+        gap: '32px',
+        marginTop: '32px'
+      }}>
         <div 
-          style={{ ...cardStyle, marginTop: '32px' }}
+          style={cardStyle}
           onMouseEnter={(e) => {
             Object.assign(e.currentTarget.style, cardHoverStyle);
           }}
@@ -1132,196 +779,66 @@ const UserDashboard = () => {
             Object.assign(e.currentTarget.style, cardStyle);
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
-            <Calendar size={24} style={{ color: '#dc2626' }} />
-            <h3 style={{
-              fontSize: '1.5rem',
-              color: '#ffffff',
-              fontWeight: 600,
-              margin: 0,
-              letterSpacing: '-0.02em'
-            }}>
-              Recent Services
-            </h3>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {serviceHistory.slice(0, 3).map((service) => (
-              <div
-                key={service.id}
-                style={{
-                  background: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
-                  borderRadius: '16px',
-                  padding: '20px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  transition: 'all 0.2s ease'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                }}
-              >
-                <div>
-                  <p style={{
-                    fontSize: '1.125rem',
-                    color: '#ffffff',
-                    fontWeight: 600,
-                    marginBottom: '8px',
-                    letterSpacing: '-0.01em'
-                  }}>
-                    {service.service_type || 'Service'}
-                  </p>
-                  <p style={{
-                    fontSize: '0.875rem',
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    marginBottom: '4px',
-                    letterSpacing: '0.01em'
-                  }}>
-                    {service.shop?.name || 'Unknown Shop'}
-                  </p>
-                  <p style={{
-                    fontSize: '0.875rem',
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    letterSpacing: '0.01em'
-                  }}>
-                    {new Date(service.service_date).toLocaleDateString()}
-                  </p>
-                </div>
-                <div style={{
-                  fontSize: '1.25rem',
-                  fontWeight: 700,
-                  color: '#dc2626',
-                  letterSpacing: '-0.02em'
-                }}>
-                  ${service.total_cost || 0}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Cost Insights Summary */}
-      {costInsights && (
-        <div 
-          style={{ ...cardStyle, marginTop: '32px' }}
-          onMouseEnter={(e) => {
-            Object.assign(e.currentTarget.style, cardHoverStyle);
-          }}
-          onMouseLeave={(e) => {
-            Object.assign(e.currentTarget.style, cardStyle);
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
-            <DollarSign size={24} style={{ color: '#dc2626' }} />
-            <h3 style={{
-              fontSize: '1.5rem',
-              color: '#ffffff',
-              fontWeight: 600,
-              margin: 0,
-              letterSpacing: '-0.02em'
-            }}>
-              Spending Overview
-            </h3>
-          </div>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '20px'
+          <h3 style={{
+            fontSize: '1.5rem',
+            color: '#ffffff',
+            marginBottom: '32px',
+            fontWeight: 600,
+            letterSpacing: '-0.02em'
           }}>
-            <div style={{
-              padding: '24px',
-              background: 'rgba(255, 255, 255, 0.05)',
-              borderRadius: '16px',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              textAlign: 'center'
-            }}>
-              <p style={{
-                fontSize: '0.75rem',
-                color: 'rgba(255, 255, 255, 0.4)',
-                marginBottom: '12px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                fontWeight: 600
-              }}>
-                Total Spent
+            Maintenance Reminders
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {dashboardData.maintenanceReminders.length > 0 ? (
+              dashboardData.maintenanceReminders.map((reminder) => (
+                <div
+                  key={reminder.id}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    borderRadius: '16px',
+                    padding: '20px',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div>
+                    <p style={{
+                      fontSize: '1.125rem',
+                      color: '#ffffff',
+                      fontWeight: 600,
+                      marginBottom: '8px',
+                      letterSpacing: '-0.01em'
+                    }}>
+                      {reminder.service}
+                    </p>
+                    <p style={{
+                      fontSize: '0.875rem',
+                      color: 'rgba(255, 255, 255, 0.5)',
+                      letterSpacing: '0.01em'
+                    }}>
+                      Due: {reminder.dueDate}
+                    </p>
+                  </div>
+                  <div style={{
+                    width: '12px',
+                    height: '12px',
+                    borderRadius: '50%',
+                    background: getPriorityColor(reminder.priority),
+                    boxShadow: `0 0 20px ${getPriorityColor(reminder.priority)}`
+                  }} />
+                </div>
+              ))
+            ) : (
+              <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '1rem' }}>
+                No maintenance reminders
               </p>
-              <p style={{
-                fontSize: '2rem',
-                fontWeight: 700,
-                color: '#dc2626',
-                margin: 0,
-                letterSpacing: '-0.02em'
-              }}>
-                ${costInsights.totalSpent?.toLocaleString() || 0}
-              </p>
-            </div>
-            <div style={{
-              padding: '24px',
-              background: 'rgba(255, 255, 255, 0.05)',
-              borderRadius: '16px',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              textAlign: 'center'
-            }}>
-              <p style={{
-                fontSize: '0.75rem',
-                color: 'rgba(255, 255, 255, 0.4)',
-                marginBottom: '12px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                fontWeight: 600
-              }}>
-                Avg Cost
-              </p>
-              <p style={{
-                fontSize: '2rem',
-                fontWeight: 700,
-                color: '#f59e0b',
-                margin: 0,
-                letterSpacing: '-0.02em'
-              }}>
-                ${Math.round(costInsights.averageCostPerService || 0)}
-              </p>
-            </div>
-            <div style={{
-              padding: '24px',
-              background: 'rgba(255, 255, 255, 0.05)',
-              borderRadius: '16px',
-              border: '1px solid rgba(255, 255, 255, 0.08)',
-              textAlign: 'center'
-            }}>
-              <p style={{
-                fontSize: '0.75rem',
-                color: 'rgba(255, 255, 255, 0.4)',
-                marginBottom: '12px',
-                textTransform: 'uppercase',
-                letterSpacing: '0.1em',
-                fontWeight: 600
-              }}>
-                Services
-              </p>
-              <p style={{
-                fontSize: '2rem',
-                fontWeight: 700,
-                color: '#10b981',
-                margin: 0,
-                letterSpacing: '-0.02em'
-              }}>
-                {costInsights.totalServices || 0}
-              </p>
-            </div>
+            )}
           </div>
         </div>
-      )}
 
-      {/* Recommended Shops */}
-      {shops.length > 0 && (
         <div 
           style={{ ...cardStyle, marginTop: '32px' }}
           onMouseEnter={(e) => {
@@ -1340,15 +857,12 @@ const UserDashboard = () => {
               margin: 0,
               letterSpacing: '-0.02em'
             }}>
-              Recommended Shops
+              Shops Frequently Visited
             </h3>
           </div>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '20px'
-          }}>
-            {shops.slice(0, 3).map((shop) => (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {dashboardData.shopsVisited.length > 0 ? (
+              dashboardData.shopsVisited.map((shop) => (
               <div
                 key={shop.id}
                 style={{
@@ -1356,58 +870,108 @@ const UserDashboard = () => {
                   border: '1px solid rgba(255, 255, 255, 0.1)',
                   borderRadius: '16px',
                   padding: '20px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
                   transition: 'all 0.2s ease'
                 }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.15)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                  e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                }}
               >
-                <p style={{
-                  fontSize: '1.125rem',
-                  color: '#ffffff',
-                  fontWeight: 600,
-                  marginBottom: '8px',
-                  letterSpacing: '-0.01em'
-                }}>
-                  {shop.name}
-                </p>
-                <p style={{
-                  fontSize: '0.875rem',
-                  color: 'rgba(255, 255, 255, 0.5)',
-                  marginBottom: '12px',
-                  letterSpacing: '0.01em'
-                }}>
-                  {shop.address}
-                </p>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                  <span style={{
-                    fontSize: '1rem',
+                <div>
+                  <p style={{
+                    fontSize: '1.125rem',
+                    color: '#ffffff',
                     fontWeight: 600,
-                    color: '#dc2626'
+                    marginBottom: '8px',
+                    letterSpacing: '-0.01em'
                   }}>
-                    ★ {shop.average_rating || 4.5}
-                  </span>
-                  <span style={{
+                    {shop.name}
+                  </p>
+                  <p style={{
                     fontSize: '0.875rem',
-                    color: 'rgba(255, 255, 255, 0.5)'
+                    color: 'rgba(255, 255, 255, 0.5)',
+                    letterSpacing: '0.01em'
                   }}>
-                    Rating
-                  </span>
+                    {shop.visits} visits • Last: {shop.lastVisit}
+                  </p>
+                </div>
+                <div style={{
+                  background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                  color: '#ffffff',
+                  padding: '8px 20px',
+                  borderRadius: '12px',
+                  fontSize: '1rem',
+                  fontWeight: 700,
+                  boxShadow: '0 4px 15px rgba(220, 38, 38, 0.3)'
+                }}>
+                  {shop.visits}
                 </div>
               </div>
-            ))}
+              ))
+            ) : (
+              <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '1rem' }}>
+                No shops visited yet
+              </p>
+            )}
           </div>
         </div>
-      )}
+      </div>
+
+      {/* Most Expensive Services */}
+      <div 
+        style={{ ...cardStyle, marginTop: '32px' }}
+        onMouseEnter={(e) => {
+          Object.assign(e.currentTarget.style, cardHoverStyle);
+        }}
+        onMouseLeave={(e) => {
+          Object.assign(e.currentTarget.style, cardStyle);
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
+          <DollarSign size={24} style={{ color: '#dc2626' }} />
+          <h3 style={{
+            fontSize: '1.5rem',
+            color: '#ffffff',
+            fontWeight: 600,
+            margin: 0,
+            letterSpacing: '-0.02em'
+          }}>
+            Most Expensive Services
+          </h3>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {(costInsights?.mostExpensiveServices || [...serviceHistory].sort((a, b) => (b.total_cost || 0) - (a.total_cost || 0)).slice(0, 5)).map((service) => (
+            <div
+              key={service.id}
+              style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '16px',
+                padding: '20px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
+            >
+              <div>
+                <p style={{ fontSize: '1.05rem', color: '#ffffff', fontWeight: 600, marginBottom: '6px' }}>
+                  {service.service_type || service.service_name || 'Service'}
+                </p>
+                <p style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.5)', margin: 0 }}>
+                  {service.shop?.name || 'Unknown Shop'}
+                </p>
+              </div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#dc2626' }}>
+                ${Number(service.total_cost || 0).toLocaleString()}
+              </div>
+            </div>
+          ))}
+          {(costInsights?.mostExpensiveServices || serviceHistory).length === 0 && (
+            <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '1rem' }}>
+              No service records yet.
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
