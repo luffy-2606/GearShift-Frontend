@@ -1,160 +1,449 @@
-.shops-list {
-  padding: 20px;
+/* =========================================================
+   Modern Shop List Styles - Landing Page Theme
+   ========================================================= */
+
+/* Force dark background on all levels */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--dark-bg) !important;
+}
+
+body {
+  background: var(--dark-bg) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  min-height: 100vh;
+}
+
+#root {
+  background: var(--dark-bg) !important;
+  min-height: 100vh;
+}
+
+.App {
+  background: var(--dark-bg) !important;
+  min-height: 100vh;
+}
+
+.shops-list-container {
+  min-height: 100vh;
+  background: var(--dark-bg) !important;
+  color: var(--dark-text);
+  font-family: 'Inter', sans-serif;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  position: relative;
+  left: 0;
+  right: 0;
+  max-width: none;
+  display: block;
+}
+
+/* Ensure full width coverage */
+.shops-list-container::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--dark-bg);
+  z-index: -1;
+}
+
+/* Content wrapper for full width like dashboard */
+.shops-list-container > * {
+  width: 100%;
+  margin: 0;
+  padding: 0 60px;
+}
+
+/* Section headers */
+.section-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+/* Search and filter section */
+.shops-list-container > div:nth-child(2) {
+  width: 100%;
+  margin: 0 0 3rem 0;
+  padding: 0 60px;
+}
+
+/* Grid container */
+.shops-grid-modern {
+  width: 100%;
+  margin: 0;
+  padding: 0 60px;
+}
+
+/* Results count */
+.shops-list-container > div:nth-child(3) {
+  width: 100%;
+  margin: 0 0 2rem 0;
+  padding: 0 60px;
+}
+
+/* Landing section styles for full width */
+.landing-section {
+  padding: 120px 60px 60px 60px;
+  max-width: none;
+  margin: 0;
+  background: var(--dark-bg) !important;
+  color: var(--dark-text);
+  width: 100%;
+}
+
+.landing-section-dark {
+  background: var(--dark-bg) !important;
+  color: var(--dark-text);
+}
+
+/* Features grid centering */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
   max-width: 1200px;
   margin: 0 auto;
+  width: 100%;
 }
 
-.shops-list h2 {
-  color: #333;
-  margin-bottom: 20px;
+/* Loading State */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  color: var(--dark-text-secondary);
 }
 
-.service-filters {
-  margin-bottom: 30px;
-  padding: 20px;
-  background: #f8f9fa;
-  border-radius: 8px;
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--dark-glass);
+  border-top: 3px solid var(--dark-accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
 }
 
-.service-filters h3 {
-  margin-bottom: 15px;
-  color: #555;
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
-.filter-btn {
-  background: #fff;
-  border: 1px solid #ddd;
-  padding: 8px 16px;
-  margin: 5px;
-  border-radius: 20px;
+/* Search and Filter Section */
+.service-filter-btn {
+  background: var(--dark-glass);
+  border: 1px solid var(--dark-border);
+  color: var(--dark-text-secondary);
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
-.filter-btn:hover {
-  background: #e9ecef;
+.service-filter-btn:hover {
+  background: var(--dark-glass-border);
+  border-color: var(--dark-text-secondary);
+  color: var(--dark-text);
 }
 
-.filter-btn.active {
-  background: #007bff;
-  color: white;
-  border-color: #007bff;
+.service-filter-btn.active {
+  background: var(--dark-accent);
+  border-color: var(--dark-accent);
+  color: var(--dark-text);
+  font-weight: 600;
 }
 
-.shops-grid {
+/* Modern Shops Grid */
+.shops-grid-modern {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: 2rem;
+  margin-bottom: 3rem;
 }
 
-.shop-card {
-  background: white;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-  transition: transform 0.2s ease;
+/* Modern Shop Card */
+.shop-card-modern {
+  background: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.shop-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+.shop-card-modern:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  border-color: var(--dark-glass-border);
 }
 
-.shop-header {
+.shop-card-modern::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--dark-accent), transparent);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.shop-card-modern:hover::before {
+  opacity: 1;
+}
+
+/* Shop Card Header */
+.shop-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.shop-card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--dark-text);
+  margin: 0;
+  line-height: 1.2;
+}
+
+/* Shop Card Description */
+.shop-card-description {
+  color: var(--dark-text-secondary);
+  line-height: 1.6;
+  margin: 0 0 1.5rem;
+  font-size: 0.95rem;
+}
+
+/* Shop Card Info */
+.shop-card-info {
+  margin-bottom: 1.5rem;
+}
+
+.shop-card-info > div {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--dark-border);
+}
+
+.shop-card-info > div:last-child {
+  border-bottom: none;
+}
+
+/* Services Toggle Button */
+.services-toggle-btn {
+  width: 100%;
+  background: var(--dark-glass);
+  border: 1px solid var(--dark-border);
+  color: var(--dark-text);
+  padding: 0.875rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.services-toggle-btn:hover {
+  background: var(--dark-glass-border);
+  border-color: var(--dark-text-secondary);
+}
+
+/* Modern Services Section */
+.services-section-modern {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--dark-border);
+}
+
+.services-list-modern {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.service-item-modern {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--dark-glass);
+  border: 1px solid var(--dark-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.service-item-modern:hover {
+  background: var(--dark-glass-border);
+  border-color: var(--dark-text-secondary);
+}
+
+.service-item-modern input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--dark-accent);
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.service-item-content {
+  flex: 1;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 15px;
 }
 
-.shop-header h3 {
-  margin: 0;
-  color: #333;
+.service-name {
+  color: var(--dark-text);
+  font-weight: 500;
+  font-size: 0.875rem;
 }
 
-.rating {
-  color: #666;
-  font-size: 14px;
+.service-price {
+  color: var(--dark-accent);
+  font-weight: 600;
+  font-size: 0.875rem;
 }
 
-.shop-description {
-  color: #666;
-  margin-bottom: 15px;
-  line-height: 1.5;
-}
-
-.shop-info p {
-  margin: 5px 0;
-  color: #555;
-}
-
-.show-services-btn {
-  background: #007bff;
-  color: white;
+/* Book Appointment Button */
+.book-appointment-btn {
+  width: 100%;
+  background: var(--dark-accent);
+  color: var(--dark-text);
   border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
+  padding: 0.875rem 1.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-weight: 600;
   cursor: pointer;
-  margin-top: 15px;
-}
-
-.show-services-btn:hover {
-  background: #0056b3;
-}
-
-.services-section {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #eee;
-}
-
-.services-section h4 {
-  margin-bottom: 15px;
-  color: #333;
-}
-
-.services-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-.service-item {
+  transition: background-color 0.2s ease;
   display: flex;
   align-items: center;
-  gap: 8px;
-  cursor: pointer;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
-.service-item input[type="checkbox"] {
-  margin: 0;
+.book-appointment-btn:hover {
+  background: var(--dark-accent-hover);
 }
 
-.book-btn {
-  background: #28a745;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
+/* No Shops State */
+.no-shops-state {
+  padding: 2rem;
 }
 
-.book-btn:hover {
-  background: #218838;
+/* Responsive Design */
+@media (max-width: 768px) {
+  .shops-grid-modern {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .shop-card-modern {
+    padding: 1.5rem;
+  }
+  
+  .shop-card-title {
+    font-size: 1.25rem;
+  }
+  
+  .shop-card-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .service-filter-btn {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.8rem;
+  }
 }
 
-.no-shops {
-  text-align: center;
-  padding: 40px;
-  color: #666;
+@media (max-width: 480px) {
+  .shops-list-container {
+    padding: 1rem;
+  }
+  
+  .shop-card-modern {
+    padding: 1rem;
+  }
+  
+  .services-list-modern {
+    gap: 0.5rem;
+  }
+  
+  .service-item-modern {
+    padding: 0.5rem;
+  }
 }
 
-.loading {
-  text-align: center;
-  padding: 40px;
-  color: #666;
-  font-size: 18px;
+/* Animation for smooth transitions */
+.shop-card-modern,
+.service-item-modern,
+.services-toggle-btn,
+.book-appointment-btn,
+.service-filter-btn {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus states for accessibility */
+.service-filter-btn:focus,
+.services-toggle-btn:focus,
+.book-appointment-btn:focus,
+.service-item-modern:focus-within {
+  outline: 2px solid var(--dark-accent);
+  outline-offset: 2px;
+}
+
+/* Custom scrollbar for webkit browsers */
+.shops-list-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.shops-list-container::-webkit-scrollbar-track {
+  background: var(--dark-bg);
+}
+
+.shops-list-container::-webkit-scrollbar-thumb {
+  background: var(--dark-border);
+  border-radius: 4px;
+}
+
+.shops-list-container::-webkit-scrollbar-thumb:hover {
+  background: var(--dark-glass-border);
 }

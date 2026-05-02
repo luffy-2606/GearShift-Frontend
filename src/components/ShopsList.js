@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../lib/apiClient';
 import AppointmentBooking from './AppointmentBooking';
+import { Star, MapPin, Phone, User, Wrench, Search, Filter, ArrowRight } from 'lucide-react';
 import './ShopsList.css';
 
 const ShopsList = () => {
@@ -17,6 +18,7 @@ const ShopsList = () => {
     shop: null,
     selectedServices: []
   });
+  const [searchTerm, setSearchTerm] = useState('');
 
   const getUserLocation = () => {
     if (navigator.geolocation) {
@@ -98,37 +100,155 @@ const ShopsList = () => {
   };
 
   if (loading) {
-    return <div className="loading">Loading shops...</div>;
+    return (
+      <div className="shops-list-container">
+        <div className="loading-state">
+          <div className="loading-spinner"></div>
+          <p>Finding the best shops for you...</p>
+        </div>
+      </div>
+    );
   }
 
+  const filteredShops = shops.filter(shop => 
+    shop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    shop.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    shop.address?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   return (
-    <div className="shops-list">
-      <h2>Find Auto Repair Shops</h2>
-      
-      {/* Service Type Filter */}
-      <div className="service-filters">
-        <h3>Filter by Service:</h3>
-        {['Oil Change', 'Brake Repair', 'Battery Replacement', 'Tire Service', 'Engine Diagnostic'].map(service => (
-          <button
-            key={service}
-            className={`filter-btn ${filters.service_type === service ? 'active' : ''}`}
-            onClick={() => handleServiceFilter(service)}
-          >
-            {service}
-          </button>
-        ))}
+    <div className="shops-list-container landing-section landing-section-dark">
+      {/* Header Section */}
+      <div className="section-header">
+        <h2 className="section-title">Find <span style={{ color: 'var(--dark-accent)' }}>Auto Repair Shops</span></h2>
+        <p className="section-subtitle">
+          Discover trusted automotive professionals in your area. Compare services, read reviews, and book with confidence.
+        </p>
       </div>
 
+      {/* Search and Filter Section */}
+      <div style={{
+        background: 'var(--dark-surface)',
+        border: '1px solid var(--dark-border)',
+        borderRadius: 'var(--radius)',
+        padding: '2rem',
+        marginBottom: '3rem'
+      }}>
+        {/* Search Bar */}
+        <div style={{ marginBottom: '1.5rem' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.75rem',
+            background: 'var(--dark-glass)',
+            border: '1px solid var(--dark-border)',
+            borderRadius: 'var(--radius-sm)',
+            padding: '0.75rem 1rem',
+            color: 'var(--dark-text)'
+          }}>
+            <Search size={20} className="hero-stat-icon" />
+            <input
+              type="text"
+              placeholder="Search by shop name, location, or services..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--dark-text)',
+                fontSize: '0.95rem',
+                outline: 'none',
+                width: '100%'
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Service Type Filters */}
+        <div>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            marginBottom: '1rem',
+            color: 'var(--dark-text-muted)',
+            fontSize: '0.875rem',
+            fontWeight: '600'
+          }}>
+            <Filter size={16} />
+            Filter by Service:
+          </div>
+          <div style={{
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: '0.75rem'
+          }}>
+            {['Oil Change', 'Brake Repair', 'Battery Replacement', 'Tire Service', 'Engine Diagnostic'].map(service => (
+              <button
+                key={service}
+                className={`service-filter-btn ${filters.service_type === service ? 'active' : ''}`}
+                onClick={() => handleServiceFilter(service)}
+              >
+                {service}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Results Count */}
+      {filteredShops.length > 0 && (
+        <div style={{
+          color: 'var(--dark-text-muted)',
+          fontSize: '0.875rem',
+          marginBottom: '2rem',
+          textAlign: 'center'
+        }}>
+          Found {filteredShops.length} {filteredShops.length === 1 ? 'shop' : 'shops'} matching your criteria
+        </div>
+      )}
+
       {/* Shops Grid */}
-      <div className="shops-grid">
-        {shops.map(shop => (
+      <div className="shops-grid-modern">
+        {filteredShops.map(shop => (
           <ShopCard key={shop.id} shop={shop} onBookAppointment={handleBookAppointment} />
         ))}
       </div>
 
-      {shops.length === 0 && (
-        <div className="no-shops">
-          <p>No shops found matching your criteria.</p>
+      {filteredShops.length === 0 && (
+        <div className="no-shops-state">
+          <div style={{
+            background: 'var(--dark-surface)',
+            border: '1px solid var(--dark-border)',
+            borderRadius: 'var(--radius)',
+            padding: '4rem 2rem',
+            textAlign: 'center',
+            maxWidth: '500px',
+            margin: '0 auto'
+          }}>
+            <div style={{
+              fontSize: '3rem',
+              color: 'var(--dark-text-muted)',
+              marginBottom: '1rem'
+            }}>
+              🔍
+            </div>
+            <h3 style={{
+              fontSize: '1.5rem',
+              fontWeight: '700',
+              color: 'var(--dark-text)',
+              margin: '0 0 1rem'
+            }}>
+              No Shops Found
+            </h3>
+            <p style={{
+              color: 'var(--dark-text-secondary)',
+              margin: '0',
+              lineHeight: '1.6'
+            }}>
+              Try adjusting your search terms or filters to find more options.
+            </p>
+          </div>
         </div>
       )}
 
@@ -166,50 +286,117 @@ const ShopCard = ({ shop, onBookAppointment }) => {
   };
 
   return (
-    <div className="shop-card">
-      <div className="shop-header">
-        <h3>{shop.name}</h3>
-        <div className="rating">
-          {'\u2b50'} {shop.average_rating.toFixed(1)} ({shop.total_reviews} reviews)
+    <div className="shop-card-modern">
+      {/* Shop Header */}
+      <div className="shop-card-header">
+        <div>
+          <h3 className="shop-card-title">{shop.name}</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <Star size={16} className="hero-stat-icon" fill="currentColor" />
+              <span style={{ fontWeight: '700', color: 'var(--dark-text)' }}>
+                {shop.average_rating?.toFixed(1) || 'N/A'}
+              </span>
+            </div>
+            <span style={{ color: 'var(--dark-text-muted)', fontSize: '0.875rem' }}>
+              ({shop.total_reviews || 0} reviews)
+            </span>
+          </div>
         </div>
+        
+        {shop.average_rating >= 4.5 && (
+          <div style={{
+            background: 'var(--dark-accent)',
+            color: 'var(--dark-text)',
+            padding: '0.25rem 0.75rem',
+            borderRadius: '9999px',
+            fontSize: '0.75rem',
+            fontWeight: '600'
+          }}>
+            Top Rated
+          </div>
+        )}
       </div>
       
-      <p className="shop-description">{shop.description}</p>
+      {/* Shop Description */}
+      <p className="shop-card-description">
+        {shop.description || 'Professional automotive services with experienced technicians.'}
+      </p>
       
-      <div className="shop-info">
-        <p><strong>Address:</strong> {shop.address}</p>
-        <p><strong>Phone:</strong> {shop.phone}</p>
+      {/* Shop Info */}
+      <div className="shop-card-info">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+          <MapPin size={14} className="hero-stat-icon" />
+          <span style={{ fontSize: '0.875rem', color: 'var(--dark-text-secondary)' }}>
+            {shop.address || 'Location not available'}
+          </span>
+        </div>
+        
+        {shop.phone && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            <Phone size={14} className="hero-stat-icon" />
+            <span style={{ fontSize: '0.875rem', color: 'var(--dark-text-secondary)' }}>
+              {shop.phone}
+            </span>
+          </div>
+        )}
+        
         {shop.owner && (
-          <p><strong>Owner:</strong> {shop.owner.first_name} {shop.owner.last_name}</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <User size={14} className="hero-stat-icon" />
+            <span style={{ fontSize: '0.875rem', color: 'var(--dark-text-secondary)' }}>
+              {shop.owner.first_name} {shop.owner.last_name}
+            </span>
+          </div>
         )}
       </div>
 
+      {/* Services Toggle */}
       <button 
-        className="show-services-btn"
+        className="services-toggle-btn"
         onClick={() => setShowDetails(!showDetails)}
       >
-        {showDetails ? 'Hide' : 'View'} Services
+        <Wrench size={16} style={{ marginRight: '0.5rem' }} />
+        {showDetails ? 'Hide' : 'View'} Available Services
+        <ArrowRight size={14} style={{ 
+          marginLeft: '0.5rem',
+          transform: showDetails ? 'rotate(90deg)' : 'rotate(0deg)',
+          transition: 'transform 0.2s ease'
+        }} />
       </button>
 
+      {/* Services Section */}
       {showDetails && (
-        <div className="services-section">
-          <h4>Available Services:</h4>
-          <div className="services-list">
+        <div className="services-section-modern">
+          <h4 style={{
+            fontSize: '1rem',
+            fontWeight: '600',
+            color: 'var(--dark-text)',
+            margin: '0 0 1rem'
+          }}>
+            Available Services:
+          </h4>
+          <div className="services-list-modern">
             {(shop.available_services || []).map(service => (
-              <label key={service.id} className="service-item">
+              <label key={service.id} className="service-item-modern">
                 <input
                   type="checkbox"
                   checked={selectedServices.find(s => s.id === service.id)}
                   onChange={() => handleServiceToggle(service)}
                 />
-                {service.name} - ${service.base_price?.toFixed(2) || 'N/A'}
+                <div className="service-item-content">
+                  <span className="service-name">{service.name}</span>
+                  <span className="service-price">
+                    ${service.base_price?.toFixed(2) || 'N/A'}
+                  </span>
+                </div>
               </label>
             ))}
           </div>
           
           {selectedServices.length > 0 && (
-            <button className="book-btn" onClick={handleBookAppointment}>
-              Book Appointment ({selectedServices.length} services)
+            <button className="book-appointment-btn" onClick={handleBookAppointment}>
+              Book Appointment ({selectedServices.length} service{selectedServices.length > 1 ? 's' : ''})
             </button>
           )}
         </div>

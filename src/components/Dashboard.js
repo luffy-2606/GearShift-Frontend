@@ -9,6 +9,7 @@ import UpgradesSection from './UpgradesSection';
 import TestimonialsSection from './TestimonialsSection';
 import CTASection from './CTASection';
 import Footer from './Footer';
+import UserDashboard from './UserDashboard';
 
 const Dashboard = () => {
   const { user, logout } = useAuth();
@@ -136,15 +137,18 @@ const Dashboard = () => {
       </div>
 
       {/* Landing Page Sections */}
-      <div style={{ paddingTop: '80px' }}>
-        <HeroSection />
+      <div style={{ paddingTop: '80px', paddingLeft: '5rem', paddingRight: '5rem' }}>
+        {/* <HeroSection />
         <HowItWorks />
         <FeaturesSection />
         <ShopsSection />
         <UpgradesSection />
         <TestimonialsSection />
-        <CTASection />
-        <Footer />
+        <CTASection /> */}
+        {/* <Footer /> */}
+        
+        {/* User Dashboard */}
+        {user && <UserDashboard />}
       </div>
 
       {/* Admin Panel Link (if admin) */}

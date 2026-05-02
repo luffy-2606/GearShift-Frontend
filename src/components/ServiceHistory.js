@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../lib/apiClient';
 import { useSearchParams } from 'react-router-dom';
+import { Calendar, Car, DollarSign, Wrench, Clock, MapPin, Phone, User, FileText, AlertCircle, CheckCircle, Search, Filter } from 'lucide-react';
+import './ServiceHistory.css';
 
 const ServiceHistory = () => {
   const [vehicles, setVehicles] = useState([]);
@@ -154,40 +156,152 @@ const ServiceHistory = () => {
   const selectedVehicleData = vehicles.find(v => v.id === selectedVehicle);
 
   return (
-    <div className="service-history">
-      <h2>Service History</h2>
-      
-      {/* Vehicle Selection */}
-      <div className="vehicle-selector">
-        <label>Select Vehicle:</label>
+    <div className="service-history-container landing-section landing-section-dark">
+      {/* Header Section */}
+      <div className="section-header">
+        <h2 className="section-title">Service <span style={{ color: 'var(--dark-accent)' }}>History</span></h2>
+        <p className="section-subtitle">
+          Track your vehicle's maintenance records, service costs, and upcoming appointments all in one place.
+        </p>
+      </div>
+
+      {/* Vehicle Selection Section */}
+      <div style={{
+        background: 'var(--dark-surface)',
+        border: '1px solid var(--dark-border)',
+        borderRadius: 'var(--radius)',
+        padding: '2rem',
+        marginBottom: '3rem'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          marginBottom: '1rem',
+          color: 'var(--dark-text-muted)',
+          fontSize: '0.875rem',
+          fontWeight: '600'
+        }}>
+          <Car size={16} />
+          Select Vehicle:
+        </div>
+        
         <select 
           value={selectedVehicle} 
           onChange={(e) => setSelectedVehicle(e.target.value)}
+          style={{
+            width: '100%',
+            background: 'var(--dark-glass)',
+            border: '1px solid var(--dark-border)',
+            color: 'var(--dark-text)',
+            padding: '0.875rem 1rem',
+            borderRadius: 'var(--radius-sm)',
+            fontSize: '0.95rem',
+            outline: 'none',
+            cursor: 'pointer'
+          }}
         >
           {vehicles.map(vehicle => (
-            <option key={vehicle.id} value={vehicle.id}>
+            <option key={vehicle.id} value={vehicle.id} style={{ background: 'var(--dark-surface)' }}>
               {vehicle.year} {vehicle.make} {vehicle.model} ({vehicle.license_plate || 'No Plate'})
             </option>
           ))}
         </select>
+        
+        {selectedVehicleData && (
+          <div style={{
+            marginTop: '1.5rem',
+            padding: '1rem',
+            background: 'var(--dark-glass)',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid var(--dark-border)'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '0.75rem'
+            }}>
+              <h3 style={{
+                fontSize: '1.125rem',
+                fontWeight: '700',
+                color: 'var(--dark-text)',
+                margin: 0
+              }}>
+                {selectedVehicleData.year} {selectedVehicleData.make} {selectedVehicleData.model}
+              </h3>
+              <div style={{
+                background: 'var(--dark-accent)',
+                color: 'var(--dark-text)',
+                padding: '0.25rem 0.75rem',
+                borderRadius: '9999px',
+                fontSize: '0.75rem',
+                fontWeight: '600'
+              }}>
+                Active
+              </div>
+            </div>
+            <div style={{
+              display: 'flex',
+              gap: '2rem',
+              fontSize: '0.875rem',
+              color: 'var(--dark-text-secondary)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Clock size={14} className="hero-stat-icon" />
+                {selectedVehicleData.mileage?.toLocaleString() || 0} miles
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <FileText size={14} className="hero-stat-icon" />
+                {selectedVehicleData.license_plate || 'Not specified'}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
-
-      {selectedVehicleData && (
-        <div className="vehicle-info">
-          <h3>{selectedVehicleData.year} {selectedVehicleData.make} {selectedVehicleData.model}</h3>
-          <p>Current Mileage: {selectedVehicleData.mileage?.toLocaleString() || 0} miles</p>
-          <p>License Plate: {selectedVehicleData.license_plate || 'Not specified'}</p>
-        </div>
-      )}
 
       {/* Service History List */}
       {loading ? (
-        <div className="loading">Loading service history...</div>
+        <div className="loading-state">
+          <div className="loading-spinner"></div>
+          <p>Loading service history...</p>
+        </div>
       ) : (
-        <div className="service-history-list">
+        <div className="service-history-grid">
           {serviceHistory.length === 0 ? (
-            <div className="no-history">
-              <p>No service history found for this vehicle.</p>
+            <div className="no-history-state">
+              <div style={{
+                background: 'var(--dark-surface)',
+                border: '1px solid var(--dark-border)',
+                borderRadius: 'var(--radius)',
+                padding: '4rem 2rem',
+                textAlign: 'center',
+                maxWidth: '500px',
+                margin: '0 auto'
+              }}>
+                <div style={{
+                  fontSize: '3rem',
+                  color: 'var(--dark-text-muted)',
+                  marginBottom: '1rem'
+                }}>
+                  🔧
+                </div>
+                <h3 style={{
+                  fontSize: '1.5rem',
+                  fontWeight: '700',
+                  color: 'var(--dark-text)',
+                  margin: '0 0 1rem'
+                }}>
+                  No Service History
+                </h3>
+                <p style={{
+                  color: 'var(--dark-text-secondary)',
+                  margin: '0',
+                  lineHeight: '1.6'
+                }}>
+                  No service records found for this vehicle. Your maintenance history will appear here once services are completed.
+                </p>
+              </div>
             </div>
           ) : (
             serviceHistory.map(service => (
@@ -225,106 +339,313 @@ const ServiceHistoryCard = ({ service, onVisitConfirmation }) => {
   };
 
   return (
-    <div className="service-card">
-      {/* Main Service Info Card */}
-      <div className="service-info-card">
-        <div className="service-header">
-          <h4>{service.service_type}</h4>
-          <div className="service-date">{formatDate(service.service_date)}</div>
+    <div className="service-card-modern">
+      {/* Service Header */}
+      <div className="service-card-header">
+        <div>
+          <h3 className="service-card-title">
+            {service.service_type}
+          </h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+            <Calendar size={16} className="hero-stat-icon" />
+            <span style={{ fontSize: '0.875rem', color: 'var(--dark-text-secondary)' }}>
+              {formatDate(service.service_date)}
+            </span>
+          </div>
         </div>
         
-        {service.description && (
-          <div className="service-description">
-            <p>{service.description}</p>
+        <div style={{
+          background: 'var(--dark-glass)',
+          border: '1px solid var(--dark-border)',
+          borderRadius: 'var(--radius-sm)',
+          padding: '0.5rem 1rem'
+        }}>
+          <div style={{
+            fontSize: '0.75rem',
+            color: 'var(--dark-text-muted)',
+            marginBottom: '0.25rem'
+          }}>
+            Total Cost
           </div>
-        )}
-      </div>
-
-      {/* Shop Info Card */}
-      <div className="detail-card">
-        <div className="card-title">Shop</div>
-        <div className="card-content">
-          <p><strong>Name:</strong> {service.shop?.name || 'Unknown'}</p>
-          <p><strong>Address:</strong> {service.shop?.address || 'N/A'}</p>
-          <p><strong>Phone:</strong> {service.shop?.phone || 'N/A'}</p>
-        </div>
-      </div>
-
-      {/* Mechanic Card */}
-      <div className="detail-card">
-        <div className="card-title">Mechanic</div>
-        <div className="card-content">
-          <p>{service.mechanic?.first_name} {service.mechanic?.last_name}</p>
-        </div>
-      </div>
-
-      {/* Mileage Card */}
-      <div className="detail-card">
-        <div className="card-title">Mileage</div>
-        <div className="card-content">
-          <p><strong>At Service:</strong> {service.mileage_at_service?.toLocaleString()} miles</p>
-          <p><strong>Duration:</strong> {service.duration_minutes || 'N/A'} minutes</p>
-        </div>
-      </div>
-
-      {/* Cost Breakdown Card */}
-      <div className="detail-card">
-        <div className="card-title">Cost Breakdown</div>
-        <div className="card-content">
-          {service.labor_cost && (
-            <p><strong>Labor:</strong> ${service.labor_cost.toFixed(2)}</p>
-          )}
-          {service.parts_cost && (
-            <p><strong>Parts:</strong> ${service.parts_cost.toFixed(2)}</p>
-          )}
-          {service.tax_amount && (
-            <p><strong>Tax:</strong> ${service.tax_amount.toFixed(2)}</p>
-          )}
-          <p><strong>Total:</strong> ${service.total_cost?.toFixed(2) || 'N/A'}</p>
-        </div>
-      </div>
-
-      {/* Warranty Card */}
-      {service.warranty_months && (
-        <div className="detail-card">
-          <div className="card-title">Warranty</div>
-          <div className="card-content">
-            <p><strong>Duration:</strong> {service.warranty_months} months</p>
-            <p><strong>Mileage:</strong> {service.warranty_mileage?.toLocaleString()} miles</p>
+          <div style={{
+            fontSize: '1.25rem',
+            fontWeight: '700',
+            color: 'var(--dark-accent)'
+          }}>
+            ${service.total_cost?.toFixed(2) || 'N/A'}
           </div>
+        </div>
+      </div>
+
+      {/* Service Description */}
+      {service.description && (
+        <div style={{
+          marginBottom: '1.5rem',
+          padding: '1rem',
+          background: 'var(--dark-glass)',
+          borderRadius: 'var(--radius-sm)',
+          border: '1px solid var(--dark-border)'
+        }}>
+          <p style={{
+            fontSize: '0.875rem',
+            color: 'var(--dark-text-secondary)',
+            margin: 0,
+            lineHeight: '1.6'
+          }}>
+            {service.description}
+          </p>
         </div>
       )}
 
-      {/* Next Service Card */}
-      {service.next_service_due_date && (
-        <div className="detail-card">
-          <div className="card-title">Next Service</div>
-          <div className="card-content">
-            <p><strong>Date:</strong> {formatDate(service.next_service_due_date)}</p>
-            {service.next_service_due_mileage && (
-              <p><strong>Mileage:</strong> {service.next_service_due_mileage?.toLocaleString()} miles</p>
+      {/* Shop Information */}
+      {service.shop && (
+        <div className="service-info-section">
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            marginBottom: '0.75rem',
+            color: 'var(--dark-text-muted)',
+            fontSize: '0.875rem',
+            fontWeight: '600'
+          }}>
+            <MapPin size={14} />
+            Service Location
+          </div>
+          <div style={{
+            padding: '0.75rem',
+            background: 'var(--dark-glass)',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid var(--dark-border)'
+          }}>
+            <div style={{
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: 'var(--dark-text)',
+              marginBottom: '0.25rem'
+            }}>
+              {service.shop.name || 'Unknown Shop'}
+            </div>
+            {service.shop.address && (
+              <div style={{ fontSize: '0.8rem', color: 'var(--dark-text-secondary)' }}>
+                {service.shop.address}
+              </div>
+            )}
+            {service.shop.phone && (
+              <div style={{ fontSize: '0.8rem', color: 'var(--dark-text-secondary)', marginTop: '0.25rem' }}>
+                {service.shop.phone}
+              </div>
             )}
           </div>
         </div>
       )}
 
-      {/* Notes Card */}
-      {service.notes && (
-        <div className="detail-card">
-          <div className="card-title">Notes</div>
-          <div className="card-content">
-            <p>{service.notes}</p>
+      {/* Mechanic Information */}
+      {service.mechanic && (
+        <div className="service-info-section">
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            marginBottom: '0.75rem',
+            color: 'var(--dark-text-muted)',
+            fontSize: '0.875rem',
+            fontWeight: '600'
+          }}>
+            <Wrench size={14} />
+            Service Provider
           </div>
+          <div style={{
+            padding: '0.75rem',
+            background: 'var(--dark-glass)',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid var(--dark-border)'
+          }}>
+            <div style={{
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: 'var(--dark-text)'
+            }}>
+              {service.mechanic.first_name} {service.mechanic.last_name}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Service Details */}
+      <div className="service-info-section">
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          marginBottom: '0.75rem',
+          color: 'var(--dark-text-muted)',
+          fontSize: '0.875rem',
+          fontWeight: '600'
+        }}>
+          <FileText size={14} />
+          Service Details
+        </div>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+          gap: '0.75rem'
+        }}>
+          {service.mileage_at_service && (
+            <div style={{
+              padding: '0.75rem',
+              background: 'var(--dark-glass)',
+              borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--dark-border)'
+            }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--dark-text-muted)', marginBottom: '0.25rem' }}>
+                Mileage
+              </div>
+              <div style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--dark-text)' }}>
+                {service.mileage_at_service.toLocaleString()} mi
+              </div>
+            </div>
+          )}
+          
+          {service.duration_minutes && (
+            <div style={{
+              padding: '0.75rem',
+              background: 'var(--dark-glass)',
+              borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--dark-border)'
+            }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--dark-text-muted)', marginBottom: '0.25rem' }}>
+                Duration
+              </div>
+              <div style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--dark-text)' }}>
+                {service.duration_minutes} min
+              </div>
+            </div>
+          )}
+          
+          {(service.labor_cost || service.parts_cost) && (
+            <div style={{
+              padding: '0.75rem',
+              background: 'var(--dark-glass)',
+              borderRadius: 'var(--radius-sm)',
+              border: '1px solid var(--dark-border)'
+            }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--dark-text-muted)', marginBottom: '0.25rem' }}>
+                Labor/Parts
+              </div>
+              <div style={{ fontSize: '0.875rem', fontWeight: '600', color: 'var(--dark-text)' }}>
+                ${service.labor_cost || '0'} / ${service.parts_cost || '0'}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Toggle Details Button */}
+      <button 
+        className="details-toggle-btn"
+        onClick={() => setShowDetails(!showDetails)}
+      >
+        <FileText size={16} style={{ marginRight: '0.5rem' }} />
+        {showDetails ? 'Hide' : 'View'} Additional Details
+      </button>
+
+      {/* Additional Details */}
+      {showDetails && (
+        <div className="additional-details-modern">
+          {/* Warranty Information */}
+          {service.warranty_months && (
+            <div style={{ marginBottom: '1rem' }}>
+              <div style={{
+                fontSize: '0.875rem',
+                color: 'var(--dark-text-muted)',
+                marginBottom: '0.5rem',
+                fontWeight: '600'
+              }}>
+                <CheckCircle size={14} style={{ display: 'inline', marginRight: '0.5rem', verticalAlign: 'middle' }} />
+                Warranty Information
+              </div>
+              <div style={{
+                padding: '0.75rem',
+                background: 'var(--dark-glass)',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--dark-border)'
+              }}>
+                <div style={{ fontSize: '0.8rem', color: 'var(--dark-text-secondary)' }}>
+                  {service.warranty_months} months warranty
+                  {service.warranty_mileage && ` • ${service.warranty_mileage.toLocaleString()} miles`}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Next Service */}
+          {service.next_service_due_date && (
+            <div style={{ marginBottom: '1rem' }}>
+              <div style={{
+                fontSize: '0.875rem',
+                color: 'var(--dark-text-muted)',
+                marginBottom: '0.5rem',
+                fontWeight: '600'
+              }}>
+                <Calendar size={14} style={{ display: 'inline', marginRight: '0.5rem', verticalAlign: 'middle' }} />
+                Next Service Due
+              </div>
+              <div style={{
+                padding: '0.75rem',
+                background: 'var(--dark-glass)',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--dark-border)'
+              }}>
+                <div style={{ fontSize: '0.8rem', color: 'var(--dark-text-secondary)' }}>
+                  {formatDate(service.next_service_due_date)}
+                  {service.next_service_due_mileage && ` • ${service.next_service_due_mileage.toLocaleString()} miles`}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Notes */}
+          {service.notes && (
+            <div>
+              <div style={{
+                fontSize: '0.875rem',
+                color: 'var(--dark-text-muted)',
+                marginBottom: '0.5rem',
+                fontWeight: '600'
+              }}>
+                <FileText size={14} style={{ display: 'inline', marginRight: '0.5rem', verticalAlign: 'middle' }} />
+                Notes
+              </div>
+              <div style={{
+                padding: '0.75rem',
+                background: 'var(--dark-glass)',
+                borderRadius: 'var(--radius-sm)',
+                border: '1px solid var(--dark-border)'
+              }}>
+                <p style={{
+                  fontSize: '0.8rem',
+                  color: 'var(--dark-text-secondary)',
+                  margin: 0,
+                  lineHeight: '1.6',
+                  fontStyle: service.notes.includes('Automatically added') ? 'italic' : 'normal'
+                }}>
+                  {service.notes}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* Visit Confirmation Button */}
       {service.appointment_id && !service.notes?.includes('Automatically added from appointment completion') && (
-        <div className="visit-confirmation">
+        <div style={{ marginTop: '1.5rem' }}>
           <button 
-            className="confirm-visit-btn"
+            className="confirm-visit-btn-modern"
             onClick={() => onVisitConfirmation(service.appointment_id)}
           >
+            <CheckCircle size={16} style={{ marginRight: '0.5rem' }} />
             Confirm Visit Completed
           </button>
         </div>
