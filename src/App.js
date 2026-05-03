@@ -14,6 +14,7 @@ import CostInsights from './components/CostInsights';
 import SystemMessages from './components/SystemMessages';
 import LandingPage from './components/LandingPage';
 import SystemMessagesCenter from './components/SystemMessagesCenter';
+import NavBar from './components/NavBar';
 import './App.css';
 
 function ProtectedRoute({ children, adminOnly = false }) {
@@ -33,7 +34,12 @@ function ProtectedRoute({ children, adminOnly = false }) {
     return <Navigate to="/dashboard" />;
   }
 
-  return children;
+  return (
+    <>
+      <NavBar />
+      {children}
+    </>
+  );
 }
 
 function App() {

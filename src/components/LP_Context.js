@@ -55,9 +55,9 @@ const LP_Context = () => {
           top: 0,
           width: '100%',
           height: '100%',
-          backgroundImage: 'url(/GearShift/engine.png)',
-          backgroundSize: '130%',
-          backgroundPosition: 'center left',
+          backgroundImage: 'url(/GearShift/dashboard.png)',
+          backgroundSize: '100%',
+          backgroundPosition: 'center',
           opacity: 0.6
         }} />
 

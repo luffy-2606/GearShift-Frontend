@@ -356,17 +356,29 @@ const UserDashboard = () => {
 
   const getPriorityColor = (priority) => {
     switch (priority) {
-      case 'high': return '#ef4444';
+      case 'high': return '#ffffff';
       case 'medium': return '#f59e0b';
       case 'low': return '#10b981';
       default: return '#6b7280';
     }
   };
 
+  const getMeterMessage = (value) => {
+    if (value >= 80) return 'Excellent';
+    if (value >= 50) return 'Good';
+    return 'Need Checkup';
+  };
+
+  const getMeterColor = (value) => {
+    if (value >= 80) return '#10b981';
+    if (value >= 50) return '#f59e0b';
+    return '#ffffff';
+  };
+
   const cardStyle = {
-    background: 'rgba(255, 255, 255, 0.03)',
-    backdropFilter: 'blur(20px)',
-    border: '1px solid rgba(255, 255, 255, 0.1)',
+    background: 'rgba(255, 255, 255, 0.05)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.15)',
     borderRadius: '24px',
     padding: '32px',
     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
@@ -376,7 +388,7 @@ const UserDashboard = () => {
   const cardHoverStyle = {
     transform: 'translateY(-8px)',
     boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
-    borderColor: 'rgba(255, 255, 255, 0.2)'
+    borderColor: 'rgba(255, 255, 255, 0.25)'
   };
 
   if (loading) {
@@ -384,7 +396,7 @@ const UserDashboard = () => {
       <div style={{ 
         padding: '120px 2rem 2rem 2rem',
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)',
+        background: '#000000',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
@@ -405,13 +417,13 @@ const UserDashboard = () => {
       <div style={{ 
         padding: '120px 2rem 2rem 2rem',
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)',
+        background: '#000000',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center'
       }}>
         <div style={{
-          color: '#ef4444',
+          color: '#ffffff',
           fontSize: '1.5rem',
           fontWeight: 500
         }}>
@@ -422,10 +434,13 @@ const UserDashboard = () => {
   }
 
   return (
-    <div style={{ 
-      padding: '120px 60px 60px 60px',
+    <div style={{
+      padding: '30px 80px',
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%)'
+      background: '#000000',
+      borderRadius: '24px',
+      overflowX: 'hidden',
+      maxWidth: '100%'
     }}>
       {/* Greeting Section */}
       <div style={{ marginBottom: '60px' }}>
@@ -434,17 +449,13 @@ const UserDashboard = () => {
           fontWeight: 700,
           color: '#ffffff',
           marginBottom: '16px',
-          letterSpacing: '-0.03em',
-          background: 'linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text'
+          letterSpacing: '-0.03em'
         }}>
           {getGreeting()}, {dashboardData.userName}!
         </h1>
         <p style={{
           fontSize: '1.25rem',
-          color: 'rgba(255, 255, 255, 0.6)',
+          color: 'rgba(255, 255, 255, 0.7)',
           fontWeight: 400,
           letterSpacing: '0.01em'
         }}>
@@ -471,7 +482,7 @@ const UserDashboard = () => {
         >
           <h3 style={{
             fontSize: '0.875rem',
-            color: 'rgba(255, 255, 255, 0.5)',
+            color: 'rgba(255, 255, 255, 0.6)',
             marginBottom: '24px',
             textTransform: 'uppercase',
             letterSpacing: '0.1em',
@@ -488,22 +499,22 @@ const UserDashboard = () => {
               width: '120px',
               height: '120px',
               borderRadius: '50%',
-              background: `conic-gradient(#dc2626 ${dashboardData.garageCondition}%, rgba(255, 255, 255, 0.1) 0)`,
+              background: `conic-gradient(${getMeterColor(dashboardData.garageCondition)} ${dashboardData.garageCondition}%, rgba(192, 192, 192, 0.2) 0)`,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               position: 'relative',
-              boxShadow: '0 0 40px rgba(220, 38, 38, 0.3)'
+              boxShadow: `0 0 40px ${getMeterColor(dashboardData.garageCondition)}20`
             }}>
               <div style={{
                 width: '96px',
                 height: '96px',
                 borderRadius: '50%',
-                background: 'rgba(10, 10, 10, 0.9)',
-                backdropFilter: 'blur(10px)',
+                background: 'rgba(0, 0, 0, 0.8)',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
               }}>
                 <span style={{
                   fontSize: '2rem',
@@ -517,7 +528,7 @@ const UserDashboard = () => {
             <div>
               <p style={{
                 fontSize: '0.875rem',
-                color: 'rgba(255, 255, 255, 0.5)',
+                color: 'rgba(255, 255, 255, 0.6)',
                 marginBottom: '8px',
                 letterSpacing: '0.02em'
               }}>
@@ -529,7 +540,7 @@ const UserDashboard = () => {
                 fontWeight: 600,
                 letterSpacing: '-0.01em'
               }}>
-                Excellent
+                {getMeterMessage(dashboardData.garageCondition)}
               </p>
             </div>
           </div>
@@ -547,7 +558,7 @@ const UserDashboard = () => {
         >
           <h3 style={{
             fontSize: '0.875rem',
-            color: 'rgba(255, 255, 255, 0.5)',
+            color: 'rgba(255, 255, 255, 0.6)',
             marginBottom: '24px',
             textTransform: 'uppercase',
             letterSpacing: '0.1em',
@@ -565,23 +576,25 @@ const UserDashboard = () => {
               height: '120px',
               borderRadius: '50%',
               background: dashboardData.hasMonthlyBudget
-                ? `conic-gradient(#dc2626 ${dashboardData.monthlyBudgetSpent}%, rgba(255, 255, 255, 0.1) 0)`
-                : 'rgba(255, 255, 255, 0.08)',
+                ? `conic-gradient(${getMeterColor(100 - dashboardData.monthlyBudgetSpent)} ${dashboardData.monthlyBudgetSpent}%, rgba(192, 192, 192, 0.2) 0)`
+                : 'rgba(192, 192, 192, 0.2)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               position: 'relative',
-              boxShadow: '0 0 40px rgba(220, 38, 38, 0.3)'
+              boxShadow: dashboardData.hasMonthlyBudget
+                ? `0 0 40px ${getMeterColor(100 - dashboardData.monthlyBudgetSpent)}20`
+                : '0 4px 20px rgba(128, 128, 128, 0.15)'
             }}>
               <div style={{
                 width: '96px',
                 height: '96px',
                 borderRadius: '50%',
-                background: 'rgba(10, 10, 10, 0.9)',
-                backdropFilter: 'blur(10px)',
+                background: 'rgba(0, 0, 0, 0.8)',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center'
+                justifyContent: 'center',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
               }}>
                 <span style={{
                   fontSize: dashboardData.hasMonthlyBudget ? '2rem' : '1.25rem',
@@ -599,7 +612,7 @@ const UserDashboard = () => {
             <div>
               <p style={{
                 fontSize: '0.875rem',
-                color: 'rgba(255, 255, 255, 0.5)',
+                color: 'rgba(255, 255, 255, 0.6)',
                 marginBottom: '8px',
                 letterSpacing: '0.02em'
               }}>
@@ -663,11 +676,11 @@ const UserDashboard = () => {
           gap: '20px'
         }}>
           {[
-            { icon: Calendar, label: 'Book Appointment', color: '#dc2626' },
-            { icon: Bell, label: systemMessagesLabel, color: '#f59e0b', onClick: () => navigate('/system-messages') },
-            { icon: MapPin, label: 'Find Shops', color: '#f59e0b' },
-            { icon: Wrench, label: 'Contact Mechanics', color: '#10b981' },
-            { icon: Car, label: 'My Vehicles', color: '#3b82f6' }
+            { icon: Calendar, label: 'Book Appointment', color: '#ffffff' },
+            { icon: Bell, label: systemMessagesLabel, color: '#ffffff', onClick: () => navigate('/system-messages') },
+            { icon: MapPin, label: 'Find Shops', color: '#ffffff' },
+            { icon: Wrench, label: 'Contact Mechanics', color: '#ffffff' },
+            { icon: Car, label: 'My Vehicles', color: '#ffffff' }
           ].map((action, index) => (
             <button
               key={index}
@@ -685,8 +698,8 @@ const UserDashboard = () => {
               }}
               onClick={action.onClick}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)';
-                e.currentTarget.style.borderColor = action.color;
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
                 e.currentTarget.style.transform = 'translateY(-4px)';
               }}
               onMouseLeave={(e) => {
@@ -738,7 +751,7 @@ const UserDashboard = () => {
               padding: '20px',
               background: 'rgba(255, 255, 255, 0.05)',
               borderRadius: '16px',
-              border: '1px solid rgba(255, 255, 255, 0.08)'
+              border: '1px solid rgba(255, 255, 255, 0.1)'
             }}>
               <p style={{
                 fontSize: '1.05rem',
@@ -849,7 +862,7 @@ const UserDashboard = () => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
-            <MapPin size={24} style={{ color: '#dc2626' }} />
+            <MapPin size={24} style={{ color: '#ffffff' }} />
             <h3 style={{
               fontSize: '1.5rem',
               color: '#ffffff',
@@ -895,13 +908,13 @@ const UserDashboard = () => {
                   </p>
                 </div>
                 <div style={{
-                  background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
-                  color: '#ffffff',
+                  background: 'linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%)',
+                  color: '#000000',
                   padding: '8px 20px',
                   borderRadius: '12px',
                   fontSize: '1rem',
                   fontWeight: 700,
-                  boxShadow: '0 4px 15px rgba(220, 38, 38, 0.3)'
+                  boxShadow: '0 4px 15px rgba(255, 255, 255, 0.2)'
                 }}>
                   {shop.visits}
                 </div>
@@ -927,7 +940,7 @@ const UserDashboard = () => {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
-          <DollarSign size={24} style={{ color: '#dc2626' }} />
+          <DollarSign size={24} style={{ color: '#ffffff' }} />
           <h3 style={{
             fontSize: '1.5rem',
             color: '#ffffff',
@@ -939,7 +952,7 @@ const UserDashboard = () => {
           </h3>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {(costInsights?.mostExpensiveServices || [...serviceHistory].sort((a, b) => (b.total_cost || 0) - (a.total_cost || 0)).slice(0, 5)).map((service) => (
+          {(costInsights?.mostExpensiveServices?.slice(0, 3) || [...serviceHistory].sort((a, b) => (b.total_cost || 0) - (a.total_cost || 0)).slice(0, 3)).map((service) => (
             <div
               key={service.id}
               style={{
@@ -960,7 +973,7 @@ const UserDashboard = () => {
                   {service.shop?.name || 'Unknown Shop'}
                 </p>
               </div>
-              <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#dc2626' }}>
+              <div style={{ fontSize: '1.2rem', fontWeight: 700, color: '#ffffff' }}>
                 ${Number(service.total_cost || 0).toLocaleString()}
               </div>
             </div>
