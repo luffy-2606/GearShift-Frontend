@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../lib/apiClient';
 import { Star, Trash2, ExternalLink, Plus, Bookmark } from 'lucide-react';
+import PageLoadSkeleton from './PageLoadSkeleton';
 
 const ENTITY_LABELS = {
   shop: 'Workshop',
@@ -39,6 +40,20 @@ function openTarget(navigate, item) {
       break;
     case 'cost_insight':
       navigate('/cost-insights');
+      break;
+    case 'quote_snapshot': {
+      const shopId = s.shopId;
+      if (shopId) {
+        navigate(`/shops?saved=${shopId}`);
+      } else if (s.source === 'cost_insights_by_service') {
+        navigate('/cost-insights');
+      } else {
+        navigate('/shops');
+      }
+      break;
+    }
+    case 'parts_bundle':
+      navigate('/saved');
       break;
     default:
       break;
@@ -159,7 +174,8 @@ const SavedItems = () => {
             Saved & favorites
           </h1>
           <p style={styles.subtitle}>
-            Workshops, mechanics, quotes, and cost insights sync to your account. Add tags and notes to organize.
+            Favorites sync across devices and stay in this list with tags, notes, and last updated times. Re-open a saved
+            quote, jump back to a shop or mechanic, or compare parts bundles you have stored.
           </p>
         </header>
 
@@ -214,7 +230,9 @@ const SavedItems = () => {
         )}
 
         {loading ? (
-          <p style={{ color: 'var(--dark-text-secondary)' }}>Loading…</p>
+          <div aria-busy="true">
+            <PageLoadSkeleton variant="list" message="Loading your saved items" ariaLabel="Loading saved items" />
+          </div>
         ) : items.length === 0 ? (
           <p style={{ color: 'var(--dark-text-secondary)' }}>Nothing saved yet. Save a shop, mechanic, or quote from elsewhere in the app.</p>
         ) : (
@@ -261,7 +279,9 @@ const SavedItems = () => {
                     )}
                   </div>
                   <div style={styles.cardActions}>
-                    {['shop', 'mechanic', 'appointment', 'cost_insight'].includes(item.entity_type) && (
+                    {['shop', 'mechanic', 'appointment', 'cost_insight', 'quote_snapshot', 'parts_bundle'].includes(
+                      item.entity_type
+                    ) && (
                       <button
                         type="button"
                         style={styles.btnGhost}

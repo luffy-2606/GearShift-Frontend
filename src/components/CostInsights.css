@@ -295,6 +295,33 @@
   transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.cost-ci-save-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.cost-ci-save-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+.cost-ci-save-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 /* Trends */
 .cost-ci-month-row {
   display: grid;

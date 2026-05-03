@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../lib/apiClient';
 import AppointmentBooking from './AppointmentBooking';
-import { Star, MapPin, Phone, User, Wrench, Search, Filter, ArrowRight, Store } from 'lucide-react';
+import { Star, MapPin, Phone, User, Wrench, Search, Filter, ArrowRight, Store, Globe, Bookmark } from 'lucide-react';
 import PageLoadSkeleton from './PageLoadSkeleton';
 import './ShopsList.css';
 
@@ -29,8 +30,17 @@ const cardHoverStyle = {
   borderColor: 'rgba(255, 255, 255, 0.25)'
 };
 
+function workshopWebsiteHref(url) {
+  if (!url || !String(url).trim()) return null;
+  const u = String(url).trim();
+  if (/^https?:\/\//i.test(u)) return u;
+  return `https://${u}`;
+}
+
 const ShopsList = () => {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const savedHighlightId = searchParams.get('saved');
   const [shops, setShops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -104,6 +114,25 @@ const ShopsList = () => {
     fetchShops();
   }, [filters.service_type, filters.radius]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  const filteredShops = useMemo(
+    () =>
+      shops.filter(
+        (shop) =>
+          shop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          shop.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          shop.address?.toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+    [shops, searchTerm]
+  );
+
+  useEffect(() => {
+    if (loading || !savedHighlightId) return;
+    const t = window.setTimeout(() => {
+      document.getElementById(`shop-card-${savedHighlightId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 400);
+    return () => window.clearTimeout(t);
+  }, [loading, savedHighlightId, filteredShops]);
+
   const handleServiceFilter = (serviceType) => {
     setFilters(prev => ({
       ...prev,
@@ -134,12 +163,6 @@ const ShopsList = () => {
       </div>
     );
   }
-
-  const filteredShops = shops.filter(shop =>
-    shop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    shop.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    shop.address?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   const serviceOptions = ['Oil Change', 'Brake Repair', 'Battery Replacement', 'Tire Service', 'Engine Diagnostic'];
 
@@ -289,7 +312,12 @@ const ShopsList = () => {
 
             <div className="shops-grid-modern">
               {filteredShops.map(shop => (
-                <ShopCard key={shop.id} shop={shop} onBookAppointment={handleBookAppointment} />
+                <ShopCard
+                  key={shop.id}
+                  shop={shop}
+                  onBookAppointment={handleBookAppointment}
+                  highlight={savedHighlightId === shop.id}
+                />
               ))}
             </div>
 
@@ -333,9 +361,24 @@ const ShopsList = () => {
   );
 };
 
-const ShopCard = ({ shop, onBookAppointment }) => {
+const saveBtnStyle = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 6,
+  background: 'rgba(255,255,255,0.08)',
+  border: '1px solid rgba(255,255,255,0.18)',
+  color: '#fff',
+  borderRadius: '9999px',
+  padding: '0.35rem 0.75rem',
+  fontSize: '0.75rem',
+  fontWeight: 600,
+  cursor: 'pointer',
+};
+
+const ShopCard = ({ shop, onBookAppointment, highlight }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [selectedServices, setSelectedServices] = useState([]);
+  const [savingBm, setSavingBm] = useState(false);
 
   const handleServiceToggle = (service) => {
     setSelectedServices(prev =>
@@ -354,8 +397,37 @@ const ShopCard = ({ shop, onBookAppointment }) => {
     onBookAppointment(shop, selectedServices);
   };
 
+  const saveWorkshop = async (e) => {
+    e.stopPropagation();
+    try {
+      setSavingBm(true);
+      await apiClient.post('/api/bookmarks', {
+        entity_type: 'shop',
+        entity_id: shop.id,
+        tags: ['workshop'],
+        snapshot: {
+          website: shop.website || undefined,
+        },
+      });
+      alert('Workshop saved. View it anytime under Saved.');
+    } catch (err) {
+      if (err.response?.status === 409) {
+        alert('Already in your saved list.');
+      } else {
+        alert(err.response?.data?.message || 'Could not save workshop.');
+      }
+    } finally {
+      setSavingBm(false);
+    }
+  };
+
+  const href = workshopWebsiteHref(shop.website);
+
   return (
-    <div className="shop-card-modern">
+    <div
+      id={`shop-card-${shop.id}`}
+      className={`shop-card-modern${highlight ? ' shop-card-modern--saved-highlight' : ''}`}
+    >
       <div className="shop-card-header">
         <div>
           <h3 className="shop-card-title">{shop.name}</h3>
@@ -372,11 +444,23 @@ const ShopCard = ({ shop, onBookAppointment }) => {
           </div>
         </div>
 
-        {shop.average_rating >= 4.5 && (
-          <div className="shop-card-badge">
-            Top rated
-          </div>
-        )}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+          <button
+            type="button"
+            onClick={saveWorkshop}
+            disabled={savingBm}
+            title="Save workshop"
+            style={{ ...saveBtnStyle, cursor: savingBm ? 'wait' : 'pointer', opacity: savingBm ? 0.7 : 1 }}
+          >
+            <Bookmark size={14} />
+            {savingBm ? '…' : 'Save'}
+          </button>
+          {shop.average_rating >= 4.5 && (
+            <div className="shop-card-badge">
+              Top rated
+            </div>
+          )}
+        </div>
       </div>
 
       <p className="shop-card-description">
@@ -393,6 +477,26 @@ const ShopCard = ({ shop, onBookAppointment }) => {
           <div className="shop-card-info-row">
             <Phone size={14} style={{ color: 'rgba(255, 255, 255, 0.45)', flexShrink: 0 }} />
             <span>{shop.phone}</span>
+          </div>
+        )}
+
+        {href && (
+          <div className="shop-card-info-row">
+            <Globe size={14} style={{ color: 'rgba(255, 255, 255, 0.45)', flexShrink: 0 }} />
+            <a
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                fontSize: '0.875rem',
+                color: 'rgba(255, 255, 255, 0.85)',
+                textDecoration: 'underline',
+                wordBreak: 'break-all',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {String(shop.website).replace(/^https?:\/\//i, '')}
+            </a>
           </div>
         )}
 

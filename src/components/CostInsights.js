@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../lib/apiClient';
-import { TrendingUp, DollarSign, Car, BarChart3, PieChart } from 'lucide-react';
+import { TrendingUp, DollarSign, Car, BarChart3, PieChart, Bookmark } from 'lucide-react';
 import PageLoadSkeleton from './PageLoadSkeleton';
 import './CostInsights.css';
 
@@ -48,6 +48,7 @@ const CostInsights = () => {
   const [trends, setTrends] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [savingServiceKey, setSavingServiceKey] = useState(null);
 
   const displayName =
     user?.first_name?.trim() ||
@@ -103,6 +104,29 @@ const CostInsights = () => {
       month: 'short',
       day: 'numeric'
     });
+
+  const saveServiceTypeBookmark = async (serviceType, data) => {
+    try {
+      setSavingServiceKey(serviceType);
+      await apiClient.post('/api/bookmarks', {
+        entity_type: 'quote_snapshot',
+        title: `Spending: ${serviceType}`,
+        snapshot: {
+          source: 'cost_insights_by_service',
+          serviceType,
+          totalSpent: data.totalSpent,
+          serviceCount: data.serviceCount,
+          averageCost: data.averageCost,
+        },
+        tags: ['cost-insights'],
+      });
+      alert('Saved to your Saved list.');
+    } catch (e) {
+      alert(e.response?.data?.message || 'Could not save.');
+    } finally {
+      setSavingServiceKey(null);
+    }
+  };
 
   const trendMaxAmount = useMemo(() => {
     if (!trends?.trends?.length) return 1;
@@ -355,9 +379,30 @@ const CostInsights = () => {
                     <div key={name} className="cost-ci-bar-row">
                       <div className="cost-ci-bar-row__top">
                         <span className="cost-ci-bar-row__name">{name}</span>
-                        <span className="cost-ci-bar-row__nums">
-                          {formatCurrency(totalSpent)} • {serviceCount}× • avg {formatCurrency(averageCost)}
-                        </span>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 10,
+                            flexWrap: 'wrap',
+                            justifyContent: 'flex-end',
+                          }}
+                        >
+                          <span className="cost-ci-bar-row__nums">
+                            {formatCurrency(totalSpent)} • {serviceCount}× • avg {formatCurrency(averageCost)}
+                          </span>
+                          <button
+                            type="button"
+                            className="cost-ci-save-btn"
+                            disabled={savingServiceKey === name}
+                            onClick={() =>
+                              saveServiceTypeBookmark(name, { totalSpent, serviceCount, averageCost })
+                            }
+                          >
+                            <Bookmark size={14} />
+                            {savingServiceKey === name ? '…' : 'Save'}
+                          </button>
+                        </div>
                       </div>
                       <div className="cost-ci-bar-row__track">
                         <div className="cost-ci-bar-row__fill" style={{ width: `${pct}%` }} />

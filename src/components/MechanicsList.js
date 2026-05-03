@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../lib/apiClient';
 import {
@@ -12,7 +13,8 @@ import {
   Clock,
   DollarSign,
   ArrowRight,
-  Hammer
+  Hammer,
+  Bookmark
 } from 'lucide-react';
 import PageLoadSkeleton from './PageLoadSkeleton';
 import './MechanicsList.css';
@@ -45,6 +47,8 @@ const SPEC_FILTERS = ['Engine Specialist', 'Transmission Expert', 'Electrical Sy
 
 const MechanicsList = () => {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const savedHighlightId = searchParams.get('saved');
   const [mechanics, setMechanics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -132,6 +136,25 @@ const MechanicsList = () => {
     }));
   };
 
+  const filteredMechanics = useMemo(
+    () =>
+      mechanics.filter(
+        (mechanic) =>
+          `${mechanic.first_name} ${mechanic.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          mechanic.specialization?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          mechanic.bio?.toLowerCase().includes(searchTerm.toLowerCase())
+      ),
+    [mechanics, searchTerm]
+  );
+
+  useEffect(() => {
+    if (loading || !savedHighlightId) return;
+    const t = window.setTimeout(() => {
+      document.getElementById(`mechanic-card-${savedHighlightId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 400);
+    return () => window.clearTimeout(t);
+  }, [loading, savedHighlightId, filteredMechanics]);
+
   if (loading) {
     return (
       <div className="mechanics-page" aria-busy="true">
@@ -139,12 +162,6 @@ const MechanicsList = () => {
       </div>
     );
   }
-
-  const filteredMechanics = mechanics.filter(mechanic =>
-    `${mechanic.first_name} ${mechanic.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    mechanic.specialization?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    mechanic.bio?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <div className="mechanics-page">
@@ -310,7 +327,11 @@ const MechanicsList = () => {
 
             <div className="mechanics-grid-modern">
               {filteredMechanics.map(mechanic => (
-                <MechanicCard key={mechanic.id} mechanic={mechanic} />
+                <MechanicCard
+                  key={mechanic.id}
+                  mechanic={mechanic}
+                  highlight={savedHighlightId === mechanic.id}
+                />
               ))}
             </div>
 
@@ -348,8 +369,9 @@ function initials(mechanic) {
   return `${a}${b}`.toUpperCase() || '?';
 }
 
-const MechanicCard = ({ mechanic }) => {
+const MechanicCard = ({ mechanic, highlight }) => {
   const [showDetails, setShowDetails] = useState(false);
+  const [savingBm, setSavingBm] = useState(false);
 
   const formatDistance = (distance) => {
     if (distance === null || distance === undefined) return null;
@@ -364,8 +386,32 @@ const MechanicCard = ({ mechanic }) => {
 
   const distanceLabel = formatDistance(mechanic.distance);
 
+  const saveMechanic = async (e) => {
+    e.stopPropagation();
+    try {
+      setSavingBm(true);
+      await apiClient.post('/api/bookmarks', {
+        entity_type: 'mechanic',
+        entity_id: mechanic.id,
+        tags: ['mechanic'],
+      });
+      alert('Mechanic saved. View under Saved in the menu.');
+    } catch (err) {
+      if (err.response?.status === 409) {
+        alert('Already in your saved list.');
+      } else {
+        alert(err.response?.data?.message || 'Could not save mechanic.');
+      }
+    } finally {
+      setSavingBm(false);
+    }
+  };
+
   return (
-    <article className="mechanic-card-modern">
+    <article
+      id={`mechanic-card-${mechanic.id}`}
+      className={`mechanic-card-modern${highlight ? ' mechanic-card-modern--saved-highlight' : ''}`}
+    >
       <div className="mechanic-card-modern__top">
         <div className="mechanic-card-modern__avatar" aria-hidden>
           {initials(mechanic)}
@@ -374,6 +420,16 @@ const MechanicCard = ({ mechanic }) => {
           {mechanic.first_name} {mechanic.last_name}
         </h3>
         <div className="mechanic-card-modern__badge-row">
+          <button
+            type="button"
+            className="mechanic-card-modern__save"
+            onClick={saveMechanic}
+            disabled={savingBm}
+            title="Save mechanic"
+          >
+            <Bookmark size={13} />
+            {savingBm ? '…' : 'Save'}
+          </button>
           <span
             className={`mechanic-card-modern__badge ${mechanic.is_independent ? 'mechanic-card-modern__badge--accent' : 'mechanic-card-modern__badge--muted'}`}
           >

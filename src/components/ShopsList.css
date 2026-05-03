@@ -141,6 +141,12 @@
   border-color: rgba(255, 255, 255, 0.22);
 }
 
+.shop-card-modern--saved-highlight {
+  outline: 2px solid rgba(220, 38, 38, 0.85);
+  outline-offset: 3px;
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
 .shop-card-header {
   display: flex;
   justify-content: space-between;
