@@ -160,7 +160,7 @@ const NavBar = () => {
 
         {/* Center - Logo */}
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <img className="logo-spin" src="/GearShift/logo.png" alt="Logo" style={{ height: '50px', width: 'auto' }} />
+          <img className="logo-spin" src="/GearShift/logo.png" alt="Logo" style={{ height: '40px', width: 'auto' }} />
         </div>
 
         {/* Right: same hover wrapper pattern */}

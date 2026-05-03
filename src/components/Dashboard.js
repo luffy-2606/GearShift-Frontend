@@ -15,30 +15,20 @@ const Dashboard = () => {
 
   return (
     <div style={{ background: 'var(--dark-bg)', overflowX: 'hidden', width: '100%' }}>
-      {/* Landing Page Sections */}
       <div style={{
         position: 'relative',
         paddingLeft: '3rem',
-         paddingRight: '3rem', 
-         backgroundColor: 'white', 
-         paddingTop: '16rem',
-         paddingBottom: '2rem',
-         backgroundImage: 'url(/GearShift/engine.png)',
-         backgroundSize: '100%',
+        paddingRight: '3rem',
+        backgroundColor: 'white',
+        paddingTop: '16rem',
+        paddingBottom: '2rem',
+        backgroundImage: 'url(/GearShift/engine.png)',
+        backgroundSize: '100%',
         backgroundPosition: 'center -140px',
         backgroundRepeat: 'no-repeat',
         overflowX: 'hidden',
-        maxWidth: '100vw'}}>
-        {/* <HeroSection />
-        <HowItWorks />
-        <FeaturesSection />
-        <ShopsSection />
-        <UpgradesSection />
-        <TestimonialsSection />
-        <CTASection /> */}
-        {/* <Footer /> */}
-        
-        {/* Cover Rectangle behind UserDashboard */}
+        maxWidth: '100vw'
+      }}>
         <div style={{
           position: 'absolute',
           top: '560px',
@@ -49,14 +39,12 @@ const Dashboard = () => {
           background: '#1b1b1b',
           zIndex: 1
         }} />
-        
-        {/* User Dashboard */}
+
         <div style={{ position: 'relative', zIndex: 2 }}>
           {user && <UserDashboard />}
         </div>
       </div>
 
-      {/* Admin Panel Link (if admin) */}
       {user?.role === 'admin' && (
         <div style={{
           position: 'fixed',
@@ -64,8 +52,8 @@ const Dashboard = () => {
           right: '2rem',
           zIndex: '40'
         }}>
-          <a 
-            href="/admin" 
+          <a
+            href="/admin"
             className="btn"
             style={{
               background: 'var(--dark-accent)',

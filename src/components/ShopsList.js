@@ -1,17 +1,36 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import apiClient from '../lib/apiClient';
 import AppointmentBooking from './AppointmentBooking';
-import { Star, MapPin, Phone, User, Wrench, Search, Filter, ArrowRight, Globe, Bookmark } from 'lucide-react';
+import { Star, MapPin, Phone, User, Wrench, Search, Filter, ArrowRight, Store } from 'lucide-react';
+import PageLoadSkeleton from './PageLoadSkeleton';
 import './ShopsList.css';
 
-function workshopWebsiteHref(url) {
-  if (!url || !String(url).trim()) return null;
-  const u = String(url).trim();
-  if (/^https?:\/\//i.test(u)) return u;
-  return `https://${u}`;
-}
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+};
+
+const cardStyle = {
+  background: 'rgba(255, 255, 255, 0.05)',
+  backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(255, 255, 255, 0.15)',
+  borderRadius: '24px',
+  padding: '32px',
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+};
+
+const cardHoverStyle = {
+  transform: 'translateY(-8px)',
+  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+  borderColor: 'rgba(255, 255, 255, 0.25)'
+};
 
 const ShopsList = () => {
+  const { user } = useAuth();
   const [shops, setShops] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -26,6 +45,11 @@ const ShopsList = () => {
     selectedServices: []
   });
   const [searchTerm, setSearchTerm] = useState('');
+
+  const displayName =
+    user?.first_name?.trim() ||
+    [user?.first_name, user?.last_name].filter(Boolean).join(' ').trim() ||
+    'there';
 
   const getUserLocation = () => {
     if (navigator.geolocation) {
@@ -48,27 +72,24 @@ const ShopsList = () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
-      
-      // Only add location params if we have coordinates
+
       if (filters.latitude && filters.longitude) {
         params.append('latitude', filters.latitude);
         params.append('longitude', filters.longitude);
         params.append('radius', filters.radius);
       }
-      
-      // Only add service filter if it's not empty
+
       if (filters.service_type) {
         params.append('service_type', filters.service_type);
       }
 
       const response = await apiClient.get(`/api/shops?${params}`);
-      
+
       if (response.data.success) {
         setShops(response.data.data);
       }
     } catch (error) {
       console.error('Error fetching shops:', error);
-      // Don't clear shops on error, just log it
     } finally {
       setLoading(false);
     }
@@ -86,7 +107,7 @@ const ShopsList = () => {
   const handleServiceFilter = (serviceType) => {
     setFilters(prev => ({
       ...prev,
-      service_type: serviceType === filters.service_type ? '' : serviceType
+      service_type: serviceType === prev.service_type ? '' : serviceType
     }));
   };
 
@@ -108,158 +129,199 @@ const ShopsList = () => {
 
   if (loading) {
     return (
-      <div className="shops-list-container">
-        <div className="loading-state">
-          <div className="loading-spinner"></div>
-          <p>Finding the best shops for you...</p>
-        </div>
+      <div className="shops-page" aria-busy="true">
+        <PageLoadSkeleton variant="list" message="Finding the best shops for you" ariaLabel="Loading shops" />
       </div>
     );
   }
 
-  const filteredShops = shops.filter(shop => 
+  const filteredShops = shops.filter(shop =>
     shop.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     shop.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     shop.address?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const serviceOptions = ['Oil Change', 'Brake Repair', 'Battery Replacement', 'Tire Service', 'Engine Diagnostic'];
+
   return (
-    <div className="shops-list-container landing-section landing-section-dark">
-      {/* Header Section */}
-      <div className="section-header">
-        <h2 className="section-title">Find <span style={{ color: 'var(--dark-accent)' }}>Auto Repair Shops</span></h2>
-        <p className="section-subtitle">
-          Discover trusted automotive professionals in your area. Compare services, read reviews, and book with confidence.
-        </p>
-      </div>
-
-      {/* Search and Filter Section */}
-      <div style={{
-        background: 'var(--dark-surface)',
-        border: '1px solid var(--dark-border)',
-        borderRadius: 'var(--radius)',
-        padding: '2rem',
-        marginBottom: '3rem'
-      }}>
-        {/* Search Bar */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            background: 'var(--dark-glass)',
-            border: '1px solid var(--dark-border)',
-            borderRadius: 'var(--radius-sm)',
-            padding: '0.75rem 1rem',
-            color: 'var(--dark-text)'
-          }}>
-            <Search size={20} className="hero-stat-icon" />
-            <input
-              type="text"
-              placeholder="Search by shop name, location, or services..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--dark-text)',
-                fontSize: '0.95rem',
-                outline: 'none',
-                width: '100%'
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Service Type Filters */}
-        <div>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            marginBottom: '1rem',
-            color: 'var(--dark-text-muted)',
-            fontSize: '0.875rem',
-            fontWeight: '600'
-          }}>
-            <Filter size={16} />
-            Filter by Service:
-          </div>
-          <div style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '0.75rem'
-          }}>
-            {['Oil Change', 'Brake Repair', 'Battery Replacement', 'Tire Service', 'Engine Diagnostic'].map(service => (
-              <button
-                key={service}
-                className={`service-filter-btn ${filters.service_type === service ? 'active' : ''}`}
-                onClick={() => handleServiceFilter(service)}
-              >
-                {service}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Results Count */}
-      {filteredShops.length > 0 && (
-        <div style={{
-          color: 'var(--dark-text-muted)',
-          fontSize: '0.875rem',
-          marginBottom: '2rem',
-          textAlign: 'center'
-        }}>
-          Found {filteredShops.length} {filteredShops.length === 1 ? 'shop' : 'shops'} matching your criteria
-        </div>
-      )}
-
-      {/* Shops Grid */}
-      <div className="shops-grid-modern">
-        {filteredShops.map(shop => (
-          <ShopCard key={shop.id} shop={shop} onBookAppointment={handleBookAppointment} />
-        ))}
-      </div>
-
-      {filteredShops.length === 0 && (
-        <div className="no-shops-state">
-          <div style={{
-            background: 'var(--dark-surface)',
-            border: '1px solid var(--dark-border)',
-            borderRadius: 'var(--radius)',
-            padding: '4rem 2rem',
-            textAlign: 'center',
-            maxWidth: '500px',
-            margin: '0 auto'
-          }}>
-            <div style={{
-              fontSize: '3rem',
-              color: 'var(--dark-text-muted)',
-              marginBottom: '1rem'
-            }}>
-              🔍
-            </div>
-            <h3 style={{
-              fontSize: '1.5rem',
-              fontWeight: '700',
-              color: 'var(--dark-text)',
-              margin: '0 0 1rem'
-            }}>
-              No Shops Found
-            </h3>
+    <div className="shops-page">
+      <div className="shops-page__inner">
+        {/* Hero — dashboard-style greeting, left-aligned */}
+        <header className="shops-page__hero">
+          <div>
             <p style={{
-              color: 'var(--dark-text-secondary)',
-              margin: '0',
-              lineHeight: '1.6'
+              fontSize: '0.875rem',
+              color: 'rgba(255, 255, 255, 0.55)',
+              textTransform: 'uppercase',
+              letterSpacing: '0.12em',
+              fontWeight: 600,
+              margin: '0 0 12px'
             }}>
-              Try adjusting your search terms or filters to find more options.
+              {getGreeting()}, {displayName}
+            </p>
+            <h1 style={{
+              fontSize: 'clamp(2.25rem, 4vw, 3.75rem)',
+              fontWeight: 700,
+              color: '#ffffff',
+              margin: '0 0 16px',
+              letterSpacing: '-0.03em',
+              lineHeight: 1.1
+            }}>
+              Find repair <span style={{ color: 'rgba(255, 255, 255, 0.85)' }}>shops</span>
+            </h1>
+            <p style={{
+              fontSize: '1.125rem',
+              color: 'rgba(255, 255, 255, 0.65)',
+              fontWeight: 400,
+              letterSpacing: '0.01em',
+              margin: 0,
+              maxWidth: '520px'
+            }}>
+              Compare services, check ratings, and book with shops you trust — same look and feel as your dashboard.
             </p>
           </div>
-        </div>
-      )}
+          <div
+            style={{ ...cardStyle, alignSelf: 'flex-start', minWidth: 'min(100%, 220px)' }}
+            onMouseEnter={(e) => Object.assign(e.currentTarget.style, cardHoverStyle)}
+            onMouseLeave={(e) => Object.assign(e.currentTarget.style, cardStyle)}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <Store size={28} style={{ color: '#ffffff' }} />
+            </div>
+            <p style={{
+              fontSize: '0.8rem',
+              color: 'rgba(255, 255, 255, 0.55)',
+              margin: '0 0 8px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              fontWeight: 600
+            }}>
+              In directory
+            </p>
+            <p style={{ fontSize: '2.25rem', fontWeight: 700, color: '#ffffff', margin: 0, letterSpacing: '-0.02em' }}>
+              {filteredShops.length}
+            </p>
+            <p style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.45)', margin: '8px 0 0' }}>
+              shops match your search & filters
+            </p>
+          </div>
+        </header>
 
-      {/* Booking Modal */}
+        {/* Sidebar filters + main grid (layout differs from old stacked blocks) */}
+        <div className="shops-page__layout">
+          <aside className="shops-page__sidebar">
+            <div
+              style={cardStyle}
+              onMouseEnter={(e) => Object.assign(e.currentTarget.style, cardHoverStyle)}
+              onMouseLeave={(e) => Object.assign(e.currentTarget.style, cardStyle)}
+            >
+              <h2 style={{
+                fontSize: '1.25rem',
+                color: '#ffffff',
+                margin: '0 0 24px',
+                fontWeight: 600,
+                letterSpacing: '-0.02em'
+              }}>
+                Search
+              </h2>
+              <div className="shops-page__search-shell">
+                <Search size={20} style={{ color: 'rgba(255, 255, 255, 0.45)', flexShrink: 0 }} />
+                <input
+                  type="text"
+                  className="shops-page__search-input"
+                  placeholder="Name, address, or keywords…"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginTop: '28px',
+                marginBottom: '16px',
+                color: 'rgba(255, 255, 255, 0.55)',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em'
+              }}>
+                <Filter size={16} />
+                Service type
+              </div>
+              <div className="shops-page__filter-chips">
+                {serviceOptions.map(service => (
+                  <button
+                    key={service}
+                    type="button"
+                    className={`shops-page__chip ${filters.service_type === service ? 'shops-page__chip--active' : ''}`}
+                    onClick={() => handleServiceFilter(service)}
+                  >
+                    {service}
+                  </button>
+                ))}
+              </div>
+              <p style={{
+                marginTop: '24px',
+                fontSize: '0.8rem',
+                color: 'rgba(255, 255, 255, 0.4)',
+                lineHeight: 1.5,
+                marginBottom: 0
+              }}>
+                Location-aware results use your browser location when allowed; otherwise all shops are listed.
+              </p>
+            </div>
+          </aside>
+
+          <main className="shops-page__main">
+            {filteredShops.length > 0 && (
+              <p style={{
+                color: 'rgba(255, 255, 255, 0.5)',
+                fontSize: '0.9rem',
+                marginBottom: '24px',
+                letterSpacing: '0.02em'
+              }}>
+                Showing {filteredShops.length} {filteredShops.length === 1 ? 'shop' : 'shops'}
+                {filters.service_type ? ` • ${filters.service_type}` : ''}
+              </p>
+            )}
+
+            <div className="shops-grid-modern">
+              {filteredShops.map(shop => (
+                <ShopCard key={shop.id} shop={shop} onBookAppointment={handleBookAppointment} />
+              ))}
+            </div>
+
+            {filteredShops.length === 0 && (
+              <div
+                style={cardStyle}
+                className="shops-page__empty"
+              >
+                <div style={{ fontSize: '2.5rem', marginBottom: '12px', opacity: 0.7 }} aria-hidden>🔍</div>
+                <h3 style={{
+                  fontSize: '1.35rem',
+                  fontWeight: 600,
+                  color: '#ffffff',
+                  margin: '0 0 8px',
+                  letterSpacing: '-0.02em'
+                }}>
+                  No shops found
+                </h3>
+                <p style={{
+                  color: 'rgba(255, 255, 255, 0.5)',
+                  margin: 0,
+                  lineHeight: 1.6,
+                  fontSize: '1rem'
+                }}>
+                  Try clearing the service filter or broadening your search terms.
+                </p>
+              </div>
+            )}
+          </main>
+        </div>
+      </div>
+
       {bookingModal.isOpen && (
         <AppointmentBooking
           shop={bookingModal.shop}
@@ -274,32 +336,10 @@ const ShopsList = () => {
 const ShopCard = ({ shop, onBookAppointment }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [selectedServices, setSelectedServices] = useState([]);
-  const [savingBm, setSavingBm] = useState(false);
-
-  const saveWorkshop = async (e) => {
-    e.stopPropagation();
-    try {
-      setSavingBm(true);
-      await apiClient.post('/api/bookmarks', {
-        entity_type: 'shop',
-        entity_id: shop.id,
-        tags: ['workshop'],
-      });
-      alert('Workshop saved. View it under Saved in the menu.');
-    } catch (err) {
-      if (err.response?.status === 409) {
-        alert('Already in your saved list.');
-      } else {
-        alert(err.response?.data?.message || 'Could not save workshop.');
-      }
-    } finally {
-      setSavingBm(false);
-    }
-  };
 
   const handleServiceToggle = (service) => {
-    setSelectedServices(prev => 
-      prev.find(s => s.id === service.id) 
+    setSelectedServices(prev =>
+      prev.find(s => s.id === service.id)
         ? prev.filter(s => s.id !== service.id)
         : [...prev, service]
     );
@@ -310,150 +350,81 @@ const ShopCard = ({ shop, onBookAppointment }) => {
       alert('Please select at least one service');
       return;
     }
-    
+
     onBookAppointment(shop, selectedServices);
   };
 
   return (
     <div className="shop-card-modern">
-      {/* Shop Header */}
       <div className="shop-card-header">
         <div>
           <h3 className="shop-card-title">{shop.name}</h3>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <Star size={16} className="hero-stat-icon" fill="currentColor" />
-              <span style={{ fontWeight: '700', color: 'var(--dark-text)' }}>
+              <Star size={16} style={{ color: 'rgba(255, 255, 255, 0.85)' }} fill="currentColor" />
+              <span style={{ fontWeight: 700, color: '#ffffff' }}>
                 {shop.average_rating?.toFixed(1) || 'N/A'}
               </span>
             </div>
-            <span style={{ color: 'var(--dark-text-muted)', fontSize: '0.875rem' }}>
+            <span style={{ color: 'rgba(255, 255, 255, 0.45)', fontSize: '0.875rem' }}>
               ({shop.total_reviews || 0} reviews)
             </span>
           </div>
         </div>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
-          <button
-            type="button"
-            onClick={saveWorkshop}
-            disabled={savingBm}
-            title="Save workshop"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              background: 'rgba(255,255,255,0.08)',
-              border: '1px solid var(--dark-border)',
-              color: 'var(--dark-text)',
-              borderRadius: '9999px',
-              padding: '0.35rem 0.75rem',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              cursor: savingBm ? 'wait' : 'pointer',
-            }}
-          >
-            <Bookmark size={14} />
-            {savingBm ? '…' : 'Save'}
-          </button>
-          {shop.average_rating >= 4.5 && (
-            <div style={{
-              background: 'var(--dark-accent)',
-              color: 'var(--dark-text)',
-              padding: '0.25rem 0.75rem',
-              borderRadius: '9999px',
-              fontSize: '0.75rem',
-              fontWeight: '600'
-            }}>
-              Top Rated
-            </div>
-          )}
-        </div>
+
+        {shop.average_rating >= 4.5 && (
+          <div className="shop-card-badge">
+            Top rated
+          </div>
+        )}
       </div>
-      
-      {/* Shop Description */}
+
       <p className="shop-card-description">
         {shop.description || 'Professional automotive services with experienced technicians.'}
       </p>
-      
-      {/* Shop Info */}
+
       <div className="shop-card-info">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-          <MapPin size={14} className="hero-stat-icon" />
-          <span style={{ fontSize: '0.875rem', color: 'var(--dark-text-secondary)' }}>
-            {shop.address || 'Location not available'}
-          </span>
+        <div className="shop-card-info-row">
+          <MapPin size={14} style={{ color: 'rgba(255, 255, 255, 0.45)', flexShrink: 0 }} />
+          <span>{shop.address || 'Location not available'}</span>
         </div>
-        
+
         {shop.phone && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-            <Phone size={14} className="hero-stat-icon" />
-            <span style={{ fontSize: '0.875rem', color: 'var(--dark-text-secondary)' }}>
-              {shop.phone}
-            </span>
+          <div className="shop-card-info-row">
+            <Phone size={14} style={{ color: 'rgba(255, 255, 255, 0.45)', flexShrink: 0 }} />
+            <span>{shop.phone}</span>
           </div>
         )}
 
-        {shop.website && workshopWebsiteHref(shop.website) && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-            <Globe size={14} className="hero-stat-icon" />
-            <a
-              href={workshopWebsiteHref(shop.website)}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                fontSize: '0.875rem',
-                color: 'var(--dark-accent)',
-                textDecoration: 'underline',
-                wordBreak: 'break-all',
-              }}
-            >
-              {shop.website.replace(/^https?:\/\//i, '')}
-            </a>
-          </div>
-        )}
-        
         {shop.owner && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <User size={14} className="hero-stat-icon" />
-            <span style={{ fontSize: '0.875rem', color: 'var(--dark-text-secondary)' }}>
-              {shop.owner.first_name} {shop.owner.last_name}
-            </span>
+          <div className="shop-card-info-row">
+            <User size={14} style={{ color: 'rgba(255, 255, 255, 0.45)', flexShrink: 0 }} />
+            <span>{shop.owner.first_name} {shop.owner.last_name}</span>
           </div>
         )}
       </div>
 
-      {/* Services Toggle */}
-      <button 
+      <button
+        type="button"
         className="services-toggle-btn"
         onClick={() => setShowDetails(!showDetails)}
       >
-        <Wrench size={16} style={{ marginRight: '0.5rem' }} />
-        {showDetails ? 'Hide' : 'View'} Available Services
-        <ArrowRight size={14} style={{ 
-          marginLeft: '0.5rem',
-          transform: showDetails ? 'rotate(90deg)' : 'rotate(0deg)',
-          transition: 'transform 0.2s ease'
-        }} />
+        <Wrench size={16} />
+        {showDetails ? 'Hide' : 'View'} available services
+        <ArrowRight size={14} className={showDetails ? 'services-toggle-btn__arrow services-toggle-btn__arrow--open' : 'services-toggle-btn__arrow'} />
       </button>
 
-      {/* Services Section */}
       {showDetails && (
         <div className="services-section-modern">
-          <h4 style={{
-            fontSize: '1rem',
-            fontWeight: '600',
-            color: 'var(--dark-text)',
-            margin: '0 0 1rem'
-          }}>
-            Available Services:
+          <h4 className="services-section-modern__title">
+            Available services
           </h4>
           <div className="services-list-modern">
             {(shop.available_services || []).map(service => (
               <label key={service.id} className="service-item-modern">
                 <input
                   type="checkbox"
-                  checked={selectedServices.find(s => s.id === service.id)}
+                  checked={!!selectedServices.find(s => s.id === service.id)}
                   onChange={() => handleServiceToggle(service)}
                 />
                 <div className="service-item-content">
@@ -465,10 +436,10 @@ const ShopCard = ({ shop, onBookAppointment }) => {
               </label>
             ))}
           </div>
-          
+
           {selectedServices.length > 0 && (
-            <button className="book-appointment-btn" onClick={handleBookAppointment}>
-              Book Appointment ({selectedServices.length} service{selectedServices.length > 1 ? 's' : ''})
+            <button type="button" className="book-appointment-btn" onClick={handleBookAppointment}>
+              Book appointment ({selectedServices.length} service{selectedServices.length > 1 ? 's' : ''})
             </button>
           )}
         </div>

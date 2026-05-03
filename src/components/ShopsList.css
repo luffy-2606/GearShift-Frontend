@@ -1,261 +1,206 @@
-/* =========================================================
-   Modern Shop List Styles - Landing Page Theme
-   ========================================================= */
+/* Shops page — scoped to match UserDashboard glass-on-black treatment */
 
-/* Force dark background on all levels */
-*, *::before, *::after {
+.shops-page {
+  min-height: 100vh;
+  background: #000000;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  width: 100%;
   box-sizing: border-box;
 }
 
-html {
-  background: var(--dark-bg) !important;
+.shops-page *,
+.shops-page *::before,
+.shops-page *::after {
+  box-sizing: border-box;
 }
 
-body {
-  background: var(--dark-bg) !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  min-height: 100vh;
-}
-
-#root {
-  background: var(--dark-bg) !important;
-  min-height: 100vh;
-}
-
-.App {
-  background: var(--dark-bg) !important;
-  min-height: 100vh;
-}
-
-.shops-list-container {
-  min-height: 100vh;
-  background: var(--dark-bg) !important;
-  color: var(--dark-text);
-  font-family: 'Inter', sans-serif;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  position: relative;
-  left: 0;
-  right: 0;
-  max-width: none;
-  display: block;
-}
-
-/* Ensure full width coverage */
-.shops-list-container::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--dark-bg);
-  z-index: -1;
-}
-
-/* Content wrapper for full width like dashboard */
-.shops-list-container > * {
-  width: 100%;
-  margin: 0;
-  padding: 0 60px;
-}
-
-/* Section headers */
-.section-header {
-  text-align: center;
-  margin-bottom: 3rem;
-  width: 100%;
-  margin-left: 0;
-  margin-right: 0;
-}
-
-/* Search and filter section */
-.shops-list-container > div:nth-child(2) {
-  width: 100%;
-  margin: 0 0 3rem 0;
-  padding: 0 60px;
-}
-
-/* Grid container */
-.shops-grid-modern {
-  width: 100%;
-  margin: 0;
-  padding: 0 60px;
-}
-
-/* Results count */
-.shops-list-container > div:nth-child(3) {
-  width: 100%;
-  margin: 0 0 2rem 0;
-  padding: 0 60px;
-}
-
-/* Landing section styles for full width */
-.landing-section {
-  padding: 120px 60px 60px 60px;
-  max-width: none;
-  margin: 0;
-  background: var(--dark-bg) !important;
-  color: var(--dark-text);
-  width: 100%;
-}
-
-.landing-section-dark {
-  background: var(--dark-bg) !important;
-  color: var(--dark-text);
-}
-
-/* Features grid centering */
-.features-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-/* Loading State */
-.loading-state {
+.shops-page--loading {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
-  color: var(--dark-text-secondary);
+  padding: 120px 2rem 2rem;
 }
 
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--dark-glass);
-  border-top: 3px solid var(--dark-accent);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
+.shops-page__inner {
+  padding: 120px 80px 80px;
+  max-width: 1440px;
+  margin: 0 auto;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+.shops-page__hero {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 32px;
+  margin-bottom: 48px;
 }
 
-/* Search and Filter Section */
-.service-filter-btn {
-  background: var(--dark-glass);
-  border: 1px solid var(--dark-border);
-  color: var(--dark-text-secondary);
-  padding: 0.5rem 1rem;
-  border-radius: 9999px;
+.shops-page__layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 320px) 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.shops-page__sidebar {
+  position: sticky;
+  top: 100px;
+}
+
+.shops-page__search-shell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 14px 16px;
+}
+
+.shops-page__search-input {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 0.95rem;
+  outline: none;
+  width: 100%;
+}
+
+.shops-page__search-input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.shops-page__filter-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.shops-page__chip {
+  text-align: left;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.85);
+  padding: 12px 14px;
+  border-radius: 14px;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  white-space: nowrap;
 }
 
-.service-filter-btn:hover {
-  background: var(--dark-glass-border);
-  border-color: var(--dark-text-secondary);
-  color: var(--dark-text);
+.shops-page__chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
 }
 
-.service-filter-btn.active {
-  background: var(--dark-accent);
-  border-color: var(--dark-accent);
-  color: var(--dark-text);
+.shops-page__chip--active {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #ffffff;
   font-weight: 600;
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.08);
 }
 
-/* Modern Shops Grid */
+.shops-page__main {
+  min-width: 0;
+}
+
+.shops-page__empty {
+  text-align: center;
+  max-width: 480px;
+  margin: 48px auto;
+  padding: 48px 32px !important;
+}
+
 .shops-grid-modern {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-  gap: 2rem;
-  margin-bottom: 3rem;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 24px;
+  margin-bottom: 48px;
 }
 
-/* Modern Shop Card */
 .shop-card-modern {
-  background: var(--dark-surface);
-  border: 1px solid var(--dark-border);
-  border-radius: var(--radius);
-  padding: 2rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 24px;
+  padding: 28px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 }
 
 .shop-card-modern:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  border-color: var(--dark-glass-border);
+  transform: translateY(-6px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
-.shop-card-modern::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--dark-accent), transparent);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.shop-card-modern:hover::before {
-  opacity: 1;
-}
-
-/* Shop Card Header */
 .shop-card-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1.5rem;
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
 .shop-card-title {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 700;
-  color: var(--dark-text);
+  color: #ffffff;
   margin: 0;
   line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
-/* Shop Card Description */
+.shop-card-badge {
+  flex-shrink: 0;
+  background: linear-gradient(135deg, #ffffff 0%, #e8e8e8 100%);
+  color: #111111;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
 .shop-card-description {
-  color: var(--dark-text-secondary);
+  color: rgba(255, 255, 255, 0.55);
   line-height: 1.6;
-  margin: 0 0 1.5rem;
-  font-size: 0.95rem;
+  margin: 0 0 20px;
+  font-size: 0.925rem;
 }
 
-/* Shop Card Info */
 .shop-card-info {
-  margin-bottom: 1.5rem;
+  margin-bottom: 20px;
 }
 
-.shop-card-info > div {
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--dark-border);
+.shop-card-info-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.55);
 }
 
-.shop-card-info > div:last-child {
+.shop-card-info-row:last-child {
   border-bottom: none;
 }
 
-/* Services Toggle Button */
 .services-toggle-btn {
   width: 100%;
-  background: var(--dark-glass);
-  border: 1px solid var(--dark-border);
-  color: var(--dark-text);
-  padding: 0.875rem 1rem;
-  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  padding: 14px 16px;
+  border-radius: 16px;
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
@@ -263,49 +208,64 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 10px;
 }
 
 .services-toggle-btn:hover {
-  background: var(--dark-glass-border);
-  border-color: var(--dark-text-secondary);
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
-/* Modern Services Section */
+.services-toggle-btn__arrow {
+  transition: transform 0.2s ease;
+}
+
+.services-toggle-btn__arrow--open {
+  transform: rotate(90deg);
+}
+
 .services-section-modern {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid var(--dark-border);
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.services-section-modern__title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0 0 16px;
+  letter-spacing: -0.01em;
 }
 
 .services-list-modern {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
+  gap: 10px;
+  margin-bottom: 16px;
 }
 
 .service-item-modern {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  background: var(--dark-glass);
-  border: 1px solid var(--dark-border);
-  border-radius: var(--radius-sm);
+  gap: 12px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .service-item-modern:hover {
-  background: var(--dark-glass-border);
-  border-color: var(--dark-text-secondary);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
 .service-item-modern input[type="checkbox"] {
   width: 18px;
   height: 18px;
-  accent-color: var(--dark-accent);
+  accent-color: #ffffff;
   margin: 0;
   flex-shrink: 0;
 }
@@ -315,135 +275,76 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
 }
 
 .service-name {
-  color: var(--dark-text);
+  color: #ffffff;
   font-weight: 500;
   font-size: 0.875rem;
 }
 
 .service-price {
-  color: var(--dark-accent);
-  font-weight: 600;
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 700;
   font-size: 0.875rem;
 }
 
-/* Book Appointment Button */
 .book-appointment-btn {
   width: 100%;
-  background: var(--dark-accent);
-  color: var(--dark-text);
+  background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%);
+  color: #111111;
   border: none;
-  padding: 0.875rem 1.5rem;
-  border-radius: var(--radius-sm);
+  padding: 14px 20px;
+  border-radius: 14px;
   font-size: 0.95rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  transition: background-color 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 4px 18px rgba(255, 255, 255, 0.15);
 }
 
 .book-appointment-btn:hover {
-  background: var(--dark-accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(255, 255, 255, 0.2);
 }
 
-/* No Shops State */
-.no-shops-state {
-  padding: 2rem;
+@media (max-width: 1024px) {
+  .shops-page__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .shops-page__sidebar {
+    position: static;
+  }
+
+  .shops-page__filter-chips {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .shops-page__chip {
+    flex: 1 1 auto;
+    min-width: 140px;
+    text-align: center;
+  }
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
+  .shops-page__inner {
+    padding: 100px 24px 48px;
+  }
+
   .shops-grid-modern {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
   }
-  
+
   .shop-card-modern {
-    padding: 1.5rem;
+    padding: 22px;
   }
-  
-  .shop-card-title {
-    font-size: 1.25rem;
-  }
-  
+
   .shop-card-header {
     flex-direction: column;
-    gap: 1rem;
     align-items: flex-start;
   }
-  
-  .service-filter-btn {
-    font-size: 0.8rem;
-    padding: 0.4rem 0.8rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .shops-list-container {
-    padding: 1rem;
-  }
-  
-  .shop-card-modern {
-    padding: 1rem;
-  }
-  
-  .services-list-modern {
-    gap: 0.5rem;
-  }
-  
-  .service-item-modern {
-    padding: 0.5rem;
-  }
-}
-
-/* Animation for smooth transitions */
-.shop-card-modern,
-.service-item-modern,
-.services-toggle-btn,
-.book-appointment-btn,
-.service-filter-btn {
-  animation: fadeInUp 0.5s ease-out;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Focus states for accessibility */
-.service-filter-btn:focus,
-.services-toggle-btn:focus,
-.book-appointment-btn:focus,
-.service-item-modern:focus-within {
-  outline: 2px solid var(--dark-accent);
-  outline-offset: 2px;
-}
-
-/* Custom scrollbar for webkit browsers */
-.shops-list-container::-webkit-scrollbar {
-  width: 8px;
-}
-
-.shops-list-container::-webkit-scrollbar-track {
-  background: var(--dark-bg);
-}
-
-.shops-list-container::-webkit-scrollbar-thumb {
-  background: var(--dark-border);
-  border-radius: 4px;
-}
-
-.shops-list-container::-webkit-scrollbar-thumb:hover {
-  background: var(--dark-glass-border);
 }

@@ -1,290 +1,428 @@
-/* =========================================================
-   Modern Mechanics List Styles - Landing Page Theme
-   ========================================================= */
+/* Mechanics page — matches Shops glass-on-black; cards are taller / portrait-style */
 
-/* Force dark background on all levels */
-*, *::before, *::after {
+.mechanics-page {
+  min-height: 100vh;
+  background: #000000;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  width: 100%;
   box-sizing: border-box;
 }
 
-html {
-  background: var(--dark-bg) !important;
+.mechanics-page *,
+.mechanics-page *::before,
+.mechanics-page *::after {
+  box-sizing: border-box;
 }
 
-body {
-  background: var(--dark-bg) !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  min-height: 100vh;
-}
-
-#root {
-  background: var(--dark-bg) !important;
-  min-height: 100vh;
-}
-
-.App {
-  background: var(--dark-bg) !important;
-  min-height: 100vh;
-}
-
-.mechanics-list-container {
-  min-height: 100vh;
-  background: var(--dark-bg) !important;
-  color: var(--dark-text);
-  font-family: 'Inter', sans-serif;
-  width: 100%;
-  margin: 0 auto;
-  padding: 0;
-  position: relative;
-  left: 0;
-  right: 0;
-}
-
-/* Ensure full width coverage */
-.mechanics-list-container::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--dark-bg);
-  z-index: -1;
-}
-
-/* Content wrapper for proper centering */
-.mechanics-list-container > * {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 1.5rem;
-}
-
-/* Section headers should be centered */
-.section-header {
-  text-align: center;
-  margin-bottom: 3rem;
-  width: 100%;
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-/* Search and filter section */
-.mechanics-list-container > div:nth-child(2) {
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto 3rem auto;
-  padding: 0 1.5rem;
-}
-
-/* Grid container */
-.mechanics-grid-modern {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
-  gap: 2rem;
-  margin-bottom: 3rem;
-  width: 100%;
-  max-width: 1200px;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 0 1.5rem;
-}
-
-/* Results count */
-.mechanics-list-container > div:nth-child(3) {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto 2rem auto;
-  padding: 0 1.5rem;
-}
-
-/* Landing section styles for proper centering */
-.landing-section {
-  padding: 5rem 1.5rem;
-  max-width: 1200px;
-  margin: 0 auto;
-  background: var(--dark-bg) !important;
-  color: var(--dark-text);
-  width: 100%;
-}
-
-.landing-section-dark {
-  background: var(--dark-bg) !important;
-  color: var(--dark-text);
-}
-
-/* Loading State */
-.loading-state {
+.mechanics-page--loading {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
-  color: var(--dark-text-secondary);
+  padding: 120px 2rem 2rem;
 }
 
-.loading-spinner {
+.mechanics-page__loading-spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid var(--dark-glass);
-  border-top: 3px solid var(--dark-accent);
+  border: 3px solid rgba(255, 255, 255, 0.12);
+  border-top-color: rgba(255, 255, 255, 0.85);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
+  animation: mechanics-spin 0.85s linear infinite;
+  margin-bottom: 16px;
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+@keyframes mechanics-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-/* Search and Filter Section */
-.service-filter-btn {
-  background: var(--dark-glass);
-  border: 1px solid var(--dark-border);
-  color: var(--dark-text-secondary);
-  padding: 0.5rem 1rem;
-  border-radius: 9999px;
+.mechanics-page__inner {
+  padding: 120px 80px 80px;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.mechanics-page__hero {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 32px;
+  margin-bottom: 48px;
+}
+
+.mechanics-page__layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 320px) 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.mechanics-page__sidebar {
+  position: sticky;
+  top: 100px;
+}
+
+.mechanics-page__search-shell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 14px 16px;
+}
+
+.mechanics-page__search-input {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 0.95rem;
+  outline: none;
+  width: 100%;
+}
+
+.mechanics-page__search-input::placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.mechanics-page__filter-block {
+  margin-top: 26px;
+}
+
+.mechanics-page__filter-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.mechanics-page__filter-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mechanics-page__chip {
+  text-align: left;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.85);
+  padding: 12px 14px;
+  border-radius: 14px;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  white-space: nowrap;
 }
 
-.service-filter-btn:hover {
-  background: var(--dark-glass-border);
-  border-color: var(--dark-text-secondary);
-  color: var(--dark-text);
+.mechanics-page__chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
 }
 
-.service-filter-btn.active {
-  background: var(--dark-accent);
-  border-color: var(--dark-accent);
-  color: var(--dark-text);
+.mechanics-page__chip--active {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #ffffff;
   font-weight: 600;
+  box-shadow: 0 4px 20px rgba(255, 255, 255, 0.08);
 }
 
-/* Modern Mechanic Card */
+.mechanics-page__hint {
+  margin-top: 22px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+  line-height: 1.5;
+  margin-bottom: 0;
+}
+
+.mechanics-page__main {
+  min-width: 0;
+}
+
+.mechanics-page__empty {
+  text-align: center;
+  max-width: 480px;
+  margin: 48px auto;
+  padding: 48px 32px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 24px;
+}
+
+/* Narrow columns + tall rows → portrait-style cards vs wider shop tiles */
+.mechanics-grid-modern {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+  gap: 22px;
+  margin-bottom: 48px;
+  align-items: stretch;
+}
+
 .mechanic-card-modern {
-  background: var(--dark-surface);
-  border: 1px solid var(--dark-border);
-  border-radius: var(--radius);
-  padding: 2rem;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  min-height: 580px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 24px;
+  padding: 24px 22px 22px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 }
 
 .mechanic-card-modern:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  border-color: var(--dark-glass-border);
+  transform: translateY(-6px);
+  box-shadow: 0 22px 52px rgba(0, 0, 0, 0.45);
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
-.mechanic-card-modern::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--dark-accent), transparent);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.mechanic-card-modern:hover::before {
-  opacity: 1;
-}
-
-/* Mechanic Card Header */
-.mechanic-card-header {
+.mechanic-card-modern__top {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1.5rem;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 18px;
 }
 
-.mechanic-card-title {
-  font-size: 1.5rem;
+.mechanic-card-modern__avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
   font-weight: 700;
-  color: var(--dark-text);
-  margin: 0;
-  line-height: 1.2;
+  letter-spacing: 0.04em;
+  color: #ffffff;
+  margin-bottom: 14px;
 }
 
-/* Mechanic Card Info */
-.mechanic-card-info {
-  margin-bottom: 1.5rem;
+.mechanic-card-modern__title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 10px;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
 }
 
-.mechanic-card-info > div {
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--dark-border);
+.mechanic-card-modern__badge-row {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
-.mechanic-card-info > div:last-child {
-  border-bottom: none;
+.mechanic-card-modern__badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 6px 11px;
+  border-radius: 999px;
 }
 
-/* Mechanic Card Meta */
-.mechanic-card-meta {
-  margin-bottom: 1.5rem;
+.mechanic-card-modern__badge--accent {
+  background: linear-gradient(135deg, #ffffff 0%, #e4e4e4 100%);
+  color: #111111;
 }
 
-.mechanic-card-meta > div {
-  padding: 0.5rem 0;
-  border-bottom: 1px solid var(--dark-border);
+.mechanic-card-modern__badge--muted {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.85);
 }
 
-.mechanic-card-meta > div:last-child {
-  border-bottom: none;
+.mechanic-card-modern__rating {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.5);
 }
 
-/* Contact Toggle Button */
+.mechanic-card-modern__rating strong {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.mechanic-card-modern__divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 4px 0 14px;
+}
+
+.mechanic-card-modern__section-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255, 255, 255, 0.42);
+  margin: 0 0 10px;
+}
+
+.mechanic-card-modern__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+}
+
+.mechanic-card-modern__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mechanic-card-modern__row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.45;
+}
+
+.mechanic-card-modern__tags {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mechanic-card-modern__tag {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.82);
+  font-weight: 500;
+}
+
+.mechanic-card-modern__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mechanic-card-modern__grow {
+  flex: 1;
+  min-height: 8px;
+}
+
+.mechanic-card-modern__footer {
+  margin-top: auto;
+  padding-top: 12px;
+}
+
 .contact-toggle-btn {
   width: 100%;
-  background: var(--dark-glass);
-  border: 1px solid var(--dark-border);
-  color: var(--dark-text);
-  padding: 0.875rem 1rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.875rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  padding: 13px 16px;
+  border-radius: 14px;
+  font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
+  gap: 10px;
 }
 
 .contact-toggle-btn:hover {
-  background: var(--dark-glass-border);
-  border-color: var(--dark-text-secondary);
-  font-size: 18px;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.contact-details-modern {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.contact-details-modern__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.65);
+  word-break: break-word;
+}
+
+.contact-details-modern__bio {
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.55);
+  line-height: 1.55;
+  margin: 4px 0 0;
+  font-style: italic;
+}
+
+@media (max-width: 1024px) {
+  .mechanics-page__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .mechanics-page__sidebar {
+    position: static;
+  }
+
+  .mechanics-page__filter-chips {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .mechanics-page__chip {
+    flex: 1 1 auto;
+    min-width: 140px;
+    text-align: center;
+  }
 }
 
 @media (max-width: 768px) {
-  .mechanics-grid {
+  .mechanics-page__inner {
+    padding: 100px 24px 48px;
+  }
+
+  .mechanics-grid-modern {
     grid-template-columns: 1fr;
   }
-  
-  .mechanic-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  
-  .mechanic-actions {
-    flex-direction: column;
-  }
-  
-  .filter-btn {
-    margin: 3px;
-    padding: 6px 12px;
-    font-size: 13px;
+
+  .mechanic-card-modern {
+    min-height: 0;
   }
 }

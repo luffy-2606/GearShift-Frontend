@@ -1,13 +1,89 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useAuth } from '../context/AuthContext';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import apiClient from '../lib/apiClient';
-import { Calendar, DollarSign, Wrench, Car, User, Clock, TrendingUp, MapPin, Phone, Mail, Settings, ArrowRight, Bell } from 'lucide-react';
+import {
+  Calendar,
+  DollarSign,
+  Wrench,
+  Car,
+  MapPin,
+  Bell,
+  ArrowRight,
+  UserCircle,
+  Store,
+  Users,
+  ClipboardList,
+  PieChart
+} from 'lucide-react';
 import { countSystemMessages } from '../lib/systemMessagesStore';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import RevealOnScroll from './RevealOnScroll';
+import PageLoadSkeleton from './PageLoadSkeleton';
+import './UserDashboard.css';
+
+function buildHeroDescription({
+  vehiclesCount,
+  servicesRecorded,
+  shopsCount,
+  reminderCount,
+  highReminderCount,
+  unreadMessages,
+  garageCondition,
+  hasMonthlyBudget,
+  monthlyBudgetSpent
+}) {
+  if (vehiclesCount === 0) {
+    return 'Add at least one vehicle in Profile to unlock garage health, maintenance reminders, and personalized shortcuts.';
+  }
+
+  const parts = [];
+
+  if (highReminderCount > 0) {
+    parts.push(
+      `You have ${highReminderCount} high-priority maintenance item${highReminderCount === 1 ? '' : 's'} — worth scheduling soon.`
+    );
+  } else if (reminderCount > 0) {
+    parts.push(
+      `${reminderCount} reminder${reminderCount === 1 ? '' : 's'} on your list — stay ahead of due dates.`
+    );
+  } else {
+    parts.push('No outstanding maintenance reminders — your garage looks clear.');
+  }
+
+  if (garageCondition < 55) {
+    parts.push(`Garage health is at ${garageCondition}% — catching up on overdue service will lift your score.`);
+  } else if (garageCondition >= 85) {
+    parts.push(`Garage health is strong at ${garageCondition}%.`);
+  }
+
+  if (servicesRecorded === 0) {
+    parts.push('After your first logged service, spending trends and top jobs will populate below.');
+  } else {
+    parts.push(
+      `${servicesRecorded} service record${servicesRecorded === 1 ? '' : 's'} feed your budget and cost insights.`
+    );
+  }
+
+  if (hasMonthlyBudget && monthlyBudgetSpent >= 90) {
+    parts.push('You are close to this month’s maintenance budget cap — review upcoming work.');
+  }
+
+  if (unreadMessages > 0) {
+    parts.push(
+      `${unreadMessages} unread system message${unreadMessages === 1 ? '' : 's'} — check notifications for booking updates.`
+    );
+  }
+
+  if (shopsCount > 0) {
+    parts.push(`${shopsCount} shop${shopsCount === 1 ? '' : 's'} in the network when you are ready to book.`);
+  }
+
+  return parts.join(' ');
+}
 
 const UserDashboard = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
+  const innerRef = useRef(null);
+  const prevDataKey = useRef(null);
   
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
@@ -346,6 +422,19 @@ const UserDashboard = () => {
   };
 
   const dashboardData = getDashboardData();
+  const servicesRecorded = serviceHistory?.length ?? 0;
+
+  const heroSummary = buildHeroDescription({
+    vehiclesCount: vehicles.length,
+    servicesRecorded,
+    shopsCount: shops.length,
+    reminderCount: dashboardData.maintenanceReminders.length,
+    highReminderCount: dashboardData.maintenanceReminders.filter((r) => r.priority === 'high').length,
+    unreadMessages,
+    garageCondition: dashboardData.garageCondition,
+    hasMonthlyBudget: dashboardData.hasMonthlyBudget,
+    monthlyBudgetSpent: dashboardData.monthlyBudgetSpent
+  });
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -391,85 +480,198 @@ const UserDashboard = () => {
     borderColor: 'rgba(255, 255, 255, 0.25)'
   };
 
+  const shortcutLinks = useMemo(
+    () => [
+      {
+        to: '/profile',
+        icon: UserCircle,
+        title: 'Profile',
+        description: 'Account, budget, and vehicle garage'
+      },
+      {
+        to: '/shops',
+        icon: Store,
+        title: 'Shops',
+        description: 'Browse verified shops and book service'
+      },
+      {
+        to: '/mechanics',
+        icon: Users,
+        title: 'Mechanics',
+        description: 'Independent technicians and specialists'
+      },
+      {
+        to: '/service-history',
+        icon: ClipboardList,
+        title: 'Service history',
+        description: 'Past repairs, dates, and costs'
+      },
+      {
+        to: '/cost-insights',
+        icon: PieChart,
+        title: 'Cost insights',
+        description: 'Trends, totals, and expensive jobs'
+      },
+      {
+        to: '/system-messages',
+        icon: Bell,
+        title: 'System messages',
+        description:
+          unreadMessages > 0
+            ? `${unreadMessages} unread notification${unreadMessages === 1 ? '' : 's'}`
+            : 'Alerts and booking confirmations',
+        badge: unreadMessages
+      }
+    ],
+    [unreadMessages]
+  );
+
+  const didApplyMountClass = useRef(false);
+  useEffect(() => {
+    if (loading || error) return;
+    if (!innerRef.current || didApplyMountClass.current) return;
+    innerRef.current.classList.add('user-dashboard-page__inner--mount');
+    didApplyMountClass.current = true;
+  }, [loading, error]);
+
+  useEffect(() => {
+    if (loading || error) return;
+    const key = `${vehicles.length}-${serviceHistory.length}-${shops.length}`;
+    if (prevDataKey.current === null) {
+      prevDataKey.current = key;
+      return;
+    }
+    if (prevDataKey.current === key) return;
+    prevDataKey.current = key;
+    const el = innerRef.current;
+    if (!el) return;
+    el.classList.remove('user-dashboard-page__inner--refresh');
+    void el.offsetWidth;
+    el.classList.add('user-dashboard-page__inner--refresh');
+  }, [loading, error, vehicles.length, serviceHistory.length, shops.length]);
+
   if (loading) {
     return (
-      <div style={{ 
-        padding: '120px 2rem 2rem 2rem',
-        minHeight: '100vh',
-        background: '#000000',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <div style={{
-          color: '#ffffff',
-          fontSize: '1.5rem',
-          fontWeight: 500
-        }}>
-          Loading dashboard...
-        </div>
+      <div className="user-dashboard-page" aria-busy="true">
+        <PageLoadSkeleton
+          variant="dashboard"
+          message="Syncing your garage, shops, and service history"
+          ariaLabel="Loading dashboard"
+        />
       </div>
     );
   }
 
   if (error || !dashboardData) {
+    const isFetchError = Boolean(error);
+    const bodyText =
+      error ||
+      'Add a vehicle in Profile to unlock maintenance tracking, reminders, and personalized stats. You can still browse shops and mechanics anytime.';
+
     return (
-      <div style={{ 
-        padding: '120px 2rem 2rem 2rem',
-        minHeight: '100vh',
-        background: '#000000',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <div style={{
-          color: '#ffffff',
-          fontSize: '1.5rem',
-          fontWeight: 500
-        }}>
-          {error || 'No vehicle data found. Please add a vehicle to view your dashboard.'}
+      <div className="user-dashboard-page">
+        <div className="user-dashboard-error">
+          <div className="user-dashboard-error__card">
+            <h2 className="user-dashboard-error__title">
+              {isFetchError ? 'Couldn’t load your dashboard' : 'Your garage is almost ready'}
+            </h2>
+            <p className="user-dashboard-error__text">{bodyText}</p>
+            <div className="user-dashboard-error__actions">
+              {isFetchError ? (
+                <button
+                  type="button"
+                  className="user-dashboard-error__btn user-dashboard-error__btn--primary"
+                  onClick={() => window.location.reload()}
+                >
+                  Try again
+                </button>
+              ) : null}
+              <Link
+                to="/profile"
+                className={`user-dashboard-error__btn ${
+                  isFetchError ? 'user-dashboard-error__btn--ghost' : 'user-dashboard-error__btn--primary'
+                }`}
+              >
+                {isFetchError ? 'Open Profile' : 'Add vehicles in Profile'}
+              </Link>
+              <Link to="/shops" className="user-dashboard-error__btn user-dashboard-error__btn--ghost">
+                Browse shops
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{
-      padding: '30px 80px',
-      minHeight: '100vh',
-      background: '#000000',
-      borderRadius: '24px',
-      overflowX: 'hidden',
-      maxWidth: '100%'
-    }}>
-      {/* Greeting Section */}
-      <div style={{ marginBottom: '60px' }}>
-        <h1 style={{
-          fontSize: '4rem',
-          fontWeight: 700,
-          color: '#ffffff',
-          marginBottom: '16px',
-          letterSpacing: '-0.03em'
-        }}>
-          {getGreeting()}, {dashboardData.userName}!
-        </h1>
-        <p style={{
-          fontSize: '1.25rem',
-          color: 'rgba(255, 255, 255, 0.7)',
-          fontWeight: 400,
-          letterSpacing: '0.01em'
-        }}>
-          Welcome back to your dashboard
-        </p>
-      </div>
+    <div className="user-dashboard-page">
+      <div ref={innerRef} className="user-dashboard-page__inner">
+        {/* Hero — visible immediately (no scroll gate) */}
+        <RevealOnScroll as="header" className="user-dashboard-page__hero" disabled rootMargin="0px">
+          <div>
+            <p
+              style={{
+                fontSize: '0.8125rem',
+                color: 'rgba(255, 255, 255, 0.5)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.14em',
+                fontWeight: 600,
+                margin: '0 0 12px'
+              }}
+            >
+              Your overview
+            </p>
+            <h1
+              style={{
+                fontSize: 'clamp(2rem, 4vw, 3.25rem)',
+                fontWeight: 700,
+                color: '#ffffff',
+                margin: '0 0 12px',
+                letterSpacing: '-0.03em',
+                lineHeight: 1.1
+              }}
+            >
+              {getGreeting()}, {dashboardData.userName.split(' ')[0] || dashboardData.userName}!
+            </h1>
+            <p
+              style={{
+                fontSize: '1.0625rem',
+                color: 'rgba(255, 255, 255, 0.72)',
+                fontWeight: 400,
+                letterSpacing: '0.01em',
+                margin: 0,
+                maxWidth: 640,
+                lineHeight: 1.6
+              }}
+            >
+              {heroSummary}
+            </p>
+          </div>
+          <div className="user-dashboard-page__hero-stats" aria-label="Quick facts">
+            <div className="user-dashboard-page__hero-stat">
+              <p className="user-dashboard-page__hero-stat-value">{vehicles.length}</p>
+              <p className="user-dashboard-page__hero-stat-label">Vehicles</p>
+            </div>
+            <div className="user-dashboard-page__hero-stat">
+              <p className="user-dashboard-page__hero-stat-value">{servicesRecorded}</p>
+              <p className="user-dashboard-page__hero-stat-label">Services logged</p>
+            </div>
+            <div className="user-dashboard-page__hero-stat">
+              <p className="user-dashboard-page__hero-stat-value">{shops.length}</p>
+              <p className="user-dashboard-page__hero-stat-label">Shops listed</p>
+            </div>
+          </div>
+        </RevealOnScroll>
 
-      {/* Stats Cards */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-        gap: '32px',
-        marginBottom: '60px'
-      }}>
+        {/* Stats Cards */}
+        <RevealOnScroll rootMargin="120px 0px -10% 0px">
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
+          gap: '28px',
+          marginBottom: '36px'
+        }}>
         {/* Garage Condition Card */}
         <div 
           style={cardStyle}
@@ -650,10 +852,12 @@ const UserDashboard = () => {
           </div>
         </div>
       </div>
+        </RevealOnScroll>
 
       {/* Quick Actions */}
+      <RevealOnScroll rootMargin="100px 0px -12% 0px" delayMs={40}>
       <div 
-        style={{ ...cardStyle, marginTop: '32px' }}
+        style={{ ...cardStyle, marginTop: '28px' }}
         onMouseEnter={(e) => {
           Object.assign(e.currentTarget.style, cardHoverStyle);
         }}
@@ -662,55 +866,39 @@ const UserDashboard = () => {
         }}
       >
         <h3 style={{
-          fontSize: '1.5rem',
+          fontSize: '1.35rem',
           color: '#ffffff',
-          marginBottom: '32px',
+          marginBottom: '8px',
           fontWeight: 600,
           letterSpacing: '-0.02em'
         }}>
-          Quick Actions
+          Quick actions
         </h3>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '20px'
+        <p style={{
+          margin: '0 0 24px',
+          fontSize: '0.875rem',
+          color: 'rgba(255, 255, 255, 0.45)',
+          lineHeight: 1.5
         }}>
+          One-tap tasks — booking sends you to shops to pick services.
+        </p>
+        <div className="user-dashboard-page__quick-grid">
           {[
-            { icon: Calendar, label: 'Book Appointment', color: '#ffffff' },
-            { icon: Bell, label: systemMessagesLabel, color: '#ffffff', onClick: () => navigate('/system-messages') },
-            { icon: MapPin, label: 'Find Shops', color: '#ffffff' },
-            { icon: Wrench, label: 'Contact Mechanics', color: '#ffffff' },
-            { icon: Car, label: 'My Vehicles', color: '#ffffff' }
+            { icon: Calendar, label: 'Book appointment', onClick: () => navigate('/shops') },
+            { icon: Bell, label: systemMessagesLabel, onClick: () => navigate('/system-messages') },
+            { icon: MapPin, label: 'Find shops', onClick: () => navigate('/shops') },
+            { icon: Wrench, label: 'Contact mechanics', onClick: () => navigate('/mechanics') },
+            { icon: Car, label: 'My vehicles', onClick: () => navigate('/profile') }
           ].map((action, index) => (
             <button
+              type="button"
               key={index}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '12px',
-                padding: '24px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '16px',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
-              }}
+              className="user-dashboard-page__quick-btn"
               onClick={action.onClick}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-                e.currentTarget.style.transform = 'translateY(-4px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
             >
-              <action.icon size={32} style={{ color: action.color }} />
+              <action.icon size={28} style={{ color: '#ffffff' }} />
               <span style={{
-                fontSize: '0.95rem',
+                fontSize: '0.9rem',
                 color: '#ffffff',
                 fontWeight: 500,
                 textAlign: 'center'
@@ -721,10 +909,12 @@ const UserDashboard = () => {
           ))}
         </div>
       </div>
+      </RevealOnScroll>
 
       {/* My Vehicle Catalogue */}
+      <RevealOnScroll rootMargin="80px 0px -12% 0px" delayMs={80}>
       <div 
-        style={{ ...cardStyle, marginTop: '32px' }}
+        style={{ ...cardStyle, marginTop: '28px' }}
         onMouseEnter={(e) => {
           Object.assign(e.currentTarget.style, cardHoverStyle);
         }}
@@ -775,14 +965,11 @@ const UserDashboard = () => {
           )}
         </div>
       </div>
+      </RevealOnScroll>
 
       {/* Maintenance Reminders & Shops Frequently Visited */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))',
-        gap: '32px',
-        marginTop: '32px'
-      }}>
+      <RevealOnScroll rootMargin="80px 0px -12% 0px" delayMs={100}>
+      <div className="user-dashboard-page__two-col" style={{ marginTop: '28px' }}>
         <div 
           style={cardStyle}
           onMouseEnter={(e) => {
@@ -853,7 +1040,7 @@ const UserDashboard = () => {
         </div>
 
         <div 
-          style={{ ...cardStyle, marginTop: '32px' }}
+          style={cardStyle}
           onMouseEnter={(e) => {
             Object.assign(e.currentTarget.style, cardHoverStyle);
           }}
@@ -928,10 +1115,12 @@ const UserDashboard = () => {
           </div>
         </div>
       </div>
+      </RevealOnScroll>
 
       {/* Most Expensive Services */}
+      <RevealOnScroll rootMargin="80px 0px -12% 0px" delayMs={120}>
       <div 
-        style={{ ...cardStyle, marginTop: '32px' }}
+        style={{ ...cardStyle, marginTop: '28px', marginBottom: '24px' }}
         onMouseEnter={(e) => {
           Object.assign(e.currentTarget.style, cardHoverStyle);
         }}
@@ -985,7 +1174,9 @@ const UserDashboard = () => {
           )}
         </div>
       </div>
+      </RevealOnScroll>
     </div>
+  </div>
   );
 };
 

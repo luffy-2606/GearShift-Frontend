@@ -1,9 +1,50 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
 import apiClient from '../lib/apiClient';
-import { Star, Search, Filter, MapPin, Phone, Mail, Wrench, User, Clock, DollarSign, Bookmark } from 'lucide-react';
+import {
+  Star,
+  Search,
+  MapPin,
+  Phone,
+  Mail,
+  Wrench,
+  User,
+  Clock,
+  DollarSign,
+  ArrowRight,
+  Hammer
+} from 'lucide-react';
+import PageLoadSkeleton from './PageLoadSkeleton';
 import './MechanicsList.css';
 
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+};
+
+const cardStyle = {
+  background: 'rgba(255, 255, 255, 0.05)',
+  backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(255, 255, 255, 0.15)',
+  borderRadius: '24px',
+  padding: '32px',
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+};
+
+const cardHoverStyle = {
+  transform: 'translateY(-8px)',
+  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+  borderColor: 'rgba(255, 255, 255, 0.25)'
+};
+
+const SERVICE_FILTERS = ['Oil Change', 'Brake Repair', 'Engine Diagnostics', 'Transmission', 'Electrical', 'Tire Service'];
+const SPEC_FILTERS = ['Engine Specialist', 'Transmission Expert', 'Electrical Systems', 'Brake Specialist', 'General Mechanic'];
+
 const MechanicsList = () => {
+  const { user } = useAuth();
   const [mechanics, setMechanics] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -14,6 +55,11 @@ const MechanicsList = () => {
     service_type: '',
     specialization: ''
   });
+
+  const displayName =
+    user?.first_name?.trim() ||
+    [user?.first_name, user?.last_name].filter(Boolean).join(' ').trim() ||
+    'there';
 
   const getUserLocation = () => {
     if (navigator.geolocation) {
@@ -36,31 +82,28 @@ const MechanicsList = () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
-      
-      // Only add location params if we have coordinates
+
       if (filters.latitude && filters.longitude) {
         params.append('latitude', filters.latitude);
         params.append('longitude', filters.longitude);
         params.append('radius', filters.radius);
       }
-      
-      // Only add filter params if they're not empty
+
       if (filters.service_type) {
         params.append('service_type', filters.service_type);
       }
-      
+
       if (filters.specialization) {
         params.append('specialization', filters.specialization);
       }
 
       const response = await apiClient.get(`/api/mechanics?${params}`);
-      
+
       if (response.data.success) {
         setMechanics(response.data.data);
       }
     } catch (error) {
       console.error('Error fetching mechanics:', error);
-      // Don't clear mechanics on error, just log it
     } finally {
       setLoading(false);
     }
@@ -91,444 +134,365 @@ const MechanicsList = () => {
 
   if (loading) {
     return (
-      <div className="mechanics-list-container">
-        <div className="loading-state">
-          <div className="loading-spinner"></div>
-          <p>Finding the best mechanics for you...</p>
-        </div>
+      <div className="mechanics-page" aria-busy="true">
+        <PageLoadSkeleton variant="list" message="Finding the best mechanics for you" ariaLabel="Loading mechanics" />
       </div>
     );
   }
 
-  const filteredMechanics = mechanics.filter(mechanic => 
+  const filteredMechanics = mechanics.filter(mechanic =>
     `${mechanic.first_name} ${mechanic.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
     mechanic.specialization?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     mechanic.bio?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
-    <div className="mechanics-list-container landing-section landing-section-dark">
-      {/* Header Section */}
-      <div className="section-header">
-        <h2 className="section-title">Find <span style={{ color: 'var(--dark-accent)' }}>Expert Mechanics</span></h2>
-        <p className="section-subtitle">
-          Connect with skilled automotive professionals. Compare ratings, specializations, and find the perfect mechanic for your vehicle needs.
-        </p>
-      </div>
-
-      {/* Search and Filter Section */}
-      <div style={{
-        background: 'var(--dark-surface)',
-        border: '1px solid var(--dark-border)',
-        borderRadius: 'var(--radius)',
-        padding: '2rem',
-        marginBottom: '3rem'
-      }}>
-        {/* Search Bar */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.75rem',
-            background: 'var(--dark-glass)',
-            border: '1px solid var(--dark-border)',
-            borderRadius: 'var(--radius-sm)',
-            padding: '0.75rem 1rem',
-            color: 'var(--dark-text)'
-          }}>
-            <Search size={20} className="hero-stat-icon" />
-            <input
-              type="text"
-              placeholder="Search by name, specialization, or skills..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+    <div className="mechanics-page">
+      <div className="mechanics-page__inner">
+        <header className="mechanics-page__hero">
+          <div>
+            <p
               style={{
-                background: 'transparent',
-                border: 'none',
-                color: 'var(--dark-text)',
-                fontSize: '0.95rem',
-                outline: 'none',
-                width: '100%'
+                fontSize: '0.8125rem',
+                color: 'rgba(255, 255, 255, 0.5)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.14em',
+                fontWeight: 600,
+                margin: '0 0 12px'
               }}
-            />
-          </div>
-        </div>
-
-        {/* Service Type Filters */}
-        <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            marginBottom: '1rem',
-            color: 'var(--dark-text-muted)',
-            fontSize: '0.875rem',
-            fontWeight: '600'
-          }}>
-            <Wrench size={16} />
-            Filter by Service:
-          </div>
-          <div style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '0.75rem'
-          }}>
-            {['Oil Change', 'Brake Repair', 'Engine Diagnostics', 'Transmission', 'Electrical', 'Tire Service'].map(service => (
-              <button
-                key={service}
-                className={`service-filter-btn ${filters.service_type === service ? 'active' : ''}`}
-                onClick={() => handleServiceFilter(service)}
-              >
-                {service}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Specialization Filters */}
-        <div>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            marginBottom: '1rem',
-            color: 'var(--dark-text-muted)',
-            fontSize: '0.875rem',
-            fontWeight: '600'
-          }}>
-            <User size={16} />
-            Filter by Specialization:
-          </div>
-          <div style={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: '0.75rem'
-          }}>
-            {['Engine Specialist', 'Transmission Expert', 'Electrical Systems', 'Brake Specialist', 'General Mechanic'].map(spec => (
-              <button
-                key={spec}
-                className={`service-filter-btn ${filters.specialization === spec ? 'active' : ''}`}
-                onClick={() => handleSpecializationFilter(spec)}
-              >
-                {spec}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Results Count */}
-      {filteredMechanics.length > 0 && (
-        <div style={{
-          color: 'var(--dark-text-muted)',
-          fontSize: '0.875rem',
-          marginBottom: '2rem',
-          textAlign: 'center'
-        }}>
-          Found {filteredMechanics.length} {filteredMechanics.length === 1 ? 'mechanic' : 'mechanics'} matching your criteria
-        </div>
-      )}
-
-      {/* Mechanics Grid */}
-      <div className="mechanics-grid-modern">
-        {filteredMechanics.map(mechanic => (
-          <MechanicCard key={mechanic.id} mechanic={mechanic} />
-        ))}
-      </div>
-
-      {filteredMechanics.length === 0 && (
-        <div className="no-mechanics-state">
-          <div style={{
-            background: 'var(--dark-surface)',
-            border: '1px solid var(--dark-border)',
-            borderRadius: 'var(--radius)',
-            padding: '4rem 2rem',
-            textAlign: 'center',
-            maxWidth: '500px',
-            margin: '0 auto'
-          }}>
-            <div style={{
-              fontSize: '3rem',
-              color: 'var(--dark-text-muted)',
-              marginBottom: '1rem'
-            }}>
-              🔧
-            </div>
-            <h3 style={{
-              fontSize: '1.5rem',
-              fontWeight: '700',
-              color: 'var(--dark-text)',
-              margin: '0 0 1rem'
-            }}>
-              No Mechanics Found
-            </h3>
-            <p style={{
-              color: 'var(--dark-text-secondary)',
-              margin: '0',
-              lineHeight: '1.6'
-            }}>
-              Try adjusting your search terms or filters to find more options.
+            >
+              {getGreeting()}, {displayName}
+            </p>
+            <h1
+              style={{
+                fontSize: 'clamp(2rem, 4vw, 3.25rem)',
+                fontWeight: 700,
+                color: '#ffffff',
+                margin: '0 0 12px',
+                letterSpacing: '-0.03em',
+                lineHeight: 1.1
+              }}
+            >
+              Find expert <span style={{ color: 'rgba(255, 255, 255, 0.82)' }}>mechanics</span>
+            </h1>
+            <p
+              style={{
+                fontSize: '1.0625rem',
+                color: 'rgba(255, 255, 255, 0.62)',
+                fontWeight: 400,
+                letterSpacing: '0.01em',
+                margin: 0,
+                maxWidth: 520,
+                lineHeight: 1.55
+              }}
+            >
+              Compare ratings, specializations, and experience — portrait cards keep each tech easy to scan at a glance.
             </p>
           </div>
+          <div
+            style={{ ...cardStyle, alignSelf: 'flex-start', minWidth: 'min(100%, 220px)' }}
+            onMouseEnter={(e) => Object.assign(e.currentTarget.style, cardHoverStyle)}
+            onMouseLeave={(e) => Object.assign(e.currentTarget.style, cardStyle)}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <Hammer size={28} style={{ color: '#ffffff' }} strokeWidth={1.75} />
+            </div>
+            <p
+              style={{
+                fontSize: '0.8rem',
+                color: 'rgba(255, 255, 255, 0.55)',
+                margin: '0 0 8px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                fontWeight: 600
+              }}
+            >
+              Matches
+            </p>
+            <p style={{ fontSize: '2.25rem', fontWeight: 700, color: '#ffffff', margin: 0, letterSpacing: '-0.02em' }}>
+              {filteredMechanics.length}
+            </p>
+            <p style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.45)', margin: '8px 0 0' }}>
+              mechanics match filters & search
+            </p>
+          </div>
+        </header>
+
+        <div className="mechanics-page__layout">
+          <aside className="mechanics-page__sidebar">
+            <div
+              style={cardStyle}
+              onMouseEnter={(e) => Object.assign(e.currentTarget.style, cardHoverStyle)}
+              onMouseLeave={(e) => Object.assign(e.currentTarget.style, cardStyle)}
+            >
+              <h2
+                style={{
+                  fontSize: '1.25rem',
+                  color: '#ffffff',
+                  margin: '0 0 24px',
+                  fontWeight: 600,
+                  letterSpacing: '-0.02em'
+                }}
+              >
+                Search & filters
+              </h2>
+              <div className="mechanics-page__search-shell">
+                <Search size={20} style={{ color: 'rgba(255, 255, 255, 0.45)', flexShrink: 0 }} />
+                <input
+                  type="text"
+                  className="mechanics-page__search-input"
+                  placeholder="Name, specialization, bio…"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+
+              <div className="mechanics-page__filter-block">
+                <div className="mechanics-page__filter-label">
+                  <Wrench size={16} />
+                  Service type
+                </div>
+                <div className="mechanics-page__filter-chips">
+                  {SERVICE_FILTERS.map(service => (
+                    <button
+                      key={service}
+                      type="button"
+                      className={`mechanics-page__chip ${filters.service_type === service ? 'mechanics-page__chip--active' : ''}`}
+                      onClick={() => handleServiceFilter(service)}
+                    >
+                      {service}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mechanics-page__filter-block">
+                <div className="mechanics-page__filter-label">
+                  <User size={16} />
+                  Specialization
+                </div>
+                <div className="mechanics-page__filter-chips">
+                  {SPEC_FILTERS.map(spec => (
+                    <button
+                      key={spec}
+                      type="button"
+                      className={`mechanics-page__chip ${filters.specialization === spec ? 'mechanics-page__chip--active' : ''}`}
+                      onClick={() => handleSpecializationFilter(spec)}
+                    >
+                      {spec}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <p className="mechanics-page__hint">
+                Location-aware results use your browser when allowed; otherwise every mechanic in the directory is shown.
+              </p>
+            </div>
+          </aside>
+
+          <main className="mechanics-page__main">
+            {filteredMechanics.length > 0 && (
+              <p
+                style={{
+                  color: 'rgba(255, 255, 255, 0.5)',
+                  fontSize: '0.9rem',
+                  marginBottom: '24px',
+                  letterSpacing: '0.02em'
+                }}
+              >
+                Showing {filteredMechanics.length}{' '}
+                {filteredMechanics.length === 1 ? 'mechanic' : 'mechanics'}
+                {filters.service_type ? ` • ${filters.service_type}` : ''}
+                {filters.specialization ? ` • ${filters.specialization}` : ''}
+              </p>
+            )}
+
+            <div className="mechanics-grid-modern">
+              {filteredMechanics.map(mechanic => (
+                <MechanicCard key={mechanic.id} mechanic={mechanic} />
+              ))}
+            </div>
+
+            {filteredMechanics.length === 0 && (
+              <div className="mechanics-page__empty">
+                <div style={{ fontSize: '2.5rem', marginBottom: '12px', opacity: 0.75 }} aria-hidden>
+                  🔧
+                </div>
+                <h3
+                  style={{
+                    fontSize: '1.35rem',
+                    fontWeight: 600,
+                    color: '#ffffff',
+                    margin: '0 0 8px',
+                    letterSpacing: '-0.02em'
+                  }}
+                >
+                  No mechanics found
+                </h3>
+                <p style={{ color: 'rgba(255, 255, 255, 0.5)', margin: 0, lineHeight: 1.6, fontSize: '1rem' }}>
+                  Try clearing filters or broadening your search.
+                </p>
+              </div>
+            )}
+          </main>
         </div>
-      )}
+      </div>
     </div>
   );
 };
 
+function initials(mechanic) {
+  const a = (mechanic.first_name || '').trim()[0] || '';
+  const b = (mechanic.last_name || '').trim()[0] || '';
+  return `${a}${b}`.toUpperCase() || '?';
+}
+
 const MechanicCard = ({ mechanic }) => {
   const [showDetails, setShowDetails] = useState(false);
-  const [savingBm, setSavingBm] = useState(false);
-
-  const saveMechanic = async (e) => {
-    e.stopPropagation();
-    try {
-      setSavingBm(true);
-      await apiClient.post('/api/bookmarks', {
-        entity_type: 'mechanic',
-        entity_id: mechanic.id,
-        tags: ['mechanic'],
-      });
-      alert('Mechanic saved. View under Saved in the menu.');
-    } catch (err) {
-      if (err.response?.status === 409) {
-        alert('Already in your saved list.');
-      } else {
-        alert(err.response?.data?.message || 'Could not save mechanic.');
-      }
-    } finally {
-      setSavingBm(false);
-    }
-  };
 
   const formatDistance = (distance) => {
-    if (distance === null) return 'Distance unknown';
-    return `${distance.toFixed(1)} miles`;
+    if (distance === null || distance === undefined) return null;
+    return `${distance.toFixed(1)} mi away`;
   };
 
+  const specs = Array.isArray(mechanic.specialization)
+    ? mechanic.specialization
+    : mechanic.specialization
+      ? [mechanic.specialization]
+      : [];
+
+  const distanceLabel = formatDistance(mechanic.distance);
+
   return (
-    <div className="mechanic-card-modern">
-      {/* Mechanic Header */}
-      <div className="mechanic-card-header">
-        <div>
-          <h3 className="mechanic-card-title">
-            {mechanic.first_name} {mechanic.last_name}
-          </h3>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <Star size={16} className="hero-stat-icon" fill="currentColor" />
-              <span style={{ fontWeight: '700', color: 'var(--dark-text)' }}>
-                {mechanic.average_rating?.toFixed(1) || 'N/A'}
-              </span>
-            </div>
-            <span style={{ color: 'var(--dark-text-muted)', fontSize: '0.875rem' }}>
-              ({mechanic.total_reviews || 0} reviews)
-            </span>
-          </div>
+    <article className="mechanic-card-modern">
+      <div className="mechanic-card-modern__top">
+        <div className="mechanic-card-modern__avatar" aria-hidden>
+          {initials(mechanic)}
         </div>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
-          <button
-            type="button"
-            onClick={saveMechanic}
-            disabled={savingBm}
-            title="Save mechanic"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 6,
-              background: 'rgba(255,255,255,0.08)',
-              border: '1px solid var(--dark-border)',
-              color: 'var(--dark-text)',
-              borderRadius: '9999px',
-              padding: '0.35rem 0.75rem',
-              fontSize: '0.75rem',
-              fontWeight: 600,
-              cursor: savingBm ? 'wait' : 'pointer',
-            }}
+        <h3 className="mechanic-card-modern__title">
+          {mechanic.first_name} {mechanic.last_name}
+        </h3>
+        <div className="mechanic-card-modern__badge-row">
+          <span
+            className={`mechanic-card-modern__badge ${mechanic.is_independent ? 'mechanic-card-modern__badge--accent' : 'mechanic-card-modern__badge--muted'}`}
           >
-            <Bookmark size={14} />
-            {savingBm ? '…' : 'Save'}
-          </button>
-          <div style={{
-            background: mechanic.is_independent ? 'var(--dark-accent)' : 'var(--dark-glass-border)',
-            color: 'var(--dark-text)',
-            padding: '0.25rem 0.75rem',
-            borderRadius: '9999px',
-            fontSize: '0.75rem',
-            fontWeight: '600'
-          }}>
             {mechanic.is_independent ? 'Independent' : 'Shop'}
-          </div>
-        </div>
-      </div>
-
-      {/* Shop Information */}
-      {mechanic.shop_address && (
-        <div className="mechanic-card-info">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-            <MapPin size={14} className="hero-stat-icon" />
-            <span style={{ fontSize: '0.875rem', color: 'var(--dark-text-secondary)' }}>
-              {mechanic.shop_address}
-            </span>
-          </div>
-          
-          {mechanic.shop_phone && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-              <Phone size={14} className="hero-stat-icon" />
-              <span style={{ fontSize: '0.875rem', color: 'var(--dark-text-secondary)' }}>
-                {mechanic.shop_phone}
-              </span>
-            </div>
-          )}
-          
-          {mechanic.distance !== null && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <MapPin size={14} className="hero-stat-icon" />
-              <span style={{ fontSize: '0.875rem', color: 'var(--dark-text-secondary)' }}>
-                {formatDistance(mechanic.distance)}
-              </span>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Specializations */}
-      {mechanic.specialization && (
-        <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{
-            fontSize: '0.875rem',
-            color: 'var(--dark-text-muted)',
-            marginBottom: '0.75rem',
-            fontWeight: '600'
-          }}>
-            <Wrench size={14} style={{ display: 'inline', marginRight: '0.5rem', verticalAlign: 'middle' }} />
-            Specializations:
-          </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-            {(Array.isArray(mechanic.specialization) ? mechanic.specialization : [mechanic.specialization]).map(spec => (
-              <span key={spec} style={{
-                background: 'var(--dark-glass)',
-                border: '1px solid var(--dark-border)',
-                borderRadius: 'var(--radius-xs)',
-                padding: '0.375rem 0.875rem',
-                fontSize: '0.75rem',
-                color: 'var(--dark-text-secondary)',
-                fontWeight: '500',
-                transition: 'all 0.2s ease'
-              }}>
-                {spec}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Experience and Rate Info */}
-      <div className="mechanic-card-meta">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
-          <Clock size={14} className="hero-stat-icon" />
-          <span style={{ fontSize: '0.875rem', color: 'var(--dark-text-secondary)' }}>
-            {mechanic.years_experience || 'N/A'} years experience
           </span>
         </div>
-        
-        {mechanic.hourly_rate && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <DollarSign size={14} className="hero-stat-icon" />
-            <span style={{ fontSize: '0.875rem', color: 'var(--dark-text-secondary)' }}>
-              ${mechanic.hourly_rate}/hour
-            </span>
-          </div>
-        )}
+        <div className="mechanic-card-modern__rating">
+          <Star size={15} style={{ color: 'rgba(255,255,255,0.85)' }} fill="currentColor" />
+          <strong>{mechanic.average_rating?.toFixed(1) || '—'}</strong>
+          <span>({mechanic.total_reviews || 0} reviews)</span>
+        </div>
       </div>
 
-      {/* Contact Toggle */}
-      <button 
-        className="contact-toggle-btn"
-        onClick={() => setShowDetails(!showDetails)}
-      >
-        <Mail size={16} style={{ marginRight: '0.5rem' }} />
-        {showDetails ? 'Hide' : 'View'} Contact Details
-      </button>
+      <div className="mechanic-card-modern__divider" />
 
-      {/* Contact Details */}
-      {showDetails && (
-        <div className="contact-details-modern">
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.75rem'
-          }}>
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.75rem',
-              background: 'var(--dark-glass)',
-              borderRadius: 'var(--radius-sm)'
-            }}>
-              <Mail size={14} className="hero-stat-icon" />
-              <span style={{ fontSize: '0.875rem', color: 'var(--dark-text-secondary)' }}>
-                {mechanic.email}
-              </span>
-            </div>
-            
-            {mechanic.phone && (
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.75rem',
-                background: 'var(--dark-glass)',
-                borderRadius: 'var(--radius-sm)'
-              }}>
-                <Phone size={14} className="hero-stat-icon" />
-                <span style={{ fontSize: '0.875rem', color: 'var(--dark-text-secondary)' }}>
-                  {mechanic.phone}
+      <div className="mechanic-card-modern__body">
+        <div>
+          <p className="mechanic-card-modern__section-label">Location & reach</p>
+          <div className="mechanic-card-modern__rows">
+            {mechanic.shop_address ? (
+              <div className="mechanic-card-modern__row">
+                <MapPin size={14} style={{ color: 'rgba(255,255,255,0.4)', flexShrink: 0, marginTop: 2 }} />
+                <span>{mechanic.shop_address}</span>
+              </div>
+            ) : (
+              <div className="mechanic-card-modern__row">
+                <MapPin size={14} style={{ color: 'rgba(255,255,255,0.4)', flexShrink: 0, marginTop: 2 }} />
+                <span style={{ fontStyle: !distanceLabel ? 'italic' : undefined }}>
+                  {distanceLabel || 'Address not listed'}
                 </span>
               </div>
             )}
-            
-            {mechanic.business_name && (
-              <div style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                padding: '0.75rem',
-                background: 'var(--dark-glass)',
-                borderRadius: 'var(--radius-sm)'
-              }}>
-                <User size={14} className="hero-stat-icon" />
-                <span style={{ fontSize: '0.875rem', color: 'var(--dark-text-secondary)' }}>
-                  {mechanic.business_name}
-                </span>
+            {mechanic.shop_phone && (
+              <div className="mechanic-card-modern__row">
+                <Phone size={14} style={{ color: 'rgba(255,255,255,0.4)', flexShrink: 0, marginTop: 2 }} />
+                <span>{mechanic.shop_phone}</span>
+              </div>
+            )}
+            {distanceLabel && mechanic.shop_address && (
+              <div className="mechanic-card-modern__row">
+                <MapPin size={14} style={{ color: 'rgba(255,255,255,0.4)', flexShrink: 0, marginTop: 2 }} />
+                <span>{distanceLabel}</span>
               </div>
             )}
           </div>
-          
-          {mechanic.bio && (
-            <div style={{
-              marginTop: '1rem',
-              padding: '1rem',
-              background: 'var(--dark-glass)',
-              borderRadius: 'var(--radius-sm)',
-              border: '1px solid var(--dark-border)'
-            }}>
-              <p style={{
-                fontSize: '0.875rem',
-                color: 'var(--dark-text-secondary)',
-                margin: 0,
-                lineHeight: '1.6',
-                fontStyle: 'italic'
-              }}>
-                "{mechanic.bio}"
-              </p>
+        </div>
+
+        {specs.length > 0 && (
+          <div>
+            <p className="mechanic-card-modern__section-label">Specializations</p>
+            <div className="mechanic-card-modern__tags">
+              {specs.map(spec => (
+                <span key={spec} className="mechanic-card-modern__tag">
+                  {spec}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div>
+          <p className="mechanic-card-modern__section-label">Experience & rate</p>
+          <div className="mechanic-card-modern__meta">
+            <div className="mechanic-card-modern__row">
+              <Clock size={14} style={{ color: 'rgba(255,255,255,0.4)', flexShrink: 0, marginTop: 2 }} />
+              <span>{mechanic.years_experience != null ? `${mechanic.years_experience} years experience` : 'Experience not listed'}</span>
+            </div>
+            {mechanic.hourly_rate != null && (
+              <div className="mechanic-card-modern__row">
+                <DollarSign size={14} style={{ color: 'rgba(255,255,255,0.4)', flexShrink: 0, marginTop: 2 }} />
+                <span>${mechanic.hourly_rate}/hour</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="mechanic-card-modern__grow" />
+
+        <div className="mechanic-card-modern__footer">
+          <button type="button" className="contact-toggle-btn" onClick={() => setShowDetails(!showDetails)}>
+            <Mail size={16} />
+            {showDetails ? 'Hide' : 'View'} contact details
+            <ArrowRight
+              size={14}
+              style={{
+                transition: 'transform 0.2s ease',
+                transform: showDetails ? 'rotate(90deg)' : 'none'
+              }}
+            />
+          </button>
+
+          {showDetails && (
+            <div className="contact-details-modern">
+              {mechanic.email && (
+                <div className="contact-details-modern__item">
+                  <Mail size={14} style={{ color: 'rgba(255,255,255,0.45)', flexShrink: 0 }} />
+                  <span>{mechanic.email}</span>
+                </div>
+              )}
+              {mechanic.phone && (
+                <div className="contact-details-modern__item">
+                  <Phone size={14} style={{ color: 'rgba(255,255,255,0.45)', flexShrink: 0 }} />
+                  <span>{mechanic.phone}</span>
+                </div>
+              )}
+              {mechanic.business_name && (
+                <div className="contact-details-modern__item">
+                  <User size={14} style={{ color: 'rgba(255,255,255,0.45)', flexShrink: 0 }} />
+                  <span>{mechanic.business_name}</span>
+                </div>
+              )}
+              {mechanic.bio && (
+                <p className="contact-details-modern__bio">&ldquo;{mechanic.bio}&rdquo;</p>
+              )}
             </div>
           )}
         </div>
-      )}
-    </div>
+      </div>
+    </article>
   );
 };
 
