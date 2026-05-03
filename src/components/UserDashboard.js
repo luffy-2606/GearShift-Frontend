@@ -229,7 +229,7 @@ const UserDashboard = () => {
           licensePlate: 'N/A'
         },
         maintenanceReminders: [],
-        shopsVisited: [],
+        recommendedShops: [],
         mechanicsWorkedWith: []
       };
     }
@@ -300,7 +300,7 @@ const UserDashboard = () => {
           licensePlate: 'N/A'
         },
         maintenanceReminders: [],
-        shopsVisited: [],
+        recommendedShops: [],
         mechanicsWorkedWith: []
       };
     }
@@ -359,7 +359,16 @@ const UserDashboard = () => {
       }
     });
 
-    const shopsVisited = Array.from(shopsMap.values()).slice(0, 3);
+    // Recommended shops: 3 random shops from all shops
+    const recommendedShops = [...shops]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3)
+      .map(s => ({
+        id: s.id,
+        name: s.name,
+        address: s.address || 'No address',
+        rating: s.average_rating || null,
+      }));
 
     // Process mechanics from service history
     const mechanicsMap = new Map();
@@ -412,7 +421,8 @@ const UserDashboard = () => {
           return priorityRank[a.priority] - priorityRank[b.priority];
         })
         .slice(0, 3),
-      shopsVisited,
+      recommendedShops,
+      shopsVisited: Array.from(shopsMap.values()).slice(0, 2),
       mechanicsWorkedWith
     };
   };
@@ -861,63 +871,141 @@ const UserDashboard = () => {
       </div>
       </RevealOnScroll>
 
-      {/* My Vehicle Catalogue */}
+      {/* My Vehicle Catalogue & Shops Frequently Visited */}
       <RevealOnScroll rootMargin="80px 0px -12% 0px" delayMs={80}>
-      <div 
-        style={{ ...cardStyle, marginTop: '28px' }}
-        onMouseEnter={(e) => {
-          Object.assign(e.currentTarget.style, cardHoverStyle);
-        }}
-        onMouseLeave={(e) => {
-          Object.assign(e.currentTarget.style, cardStyle);
-        }}
-      >
-        <h3 style={{
-          fontSize: '1.5rem',
-          color: '#ffffff',
-          marginBottom: '32px',
-          fontWeight: 600,
-          letterSpacing: '-0.02em'
-        }}>
-          My Vehicle Catalogue
-        </h3>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: '24px'
-        }}>
-          {vehicles.length > 0 ? vehicles.map((vehicle) => (
-            <div key={vehicle.id} style={{
-              padding: '20px',
-              background: 'rgba(255, 255, 255, 0.05)',
-              borderRadius: '16px',
-              border: '1px solid rgba(255, 255, 255, 0.1)'
-            }}>
-              <p style={{
-                fontSize: '1.05rem',
-                color: '#ffffff',
-                fontWeight: 600,
-                marginBottom: '8px'
+      <div className="user-dashboard-page__two-col" style={{ marginTop: '28px' }}>
+        <div
+          style={cardStyle}
+          onMouseEnter={(e) => {
+            Object.assign(e.currentTarget.style, cardHoverStyle);
+          }}
+          onMouseLeave={(e) => {
+            Object.assign(e.currentTarget.style, cardStyle);
+          }}
+        >
+          <h3 style={{
+            fontSize: '1.5rem',
+            color: '#ffffff',
+            marginBottom: '32px',
+            fontWeight: 600,
+            letterSpacing: '-0.02em'
+          }}>
+            My Vehicle Catalogue
+          </h3>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '24px'
+          }}>
+            {vehicles.length > 0 ? vehicles.map((vehicle) => (
+              <div key={vehicle.id} style={{
+                padding: '20px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                borderRadius: '16px',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
               }}>
-                {vehicle.year} {vehicle.make} {vehicle.model}
+                <p style={{
+                  fontSize: '1.05rem',
+                  color: '#ffffff',
+                  fontWeight: 600,
+                  marginBottom: '8px'
+                }}>
+                  {vehicle.year} {vehicle.make} {vehicle.model}
+                </p>
+                <p style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.55)', marginBottom: '6px' }}>
+                  Plate: {vehicle.license_plate || 'N/A'}
+                </p>
+                <p style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.55)', marginBottom: 0 }}>
+                  Mileage: {(vehicle.mileage || 0).toLocaleString()} mi
+                </p>
+              </div>
+            )) : (
+              <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '1rem' }}>
+                No vehicles added yet.
               </p>
-              <p style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.55)', marginBottom: '6px' }}>
-                Plate: {vehicle.license_plate || 'N/A'}
+            )}
+          </div>
+        </div>
+
+        <div
+          style={cardStyle}
+          onMouseEnter={(e) => {
+            Object.assign(e.currentTarget.style, cardHoverStyle);
+          }}
+          onMouseLeave={(e) => {
+            Object.assign(e.currentTarget.style, cardStyle);
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
+            <MapPin size={24} style={{ color: '#ffffff' }} />
+            <h3 style={{
+              fontSize: '1.5rem',
+              color: '#ffffff',
+              fontWeight: 600,
+              margin: 0,
+              letterSpacing: '-0.02em'
+            }}>
+              Shops Frequently Visited
+            </h3>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {dashboardData.shopsVisited.length > 0 ? (
+              dashboardData.shopsVisited.map((shop) => (
+              <div
+                key={shop.id}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '16px',
+                  padding: '20px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <div>
+                  <p style={{
+                    fontSize: '1.125rem',
+                    color: '#ffffff',
+                    fontWeight: 600,
+                    marginBottom: '8px',
+                    letterSpacing: '-0.01em'
+                  }}>
+                    {shop.name}
+                  </p>
+                  <p style={{
+                    fontSize: '0.875rem',
+                    color: 'rgba(255, 255, 255, 0.5)',
+                    letterSpacing: '0.01em'
+                  }}>
+                    {shop.visits} visit{shop.visits !== 1 ? 's' : ''} • Last: {new Date(shop.lastVisit).toLocaleDateString()}
+                  </p>
+                </div>
+                <div style={{
+                  background: 'linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%)',
+                  color: '#000000',
+                  padding: '8px 20px',
+                  borderRadius: '12px',
+                  fontSize: '1rem',
+                  fontWeight: 700,
+                  boxShadow: '0 4px 15px rgba(255, 255, 255, 0.2)'
+                }}>
+                  {shop.visits}
+                </div>
+              </div>
+              ))
+            ) : (
+              <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '1rem' }}>
+                No shops visited yet
               </p>
-              <p style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.55)', marginBottom: 0 }}>
-                Mileage: {(vehicle.mileage || 0).toLocaleString()} mi
-              </p>
-            </div>
-          )) : (
-            <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '1rem' }}>
-              No vehicles added yet.
-            </p>
-          )}
+            )}
+          </div>
         </div>
       </div>
       </RevealOnScroll>
 
-      {/* Maintenance Reminders & Shops Frequently Visited */}
+      {/* Maintenance Reminders & Recommended Shops */}
       <RevealOnScroll rootMargin="80px 0px -12% 0px" delayMs={100}>
       <div className="user-dashboard-page__two-col" style={{ marginTop: '28px' }}>
         <div 
@@ -1007,7 +1095,6 @@ const UserDashboard = () => {
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
-            <MapPin size={24} style={{ color: '#ffffff' }} />
             <h3 style={{
               fontSize: '1.5rem',
               color: '#ffffff',
@@ -1015,12 +1102,12 @@ const UserDashboard = () => {
               margin: 0,
               letterSpacing: '-0.02em'
             }}>
-              Shops Frequently Visited
+              Recommended Shops
             </h3>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {dashboardData.shopsVisited.length > 0 ? (
-              dashboardData.shopsVisited.map((shop) => (
+            {dashboardData.recommendedShops.length > 0 ? (
+              dashboardData.recommendedShops.map((shop) => (
               <div
                 key={shop.id}
                 style={{
@@ -1049,25 +1136,27 @@ const UserDashboard = () => {
                     color: 'rgba(255, 255, 255, 0.5)',
                     letterSpacing: '0.01em'
                   }}>
-                    {shop.visits} visits • Last: {shop.lastVisit}
+                    {shop.address}
                   </p>
                 </div>
-                <div style={{
-                  background: 'linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%)',
-                  color: '#000000',
-                  padding: '8px 20px',
-                  borderRadius: '12px',
-                  fontSize: '1rem',
-                  fontWeight: 700,
-                  boxShadow: '0 4px 15px rgba(255, 255, 255, 0.2)'
-                }}>
-                  {shop.visits}
-                </div>
+                {shop.rating != null && (
+                  <div style={{
+                    background: 'linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%)',
+                    color: '#000000',
+                    padding: '8px 20px',
+                    borderRadius: '12px',
+                    fontSize: '1rem',
+                    fontWeight: 700,
+                    boxShadow: '0 4px 15px rgba(255, 255, 255, 0.2)'
+                  }}>
+                    ★ {shop.rating.toFixed(1)}
+                  </div>
+                )}
               </div>
               ))
             ) : (
               <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '1rem' }}>
-                No shops visited yet
+                No shops available yet
               </p>
             )}
           </div>
