@@ -1,10 +1,13 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from 'react';
+import { useLandingPage } from '../lib/cms';
 
 const LP_Review = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef(null);
+  const { data } = useLandingPage();
+  const { reviews } = data;
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -29,74 +32,32 @@ const LP_Review = () => {
     };
   }, []);
 
-  const reviews = [
-    {
-      name: "John Smith",
-      rating: 5,
-      text: "Exceptional service! The mechanics were professional and the pricing was transparent. Highly recommended for anyone looking for reliable car care.",
-      location: "New York",
-      service: "Oil Change",
-      verified: true,
-      avatar: "JS"
-    },
-    {
-      name: "Sarah Johnson",
-      rating: 5,
-      text: "Found my go-to mechanic through this platform. The booking process was seamless and the work was top-notch. Will definitely use again!",
-      location: "Los Angeles",
-      service: "Brake Service",
-      verified: true,
-      avatar: "SJ"
-    },
-    {
-      name: "Michael Chen",
-      rating: 5,
-      text: "The maintenance tracking feature is a game-changer. I can keep track of all my service history in one place. Brilliant idea!",
-      location: "Chicago",
-      service: "Maintenance",
-      verified: true,
-      avatar: "MC"
-    },
-    {
-      name: "Emily Davis",
-      rating: 5,
-      text: "Love the transparency in pricing. No hidden fees, no surprises. The reviews from other customers helped me make an informed decision.",
-      location: "Houston",
-      service: "Tire Rotation",
-      verified: true,
-      avatar: "ED"
-    },
-    {
-      name: "Robert Wilson",
-      rating: 5,
-      text: "Quick, efficient, and professional. The support team was incredibly helpful when I had questions about my service history.",
-      location: "Phoenix",
-      service: "Engine Repair",
-      verified: true,
-      avatar: "RW"
-    }
-  ];
-
-  // Auto-rotate every 6 seconds
   useEffect(() => {
-    if (!isPaused) {
+    if (!isPaused && reviews.items.length > 1) {
       const interval = setInterval(() => {
-        setCurrentIndex((prev) => (prev + 1) % reviews.length);
+        setCurrentIndex((prev) => (prev + 1) % reviews.items.length);
       }, 6000);
       return () => clearInterval(interval);
     }
-  }, [isPaused, reviews.length]);
+  }, [isPaused, reviews.items.length]);
+
+  // Reset index if items change
+  useEffect(() => {
+    setCurrentIndex(0);
+  }, [reviews.items.length]);
 
   const nextReview = () => {
-    setCurrentIndex((prev) => (prev + 1) % reviews.length);
+    setCurrentIndex((prev) => (prev + 1) % reviews.items.length);
   };
 
   const prevReview = () => {
-    setCurrentIndex((prev) => (prev - 1 + reviews.length) % reviews.length);
+    setCurrentIndex((prev) => (prev - 1 + reviews.items.length) % reviews.items.length);
   };
 
+  const current = reviews.items[currentIndex];
+
   return (
-    <div 
+    <div
       ref={sectionRef}
       style={{
         width: '100%',
@@ -120,7 +81,7 @@ const LP_Review = () => {
         transform: isVisible ? 'translateX(0)' : 'translateX(50px)',
         transition: 'opacity 0.8s ease, transform 0.8s ease'
       }}>
-        What Our Customers Say
+        {reviews.heading}
       </h2>
 
       <div
@@ -153,14 +114,8 @@ const LP_Review = () => {
             transition: 'all 0.3s ease',
             fontFamily: 'Times New Roman, serif'
           }}
-          onMouseEnter={(e) => {
-            e.target.style.backgroundColor = '#ffffff';
-            e.target.style.color = '#000000';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.backgroundColor = 'transparent';
-            e.target.style.color = '#ffffff';
-          }}
+          onMouseEnter={(e) => { e.target.style.backgroundColor = '#ffffff'; e.target.style.color = '#000000'; }}
+          onMouseLeave={(e) => { e.target.style.backgroundColor = 'transparent'; e.target.style.color = '#ffffff'; }}
         >
           &lt;
         </button>
@@ -193,16 +148,8 @@ const LP_Review = () => {
             "
           </div>
 
-          {/* Rating Stars */}
-          <div style={{
-            fontSize: '2rem',
-            color: '#FFD700',
-            marginBottom: '24px',
-            fontFamily: 'Times New Roman, serif',
-            position: 'relative',
-            zIndex: 1
-          }}>
-            {'★'.repeat(reviews[currentIndex].rating)}
+          <div style={{ fontSize: '2rem', color: '#FFD700', marginBottom: '24px', position: 'relative', zIndex: 1 }}>
+            {'★'.repeat(current.rating)}
           </div>
 
           {/* Review Text */}
@@ -216,7 +163,7 @@ const LP_Review = () => {
             position: 'relative',
             zIndex: 1
           }}>
-            "{reviews[currentIndex].text}"
+            "{current.text}"
           </p>
 
           {/* Reviewer Info */}
@@ -235,7 +182,7 @@ const LP_Review = () => {
               width: '60px',
               height: '60px',
               borderRadius: '50%',
-              backgroundColor: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              backgroundColor: 'rgba(255,255,255,0.15)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -245,7 +192,7 @@ const LP_Review = () => {
               fontFamily: 'Times New Roman, serif',
               border: '2px solid rgba(255, 255, 255, 0.3)'
             }}>
-              {reviews[currentIndex].avatar}
+              {current.avatar}
             </div>
 
             {/* Name and Location */}
@@ -257,15 +204,10 @@ const LP_Review = () => {
                 fontFamily: 'Times New Roman, serif',
                 fontWeight: 'bold'
               }}>
-                {reviews[currentIndex].name}
+                {current.name}
               </h3>
-              <div style={{
-                fontSize: '0.9rem',
-                color: 'rgba(255, 255, 255, 0.6)',
-                fontFamily: 'Times New Roman, serif',
-                letterSpacing: '0.5px'
-              }}>
-                {reviews[currentIndex].location} • {reviews[currentIndex].service}
+              <div style={{ fontSize: '0.9rem', color: 'rgba(255, 255, 255, 0.6)', fontFamily: 'Times New Roman, serif' }}>
+                {current.location} • {current.service}
               </div>
             </div>
           </div>
@@ -289,26 +231,16 @@ const LP_Review = () => {
             transition: 'all 0.3s ease',
             fontFamily: 'Times New Roman, serif'
           }}
-          onMouseEnter={(e) => {
-            e.target.style.backgroundColor = '#ffffff';
-            e.target.style.color = '#000000';
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.backgroundColor = 'transparent';
-            e.target.style.color = '#ffffff';
-          }}
+          onMouseEnter={(e) => { e.target.style.backgroundColor = '#ffffff'; e.target.style.color = '#000000'; }}
+          onMouseLeave={(e) => { e.target.style.backgroundColor = 'transparent'; e.target.style.color = '#ffffff'; }}
         >
           &gt;
         </button>
       </div>
 
       {/* Dots Indicator */}
-      <div style={{
-        display: 'flex',
-        gap: '12px',
-        marginTop: '40px'
-      }}>
-        {reviews.map((_, index) => (
+      <div style={{ display: 'flex', gap: '12px', marginTop: '40px' }}>
+        {reviews.items.map((_, index) => (
           <div
             key={index}
             onClick={() => setCurrentIndex(index)}

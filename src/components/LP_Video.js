@@ -1,9 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
+import { useLandingPage } from '../lib/cms';
 
 const LP_Video = () => {
   const [hoveredCard, setHoveredCard] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef(null);
+  const { data } = useLandingPage();
+  const { video } = data;
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -29,16 +32,16 @@ const LP_Video = () => {
   }, []);
 
   return (
-    <div 
+    <div
       ref={sectionRef}
-      style={{ 
-        position: 'relative', 
-        width: '100%', 
+      style={{
+        position: 'relative',
+        width: '100%',
         overflow: 'hidden'
       }}>
       {/* Video Background */}
       <video
-        src="/Gearshift/video.mp4"
+        src={video.videoUrl}
         autoPlay
         loop
         muted
@@ -82,7 +85,6 @@ const LP_Video = () => {
           display: 'inline-block',
           animation: 'scrollText 20s linear infinite',
           fontSize: '2rem',
-          color: 'white',
           fontFamily: 'Times New Roman, serif',
           fontWeight: 'bold',
           letterSpacing: '2px',
@@ -115,7 +117,7 @@ const LP_Video = () => {
           transform: isVisible ? 'translateX(0)' : 'translateX(-50px)',
           transition: 'opacity 0.8s ease, transform 0.8s ease'
         }}>
-          What We Offer
+          {video.sectionTitle}
         </h2>
 
         {/* Cards Grid */}
@@ -127,239 +129,46 @@ const LP_Video = () => {
           maxWidth: '1000px',
           margin: '0 auto'
         }}>
-          {/* Card 1 */}
-          <div
-            onMouseEnter={() => setHoveredCard(1)}
-            onMouseLeave={() => setHoveredCard(null)}
-            style={{
-              backgroundColor: hoveredCard === 1 ? 'white' : 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '16px',
-              padding: '30px',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              transition: 'transform 0.3s ease, background 0.3s ease, color 0.3s ease',
-              display: 'flex',
-              flexDirection: 'column',
-              minHeight: '250px',
-              height: '100%',
-              transform: hoveredCard === 1 ? 'translateY(-8px)' : 'translateY(0)'
-            }}
-          >
-            <h3 style={{
-              fontSize: '1.8rem',
-              color: hoveredCard === 1 ? 'black' : 'white',
-              marginBottom: '15px',
-              fontFamily: 'Times New Roman, serif',
-              fontWeight: 'bold',
-              letterSpacing: '0.5px',
-              transition: 'color 0.3s ease'
-            }}>
-              Trusted Shops
-            </h3>
-            <p style={{
-              fontSize: '1rem',
-              color: hoveredCard === 1 ? 'black' : 'rgba(255, 255, 255, 0.8)',
-              lineHeight: '1.6',
-              transition: 'color 0.3s ease'
-            }}>
-              Explore our curated network of verified automotive professionals. Filter by specialty, ratings, and availability to find your perfect match.
-            </p>
-          </div>
-
-          {/* Card 2 */}
-          <div
-            onMouseEnter={() => setHoveredCard(2)}
-            onMouseLeave={() => setHoveredCard(null)}
-            style={{
-              backgroundColor: hoveredCard === 2 ? 'white' : 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '16px',
-              padding: '30px',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              transition: 'transform 0.3s ease, background 0.3s ease, color 0.3s ease',
-              display: 'flex',
-              flexDirection: 'column',
-              minHeight: '250px',
-              height: '100%',
-              transform: hoveredCard === 2 ? 'translateY(-8px)' : 'translateY(0)'
-            }}
-          >
-            <h3 style={{
-              fontSize: '1.8rem',
-              color: hoveredCard === 2 ? 'black' : 'white',
-              marginBottom: '15px',
-              fontFamily: 'Times New Roman, serif',
-              fontWeight: 'bold',
-              letterSpacing: '0.5px',
-              transition: 'color 0.3s ease'
-            }}>
-              Schedule with Ease
-            </h3>
-            <p style={{
-              fontSize: '1rem',
-              color: hoveredCard === 2 ? 'black' : 'rgba(255, 255, 255, 0.8)',
-              lineHeight: '1.6',
-              transition: 'color 0.3s ease'
-            }}>
-              Book appointments instantly with transparent pricing and real-time availability. Your service, your schedule, your terms.
-            </p>
-          </div>
-
-          {/* Card 3 */}
-          <div
-            onMouseEnter={() => setHoveredCard(3)}
-            onMouseLeave={() => setHoveredCard(null)}
-            style={{
-              backgroundColor: hoveredCard === 3 ? 'white' : 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '16px',
-              padding: '30px',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              transition: 'transform 0.3s ease, background 0.3s ease, color 0.3s ease',
-              display: 'flex',
-              flexDirection: 'column',
-              minHeight: '250px',
-              height: '100%',
-              transform: hoveredCard === 3 ? 'translateY(-8px)' : 'translateY(0)'
-            }}
-          >
-            <h3 style={{
-              fontSize: '1.8rem',
-              color: hoveredCard === 3 ? 'black' : 'white',
-              marginBottom: '15px',
-              fontFamily: 'Times New Roman, serif',
-              fontWeight: 'bold',
-              letterSpacing: '0.5px',
-              transition: 'color 0.3s ease'
-            }}>
-              Maintainance Tracking
-            </h3>
-            <p style={{
-              fontSize: '1rem',
-              color: hoveredCard === 3 ? 'black' : 'rgba(255, 255, 255, 0.8)',
-              lineHeight: '1.6',
-              transition: 'color 0.3s ease'
-            }}>
-              Track your complete service history, receive intelligent maintenance reminders, and gain valuable insights into your vehicle's health.
-            </p>
-          </div>
-
-          {/* Card 4 */}
-          <div
-            onMouseEnter={() => setHoveredCard(4)}
-            onMouseLeave={() => setHoveredCard(null)}
-            style={{
-              backgroundColor: hoveredCard === 4 ? 'white' : 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '16px',
-              padding: '30px',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              transition: 'transform 0.3s ease, background 0.3s ease, color 0.3s ease',
-              display: 'flex',
-              flexDirection: 'column',
-              minHeight: '250px',
-              height: '100%',
-              transform: hoveredCard === 4 ? 'translateY(-8px)' : 'translateY(0)'
-            }}
-          >
-            <h3 style={{
-              fontSize: '1.8rem',
-              color: hoveredCard === 4 ? 'black' : 'white',
-              marginBottom: '15px',
-              fontFamily: 'Times New Roman, serif',
-              fontWeight: 'bold',
-              letterSpacing: '0.5px',
-              transition: 'color 0.3s ease'
-            }}>
-              Compare Pricing
-            </h3>
-            <p style={{
-              fontSize: '1rem',
-              color: hoveredCard === 4 ? 'black' : 'rgba(255, 255, 255, 0.8)',
-              lineHeight: '1.6',
-              transition: 'color 0.3s ease'
-            }}>
-              Access transparent pricing from multiple providers. Make informed decisions with detailed cost breakdowns and service estimates.
-            </p>
-          </div>
-
-          {/* Card 5 */}
-          <div
-            onMouseEnter={() => setHoveredCard(5)}
-            onMouseLeave={() => setHoveredCard(null)}
-            style={{
-              backgroundColor: hoveredCard === 5 ? 'white' : 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '16px',
-              padding: '30px',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              transition: 'transform 0.3s ease, background 0.3s ease, color 0.3s ease',
-              display: 'flex',
-              flexDirection: 'column',
-              minHeight: '250px',
-              height: '100%',
-              transform: hoveredCard === 5 ? 'translateY(-8px)' : 'translateY(0)'
-            }}
-          >
-            <h3 style={{
-              fontSize: '1.8rem',
-              color: hoveredCard === 5 ? 'black' : 'white',
-              marginBottom: '15px',
-              fontFamily: 'Times New Roman, serif',
-              fontWeight: 'bold',
-              letterSpacing: '0.5px',
-              transition: 'color 0.3s ease'
-            }}>
-              Read Reviews
-            </h3>
-            <p style={{
-              fontSize: '1rem',
-              color: hoveredCard === 5 ? 'black' : 'rgba(255, 255, 255, 0.8)',
-              lineHeight: '1.6',
-              transition: 'color 0.3s ease'
-            }}>
-              Browse authentic reviews from verified customers. Discover trusted mechanics through real experiences and community feedback.
-            </p>
-          </div>
-
-          {/* Card 6 */}
-          <div
-            onMouseEnter={() => setHoveredCard(6)}
-            onMouseLeave={() => setHoveredCard(null)}
-            style={{
-              backgroundColor: hoveredCard === 6 ? 'white' : 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(10px)',
-              borderRadius: '16px',
-              padding: '30px',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
-              transition: 'transform 0.3s ease, background 0.3s ease, color 0.3s ease',
-              display: 'flex',
-              flexDirection: 'column',
-              minHeight: '250px',
-              height: '100%',
-              transform: hoveredCard === 6 ? 'translateY(-8px)' : 'translateY(0)'
-            }}
-          >
-            <h3 style={{
-              fontSize: '1.8rem',
-              color: hoveredCard === 6 ? 'black' : 'white',
-              marginBottom: '15px',
-              fontFamily: 'Times New Roman, serif',
-              fontWeight: 'bold',
-              letterSpacing: '0.5px',
-              transition: 'color 0.3s ease'
-            }}>
-              Get Support
-            </h3>
-            <p style={{
-              fontSize: '1rem',
-              color: hoveredCard === 6 ? 'black' : 'rgba(255, 255, 255, 0.8)',
-              lineHeight: '1.6',
-              transition: 'color 0.3s ease'
-            }}>
-              Connect with our dedicated support team for any assistance. We're here to ensure your experience is seamless from start to finish.
-            </p>
-          </div>
+          {video.cards.map((card, index) => (
+            <div
+              key={index}
+              onMouseEnter={() => setHoveredCard(index)}
+              onMouseLeave={() => setHoveredCard(null)}
+              style={{
+                backgroundColor: hoveredCard === index ? 'white' : 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)',
+                borderRadius: '16px',
+                padding: '30px',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                transition: 'transform 0.3s ease, background 0.3s ease, color 0.3s ease',
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: '250px',
+                height: '100%',
+                transform: hoveredCard === index ? 'translateY(-8px)' : 'translateY(0)'
+              }}
+            >
+              <h3 style={{
+                fontSize: '1.8rem',
+                color: hoveredCard === index ? 'black' : 'white',
+                marginBottom: '15px',
+                fontFamily: 'Times New Roman, serif',
+                fontWeight: 'bold',
+                letterSpacing: '0.5px',
+                transition: 'color 0.3s ease'
+              }}>
+                {card.title}
+              </h3>
+              <p style={{
+                fontSize: '1rem',
+                color: hoveredCard === index ? 'black' : 'rgba(255, 255, 255, 0.8)',
+                lineHeight: '1.6',
+                transition: 'color 0.3s ease'
+              }}>
+                {card.description}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </div>

@@ -6,14 +6,18 @@ import LP_Context from './LP_Context';
 import LP_Video from './LP_Video';
 import LP_Review from './LP_Review';
 import LP_Features from './LP_Features';
+import { useSiteSettings, usePageConfig } from '../lib/cms';
 
 const LandingPage = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [hoveredLink, setHoveredLink] = useState(null);
   const [logoVisible, setLogoVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  const { settings } = useSiteSettings();
+  usePageConfig('home');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -98,7 +102,7 @@ const LandingPage = () => {
             onMouseEnter={() => setMenuOpen(true)}
             onMouseLeave={() => setMenuOpen(false)}
           >
-            GearShift
+            {settings.siteTitle}
 
             {/* Hover menu - appears below */}
             {menuOpen && (
@@ -117,54 +121,28 @@ const LandingPage = () => {
                   transition: 'all 0.3s ease'
                 }}
               >
-                <Link to="/shops" style={{
-                  display: 'block',
-                  color: hoveredLink === null || hoveredLink === 'shops' ? 'white' : 'rgba(255, 255, 255, 0.4)',
-                  textDecoration: 'none',
-                  padding: '12px 0',
-                  fontSize: '3rem',
-                  fontWeight: '500',
-                  fontFamily: 'Times New Roman, serif',
-                  whiteSpace: 'nowrap',
-                  transition: 'color 0.2s ease, filter 0.2s ease',
-                  filter: hoveredLink === 'shops' ? 'brightness(1.3)' : 'brightness(1)'
-                }} onMouseEnter={() => setHoveredLink('shops')} onMouseLeave={() => setHoveredLink(null)}>Shops</Link>
-                <Link to="/mechanics" style={{
-                  display: 'block',
-                  color: hoveredLink === null || hoveredLink === 'mechanics' ? 'white' : 'rgba(255, 255, 255, 0.4)',
-                  textDecoration: 'none',
-                  padding: '12px 0',
-                  fontSize: '3rem',
-                  fontWeight: '500',
-                  fontFamily: 'Times New Roman, serif',
-                  whiteSpace: 'nowrap',
-                  transition: 'color 0.2s ease, filter 0.2s ease',
-                  filter: hoveredLink === 'mechanics' ? 'brightness(1.3)' : 'brightness(1)'
-                }} onMouseEnter={() => setHoveredLink('mechanics')} onMouseLeave={() => setHoveredLink(null)}>Mechanics</Link>
-                <Link to="/service-history" style={{
-                  display: 'block',
-                  color: hoveredLink === null || hoveredLink === 'service-history' ? 'white' : 'rgba(255, 255, 255, 0.4)',
-                  textDecoration: 'none',
-                  padding: '12px 0',
-                  fontSize: '3rem',
-                  fontWeight: '500',
-                  fontFamily: 'Times New Roman, serif',
-                  whiteSpace: 'nowrap',
-                  transition: 'color 0.2s ease, filter 0.2s ease',
-                  filter: hoveredLink === 'service-history' ? 'brightness(1.3)' : 'brightness(1)'
-                }} onMouseEnter={() => setHoveredLink('service-history')} onMouseLeave={() => setHoveredLink(null)}>Service History</Link>
-                <Link to="/cost-insights" style={{
-                  display: 'block',
-                  color: hoveredLink === null || hoveredLink === 'cost-insights' ? 'white' : 'rgba(255, 255, 255, 0.4)',
-                  textDecoration: 'none',
-                  padding: '12px 0',
-                  fontSize: '3rem',
-                  fontWeight: '500',
-                  fontFamily: 'Times New Roman, serif',
-                  whiteSpace: 'nowrap',
-                  transition: 'color 0.2s ease, filter 0.2s ease',
-                  filter: hoveredLink === 'cost-insights' ? 'brightness(1.3)' : 'brightness(1)'
-                }} onMouseEnter={() => setHoveredLink('cost-insights')} onMouseLeave={() => setHoveredLink(null)}>Cost Insights</Link>
+                {settings.navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    to={link.href}
+                    style={{
+                      display: 'block',
+                      color: hoveredLink === null || hoveredLink === link.href ? 'white' : 'rgba(255, 255, 255, 0.4)',
+                      textDecoration: 'none',
+                      padding: '12px 0',
+                      fontSize: '3rem',
+                      fontWeight: '500',
+                      fontFamily: 'Times New Roman, serif',
+                      whiteSpace: 'nowrap',
+                      transition: 'color 0.2s ease, filter 0.2s ease',
+                      filter: hoveredLink === link.href ? 'brightness(1.3)' : 'brightness(1)'
+                    }}
+                    onMouseEnter={() => setHoveredLink(link.href)}
+                    onMouseLeave={() => setHoveredLink(null)}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
               </div>
             )}
           </div>
@@ -172,7 +150,12 @@ const LandingPage = () => {
 
         {/* Center - Logo */}
         <div style={{ display: 'flex', justifyContent: 'center' }}>
-          <img className="logo-spin" src="/GearShift/logo.png" alt="Logo" style={{ height: '50px', width: 'auto', opacity: logoVisible ? 1 : 0, transition: 'opacity 0.3s ease' }} />
+          <img
+            className="logo-spin"
+            src={settings.logoUrl}
+            alt={`${settings.siteTitle} Logo`}
+            style={{ height: '50px', width: 'auto', opacity: logoVisible ? 1 : 0, transition: 'opacity 0.3s ease' }}
+          />
         </div>
 
         {/* Right - 3 lines */}
@@ -190,24 +173,13 @@ const LandingPage = () => {
 
       {/* Landing Page Content - Add your sections here */}
       <div>
-        {/* Hero Section */}
         <LP_hero />
-        {/* Context Section */}
         <LP_Context />
-        {/* Video Section */}
         <LP_Video />
-        {/* How It Works */}
         <LP_Features />
-        {/* Reviews */}
         <LP_Review />
-        {/* Features */}
-        {/* Shops */}
-        {/* Testimonials */}
-        {/* CTA */}
-        {/* Footer */}
       </div>
 
-      {/* Admin Panel Link */}
       {user?.role === 'admin' && (
         <div>
           <a href="/admin">Admin Panel</a>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Studio } from 'sanity';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Login from './components/Login';
 import Register from './components/Register';
@@ -13,6 +14,7 @@ import MechanicsList from './components/MechanicsList';
 import CostInsights from './components/CostInsights';
 import SystemMessages from './components/SystemMessages';
 import LandingPage from './components/LandingPage';
+import studioConfig from './sanity/studioConfig';
 import './App.css';
 
 function ProtectedRoute({ children, adminOnly = false }) {
@@ -101,6 +103,7 @@ function App() {
                 </ProtectedRoute>
               }
             />
+            <Route path="/studio/*" element={<Studio config={studioConfig} />} />
             <Route path="/admin" element={<Navigate to="/admin/dashboard" />} />
             <Route path="/" element={<LandingPage />} />
           </Routes>

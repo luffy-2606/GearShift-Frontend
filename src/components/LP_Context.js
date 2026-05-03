@@ -1,9 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLandingPage } from '../lib/cms';
 
 const LP_Context = () => {
   const [isVisible, setIsVisible] = useState(false);
   const [showCard, setShowCard] = useState(false);
   const sectionRef = useRef(null);
+  const { data } = useLandingPage();
+  const { context } = data;
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -29,7 +32,7 @@ const LP_Context = () => {
   }, []);
 
   return (
-    <div 
+    <div
       ref={sectionRef}
       style={{
         position: 'relative',
@@ -55,7 +58,7 @@ const LP_Context = () => {
           top: 0,
           width: '100%',
           height: '100%',
-          backgroundImage: 'url(/GearShift/engine.png)',
+          backgroundImage: `url(${context.backgroundImageUrl})`,
           backgroundSize: '130%',
           backgroundPosition: 'center left',
           opacity: 0.6
@@ -93,40 +96,30 @@ const LP_Context = () => {
             letterSpacing: '1px',
             lineHeight: '1.1'
           }}>
-            The Problem<br />
+            {context.heading}<br />
             <span style={{
               background: 'linear-gradient(135deg, #ffffff 0%, #cccccc 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text'
             }}>
-              We Solve
+              {context.headingAccent}
             </span>
           </h2>
 
-          <p style={{
-            fontSize: '1.1rem',
-            color: 'rgba(255, 255, 255, 0.85)',
-            textAlign: 'left',
-            marginBottom: '20px',
-            fontFamily: 'Times New Roman, serif',
-            lineHeight: '1.7',
-            letterSpacing: '0.3px'
-          }}>
-            Finding reliable car service shouldn't be a gamble. Yet millions of drivers struggle with opaque pricing, unverified mechanics, and booking systems that don't work.
-          </p>
-
-          <p style={{
-            fontSize: '1.1rem',
-            color: 'rgba(255, 255, 255, 0.85)',
-            textAlign: 'left',
-            marginBottom: '30px',
-            fontFamily: 'Times New Roman, serif',
-            lineHeight: '1.7',
-            letterSpacing: '0.3px'
-          }}>
-            We built GearShift to change that. Transparent pricing, verified professionals, and real-time availability—all in one place.
-          </p>
+          {context.body.map((paragraph, i) => (
+            <p key={i} style={{
+              fontSize: '1.1rem',
+              color: 'rgba(255, 255, 255, 0.85)',
+              textAlign: 'left',
+              marginBottom: i < context.body.length - 1 ? '20px' : '30px',
+              fontFamily: 'Times New Roman, serif',
+              lineHeight: '1.7',
+              letterSpacing: '0.3px'
+            }}>
+              {paragraph}
+            </p>
+          ))}
 
           <button
             onClick={() => setShowCard(!showCard)}
@@ -212,32 +205,22 @@ const LP_Context = () => {
             letterSpacing: '1px',
             padding: '0 40px'
           }}>
-            Why GearShift?
+            {context.cardTitle}
           </h3>
 
-          <p style={{
-            margin: '0 0 25px 0',
-            color: '#ffffff',
-            fontFamily: 'Times New Roman, serif',
-            fontSize: '1.5rem',
-            lineHeight: '1.9',
-            letterSpacing: '0.3px',
-            padding: '0 80px'
-          }}>
-            Finding reliable car service can be challenging, with concerns about pricing transparency and mechanic qualifications. GearShift addresses these challenges by providing upfront cost visibility, verified professional profiles, and real-time scheduling availability.
-          </p>
-
-          <p style={{
-            margin: 0,
-            color: '#ffffff',
-            fontFamily: 'Times New Roman, serif',
-            fontSize: '1.5rem',
-            lineHeight: '1.9',
-            letterSpacing: '0.3px',
-            padding: '0 80px'
-          }}>
-            Our comprehensive service tracking system maintains your complete maintenance history, enabling informed decisions about your vehicle's care. We deliver a streamlined, transparent, and dependable automotive service experience.
-          </p>
+          {context.cardBody.map((paragraph, i) => (
+            <p key={i} style={{
+              margin: i < context.cardBody.length - 1 ? '0 0 25px 0' : '0',
+              color: '#ffffff',
+              fontFamily: 'Times New Roman, serif',
+              fontSize: '1.5rem',
+              lineHeight: '1.9',
+              letterSpacing: '0.3px',
+              padding: '0 80px'
+            }}>
+              {paragraph}
+            </p>
+          ))}
         </div>
       </div>
     </div>

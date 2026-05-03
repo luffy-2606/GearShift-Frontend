@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useSiteSettings, usePageConfig } from '../lib/cms';
 
 const GearIcon = () => (
   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -27,6 +28,8 @@ const Login = () => {
 
   const { login, googleLogin } = useAuth();
   const navigate = useNavigate();
+  const { settings } = useSiteSettings();
+  const { config } = usePageConfig('login');
 
   const handleChange = (e) => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -69,7 +72,7 @@ const Login = () => {
         top: 0,
         width: '100%',
         height: '100%',
-        backgroundImage: 'url(/GearShift/login.png)',
+        backgroundImage: `url(${config.backgroundImageUrl})`,
         backgroundSize: '110%',
         backgroundPosition: 'center left',
         opacity: 0.6,
@@ -101,8 +104,8 @@ const Login = () => {
             marginBottom: '48px'
           }}>
             <img className="logo-spin"
-              src="/GearShift/logo.png" 
-              alt="GearShift Logo" 
+              src={settings.logoUrl}
+              alt={`${settings.siteTitle} Logo`}
               style={{
                 width: '100px',
                 height: '100px',
@@ -117,7 +120,7 @@ const Login = () => {
               fontWeight: 'bold',
               letterSpacing: '1px'
             }}>
-              GearShift
+              {settings.siteTitle}
             </span>
           </div>
 

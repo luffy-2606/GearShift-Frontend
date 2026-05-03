@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useLandingPage } from '../lib/cms';
 
 const LP_Features = () => {
   const [hoveredCard, setHoveredCard] = useState(null);
   const [hoveredImage, setHoveredImage] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef(null);
+  const { data } = useLandingPage();
+  const { features } = data;
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -29,24 +32,16 @@ const LP_Features = () => {
     };
   }, []);
 
-  const stats = [
-    { value: "10+", label: "Years of Trust" },
-    { value: "50,000+", label: "Happy Drivers" },
-    { value: "2,400+", label: "Verified Shops" },
-    { value: "98%", label: "Satisfaction Rate" },
-    { value: "150+", label: "Cities Covered" },
-    { value: "24/7", label: "Support Available" }
-  ];
+  // Build two scrolling columns from the services array
+  const col1Services = features.services.filter((_, i) => i % 2 === 0);
+  const col2Services = features.services.filter((_, i) => i % 2 !== 0);
 
-  const services = [
-    { name: "Professional Cleaners" },
-    { name: "Expert Polishing" },
-    { name: "Premium Foam Wash" },
-    { name: "Custom Vehicle Wraps"}
-  ];
+  // Duplicate for infinite scroll effect
+  const col1Loop = [...col1Services, ...col1Services];
+  const col2Loop = [...col2Services, ...col2Services];
 
   return (
-    <div 
+    <div
       ref={sectionRef}
       style={{
         position: 'relative',
@@ -81,14 +76,14 @@ const LP_Features = () => {
             transform: isVisible ? 'translateY(0)' : 'translateY(50px)',
             transition: 'opacity 0.8s ease, transform 0.8s ease'
           }}>
-            Mastering the<br />
+            {features.heading}<br />
             <span style={{
               background: 'linear-gradient(135deg, #000000 0%, #4a4a4a 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text'
             }}>
-              Art of Service
+              {features.headingAccent}
             </span>
           </h2>
 
@@ -103,17 +98,17 @@ const LP_Features = () => {
             lineHeight: '1.6',
             letterSpacing: '0.3px'
           }}>
-            For over a decade, we've been revolutionizing the automotive service industry. Our commitment to excellence has earned the trust of drivers across the nation.
+            {features.subheading}
           </p>
 
-          {/* Stats Grid - Commented out for later use */}
+          {/* Stats Grid */}
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(3, 280px)',
             gap: '24px',
             marginBottom: '60px'
           }}>
-            {stats.map((stat, index) => (
+            {features.stats.map((stat, index) => (
               <div
                 key={index}
                 onMouseEnter={() => setHoveredCard(index)}
@@ -157,29 +152,20 @@ const LP_Features = () => {
           </div>
         </div>
 
-        {/* Decorative rectangles on right - Two columns with infinite scroll */}
-        <div style={{
-          display: 'flex',
-          gap: '20px',
-          marginLeft: '40px',
-          height: '800px'
-        }}>
-          {/* First column - scrolls upward infinitely */}
-          <div style={{
-            width: '280px',
-            overflow: 'hidden',
-            position: 'relative'
-          }}>
+        {/* Scrolling image columns */}
+        <div style={{ display: 'flex', gap: '20px', marginLeft: '40px', height: '800px' }}>
+          {/* Column 1 — scrolls upward */}
+          <div style={{ width: '280px', overflow: 'hidden', position: 'relative' }}>
             <div style={{
               display: 'flex',
               flexDirection: 'column',
               gap: '20px',
               animation: 'scrollUp 20s linear infinite'
             }}>
-              {[services[0], services[2], services[0], services[2]].map((service, index) => (
+              {col1Loop.map((service, index) => (
                 <div
                   key={`col1-${index}`}
-                  onMouseEnter={() => setHoveredImage(index)}
+                  onMouseEnter={() => setHoveredImage(`c1-${index}`)}
                   onMouseLeave={() => setHoveredImage(null)}
                   style={{
                     width: '280px',
@@ -192,22 +178,19 @@ const LP_Features = () => {
                   }}
                 >
                   <img
-                    src={`/GearShift/img${index % 2 === 0 ? 1 : 3}.jpg`}
-                    alt=""
+                    src={service.imageUrl}
+                    alt={service.name}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                   {/* Dark overlay with service name on hover */}
                   <div style={{
                     position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
+                    top: 0, left: 0, right: 0, bottom: 0,
                     backgroundColor: 'rgba(0, 0, 0, 0.7)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    opacity: hoveredImage === index ? 1 : 0,
+                    opacity: hoveredImage === `c1-${index}` ? 1 : 0,
                     transition: 'opacity 0.3s ease'
                   }}>
                     <span style={{
@@ -226,22 +209,18 @@ const LP_Features = () => {
             </div>
           </div>
 
-          {/* Second column - scrolls downward infinitely */}
-          <div style={{
-            width: '280px',
-            overflow: 'hidden',
-            position: 'relative'
-          }}>
+          {/* Column 2 — scrolls downward */}
+          <div style={{ width: '280px', overflow: 'hidden', position: 'relative' }}>
             <div style={{
               display: 'flex',
               flexDirection: 'column',
               gap: '20px',
               animation: 'scrollDown 20s linear infinite'
             }}>
-              {[services[1], services[3], services[1], services[3]].map((service, index) => (
+              {col2Loop.map((service, index) => (
                 <div
                   key={`col2-${index}`}
-                  onMouseEnter={() => setHoveredImage(index + 2)}
+                  onMouseEnter={() => setHoveredImage(`c2-${index}`)}
                   onMouseLeave={() => setHoveredImage(null)}
                   style={{
                     width: '280px',
@@ -254,22 +233,19 @@ const LP_Features = () => {
                   }}
                 >
                   <img
-                    src={`/GearShift/img${index % 2 === 0 ? 2 : 4}.jpg`}
-                    alt=""
+                    src={service.imageUrl}
+                    alt={service.name}
                     style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                   />
                   {/* Dark overlay with service name on hover */}
                   <div style={{
                     position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
+                    top: 0, left: 0, right: 0, bottom: 0,
                     backgroundColor: 'rgba(0, 0, 0, 0.7)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    opacity: hoveredImage === index + 2 ? 1 : 0,
+                    opacity: hoveredImage === `c2-${index}` ? 1 : 0,
                     transition: 'opacity 0.3s ease'
                   }}>
                     <span style={{
