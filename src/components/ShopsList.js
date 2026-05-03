@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../lib/apiClient';
 import AppointmentBooking from './AppointmentBooking';
-import { Star, MapPin, Phone, User, Wrench, Search, Filter, ArrowRight } from 'lucide-react';
+import { Star, MapPin, Phone, User, Wrench, Search, Filter, ArrowRight, Globe } from 'lucide-react';
 import './ShopsList.css';
+
+function workshopWebsiteHref(url) {
+  if (!url || !String(url).trim()) return null;
+  const u = String(url).trim();
+  if (/^https?:\/\//i.test(u)) return u;
+  return `https://${u}`;
+}
 
 const ShopsList = () => {
   const [shops, setShops] = useState([]);
@@ -338,6 +345,25 @@ const ShopCard = ({ shop, onBookAppointment }) => {
             <span style={{ fontSize: '0.875rem', color: 'var(--dark-text-secondary)' }}>
               {shop.phone}
             </span>
+          </div>
+        )}
+
+        {shop.website && workshopWebsiteHref(shop.website) && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
+            <Globe size={14} className="hero-stat-icon" />
+            <a
+              href={workshopWebsiteHref(shop.website)}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                fontSize: '0.875rem',
+                color: 'var(--dark-accent)',
+                textDecoration: 'underline',
+                wordBreak: 'break-all',
+              }}
+            >
+              {shop.website.replace(/^https?:\/\//i, '')}
+            </a>
           </div>
         )}
         
