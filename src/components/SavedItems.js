@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../lib/apiClient';
-import { Star, Trash2, ExternalLink, Plus, Bookmark } from 'lucide-react';
+import { Star, Trash2, ExternalLink, Plus } from 'lucide-react';
 import PageLoadSkeleton from './PageLoadSkeleton';
 
 const ENTITY_LABELS = {
