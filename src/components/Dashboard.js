@@ -1,13 +1,5 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
-import HeroSection from './HeroSection';
-import HowItWorks from './HowItWorks';
-import FeaturesSection from './FeaturesSection';
-import ShopsSection from './ShopsSection';
-import UpgradesSection from './UpgradesSection';
-import TestimonialsSection from './TestimonialsSection';
-import CTASection from './CTASection';
-import Footer from './Footer';
 import UserDashboard from './UserDashboard';
 
 const Dashboard = () => {

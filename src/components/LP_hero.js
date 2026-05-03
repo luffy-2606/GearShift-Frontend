@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
 const LP_hero = () => {
-  const [searchLocation, setSearchLocation] = useState('');
   const [coverAnimated, setCoverAnimated] = useState(false);
   const [textAnimated, setTextAnimated] = useState(false);
 
@@ -22,13 +21,6 @@ const LP_hero = () => {
 //   const heroCarImg = "https://images.unsplash.com/photo-1762316815514-feaf60191bb9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzbGVlayUyMHNwb3J0cyUyMGNhciUyMHJvYWQlMjBkcml2aW5nfGVufDF8fHx8MTc3MjU0NjA2OXww&ixlib=rb-4.1.0&q=80&w=1080";
      const heroCarImg = "/Gearshift/nbgn.jpg";
      const coverCarImg = "/Gearshift/car_cover2.png";
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchLocation.trim()) {
-      // Navigate to shops page with search query
-      window.location.href = `/shops?location=${encodeURIComponent(searchLocation)}`;
-    }
-  };
 
   return (
     <section className="hero-section">

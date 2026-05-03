@@ -6,6 +6,7 @@ const LP_Video = () => {
   const sectionRef = useRef(null);
 
   useEffect(() => {
+    const el = sectionRef.current;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -17,14 +18,10 @@ const LP_Video = () => {
       { threshold: 0.1 }
     );
 
-    if (sectionRef.current) {
-      observer.observe(sectionRef.current);
-    }
+    if (el) observer.observe(el);
 
     return () => {
-      if (sectionRef.current) {
-        observer.unobserve(sectionRef.current);
-      }
+      if (el) observer.unobserve(el);
     };
   }, []);
 
@@ -82,12 +79,11 @@ const LP_Video = () => {
           display: 'inline-block',
           animation: 'scrollText 20s linear infinite',
           fontSize: '2rem',
-          color: 'white',
+          color: 'black',
           fontFamily: 'Times New Roman, serif',
           fontWeight: 'bold',
           letterSpacing: '2px',
-          width: '200%',
-          color: 'black'
+          width: '200%'
         }}>
           TRUSTED PROFESSIONALS • TRANSPARENT PRICING • REAL-TIME AVAILABILITY • VERIFIED REVIEWS • SEAMLESS BOOKING • EXPERT SERVICE • TRUSTED PROFESSIONALS • TRANSPARENT PRICING • REAL-TIME AVAILABILITY • VERIFIED REVIEWS • SEAMLESS BOOKING • EXPERT SERVICE
         </div>

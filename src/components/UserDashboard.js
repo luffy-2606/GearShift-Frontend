@@ -6,13 +6,7 @@ import {
   Wrench,
   Car,
   MapPin,
-  Bell,
-  ArrowRight,
-  UserCircle,
-  Store,
-  Users,
-  ClipboardList,
-  PieChart
+  Bell
 } from 'lucide-react';
 import { countSystemMessages } from '../lib/systemMessagesStore';
 import { useNavigate, Link } from 'react-router-dom';
@@ -89,7 +83,6 @@ const UserDashboard = () => {
   const [userData, setUserData] = useState(null);
   const [vehicles, setVehicles] = useState([]);
   const [serviceHistory, setServiceHistory] = useState([]);
-  const [mechanics, setMechanics] = useState([]);
   const [costInsights, setCostInsights] = useState(null);
   const [shops, setShops] = useState([]);
   const [error, setError] = useState(null);
@@ -131,18 +124,6 @@ const UserDashboard = () => {
           console.error('Error fetching vehicles:', vehicleErr);
           // Continue with empty vehicles array
           setVehicles([]);
-        }
-
-        // Fetch mechanics
-        try {
-          const mechanicsResponse = await apiClient.get('/api/mechanics', {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          setMechanics(mechanicsResponse.data.data || []);
-        } catch (mechanicErr) {
-          console.error('Error fetching mechanics:', mechanicErr);
-          // Continue with empty mechanics array
-          setMechanics([]);
         }
 
         // Fetch cost insights
@@ -479,52 +460,6 @@ const UserDashboard = () => {
     boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
     borderColor: 'rgba(255, 255, 255, 0.25)'
   };
-
-  const shortcutLinks = useMemo(
-    () => [
-      {
-        to: '/profile',
-        icon: UserCircle,
-        title: 'Profile',
-        description: 'Account, budget, and vehicle garage'
-      },
-      {
-        to: '/shops',
-        icon: Store,
-        title: 'Shops',
-        description: 'Browse verified shops and book service'
-      },
-      {
-        to: '/mechanics',
-        icon: Users,
-        title: 'Mechanics',
-        description: 'Independent technicians and specialists'
-      },
-      {
-        to: '/service-history',
-        icon: ClipboardList,
-        title: 'Service history',
-        description: 'Past repairs, dates, and costs'
-      },
-      {
-        to: '/cost-insights',
-        icon: PieChart,
-        title: 'Cost insights',
-        description: 'Trends, totals, and expensive jobs'
-      },
-      {
-        to: '/system-messages',
-        icon: Bell,
-        title: 'System messages',
-        description:
-          unreadMessages > 0
-            ? `${unreadMessages} unread notification${unreadMessages === 1 ? '' : 's'}`
-            : 'Alerts and booking confirmations',
-        badge: unreadMessages
-      }
-    ],
-    [unreadMessages]
-  );
 
   const didApplyMountClass = useRef(false);
   useEffect(() => {

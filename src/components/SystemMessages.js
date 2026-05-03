@@ -1,29 +1,8 @@
-import React, { useState, useEffect } from 'react';
 // CSS kept in repo; popup UI intentionally disabled.
 import './SystemMessages.css';
-import { getSystemMessages, upsertSystemMessage } from '../lib/systemMessagesStore';
+import { upsertSystemMessage } from '../lib/systemMessagesStore';
 
 const SystemMessages = () => {
-  const [messages, setMessages] = useState([]);
-  // kept for legacy: component still mounts and sets window hook
-
-  useEffect(() => {
-    const checkPendingConfirmations = () => {
-      const all = getSystemMessages();
-      const unread = all.filter((m) => m.status === 'unread');
-      setMessages(unread);
-    };
-
-    checkPendingConfirmations();
-    
-    // Check every 30 seconds for new messages
-    const interval = setInterval(checkPendingConfirmations, 30000);
-    
-    return () => clearInterval(interval);
-  }, []);
-
-  // No popup UI; inbox handles actions.
-
   const addConfirmationMessage = (appointment) => {
     const newMessage = {
       id: `confirm-${appointment.id}-${Date.now()}`,

@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
-import LP_hero from './LP_hero';
-import LP_Context from './LP_Context';
-import LP_Video from './LP_Video';
-import LP_Review from './LP_Review';
-import LP_Features from './LP_Features';
+import LPHero from './LP_hero';
+import LPContext from './LP_Context';
+import LPVideo from './LP_Video';
+import LPReview from './LP_Review';
+import LPFeatures from './LP_Features';
 
 const LandingPage = () => {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [hoveredLink, setHoveredLink] = useState(null);
   const [logoVisible, setLogoVisible] = useState(true);
@@ -189,15 +189,15 @@ const LandingPage = () => {
       {/* Landing Page Content - Add your sections here */}
       <div>
         {/* Hero Section */}
-        <LP_hero />
+        <LPHero />
         {/* Context Section */}
-        <LP_Context />
+        <LPContext />
         {/* Video Section */}
-        <LP_Video />
+        <LPVideo />
         {/* How It Works */}
-        <LP_Features />
+        <LPFeatures />
         {/* Reviews */}
-        <LP_Review />
+        <LPReview />
         {/* Features */}
         {/* Shops */}
         {/* Testimonials */}
