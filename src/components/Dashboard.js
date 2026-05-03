@@ -15,14 +15,6 @@ const Dashboard = () => {
 
   return (
     <div style={{ background: 'var(--dark-bg)', overflowX: 'hidden', width: '100%' }}>
-      <HeroSection />
-      <HowItWorks />
-      <FeaturesSection />
-      <ShopsSection />
-      <UpgradesSection />
-      <TestimonialsSection />
-      <CTASection />
-      <Footer />
       <div style={{
         position: 'relative',
         paddingLeft: '3rem',
