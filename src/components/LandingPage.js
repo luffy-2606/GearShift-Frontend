@@ -100,7 +100,7 @@ const LandingPage = () => {
               padding: '10px 0'
             }}
           >
-            GearShift
+            GearShift 
           </div>
 
             {menuOpen && (

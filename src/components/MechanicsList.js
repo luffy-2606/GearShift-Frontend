@@ -141,7 +141,10 @@ const MechanicsList = () => {
       mechanics.filter(
         (mechanic) =>
           `${mechanic.first_name} ${mechanic.last_name}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          mechanic.specialization?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (Array.isArray(mechanic.specialization)
+            ? mechanic.specialization.join(' ')
+            : mechanic.specialization || ''
+          ).toLowerCase().includes(searchTerm.toLowerCase()) ||
           mechanic.bio?.toLowerCase().includes(searchTerm.toLowerCase())
       ),
     [mechanics, searchTerm]

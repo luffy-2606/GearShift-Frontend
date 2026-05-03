@@ -26,7 +26,7 @@ const LP_Context = () => {
   }, []);
 
   return (
-    <div 
+    <div
       ref={sectionRef}
       style={{
         position: 'relative',
@@ -35,6 +35,29 @@ const LP_Context = () => {
         padding: '120px 20px'
       }}
     >
+      {/* Scroll Indicator Widget */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '35px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 10,
+          border: '2px solid white',
+          borderRadius: '30px',
+          padding: '10px 24px',
+          color: 'white',
+          fontSize: '16px',
+          fontWeight: 600,
+          letterSpacing: '1px',
+          textTransform: 'uppercase',
+          fontFamily: 'Times New Roman, serif',
+          cursor: 'default'
+        }}
+      >
+        Scroll
+      </div>
+
       {/* Image container */}
       <div style={{
         position: 'relative',
@@ -169,7 +192,7 @@ const LP_Context = () => {
           backgroundColor: 'rgba(255, 255, 255, 0.15)',
           backdropFilter: 'blur(20px)',
           borderRadius: '20px',
-          padding: '35px',
+          padding: '20px 16px',
           border: '1px solid rgba(255, 255, 255, 0.2)',
           zIndex: 3,
           transition: 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -216,7 +239,7 @@ const LP_Context = () => {
             margin: '0 0 25px 0',
             color: '#ffffff',
             fontFamily: 'Times New Roman, serif',
-            fontSize: '1.5rem',
+            fontSize: '1.4rem',
             lineHeight: '1.9',
             letterSpacing: '0.3px',
             padding: '0 80px'
@@ -228,7 +251,7 @@ const LP_Context = () => {
             margin: 0,
             color: '#ffffff',
             fontFamily: 'Times New Roman, serif',
-            fontSize: '1.5rem',
+            fontSize: '1.4rem',
             lineHeight: '1.9',
             letterSpacing: '0.3px',
             padding: '0 80px'

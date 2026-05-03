@@ -268,6 +268,9 @@ const UserDashboard = () => {
     const vehicleMileageById = new Map(
       vehicles.map((v) => [v.id, Number(v.mileage) || 0])
     );
+    const vehicleNameById = new Map(
+      vehicles.map((v) => [v.id, `${v.year || ''} ${v.make || ''} ${v.model || ''}`.trim() || 'Unknown vehicle'])
+    );
 
     // If no service history, return live empty reminders and neutral score
     if (!serviceHistory || serviceHistory.length === 0) {
@@ -305,6 +308,9 @@ const UserDashboard = () => {
     let dueOrOverdueCount = 0;
     const upcomingThresholdMiles = 500;
 
+    // Keep only the latest service record per vehicle+service_type
+    // so completed services don't keep showing as reminders
+    const latestByVehicleService = new Map();
     serviceHistory.forEach((service) => {
       // Track shops
       if (service.shop) {
@@ -326,6 +332,14 @@ const UserDashboard = () => {
         }
       }
 
+      const key = `${service.vehicle_id}::${(service.service_type || '').toLowerCase()}`;
+      const existing = latestByVehicleService.get(key);
+      if (!existing || (service.service_date && service.service_date > existing.service_date)) {
+        latestByVehicleService.set(key, service);
+      }
+    });
+
+    latestByVehicleService.forEach((service) => {
       const currentMileage = vehicleMileageById.get(service.vehicle_id) || 0;
       const nextDueMileage = Number(service.next_service_due_mileage);
       if (!Number.isFinite(nextDueMileage) || nextDueMileage <= 0) return;
@@ -338,6 +352,7 @@ const UserDashboard = () => {
         maintenanceReminders.push({
           id: service.id,
           service: service.service_type || 'Service',
+          vehicle: vehicleNameById.get(service.vehicle_id) || 'Unknown vehicle',
           dueDate: isDue ? 'Due now' : `Due in ${milesRemaining.toLocaleString()} mi`,
           priority: isDue ? 'high' : milesRemaining <= 250 ? 'medium' : 'low'
         });
@@ -955,6 +970,14 @@ const UserDashboard = () => {
                       letterSpacing: '0.01em'
                     }}>
                       Due: {reminder.dueDate}
+                    </p>
+                    <p style={{
+                      fontSize: '0.8125rem',
+                      color: 'rgba(255, 255, 255, 0.4)',
+                      letterSpacing: '0.01em',
+                      marginTop: '4px'
+                    }}>
+                      {reminder.vehicle}
                     </p>
                   </div>
                   <div style={{

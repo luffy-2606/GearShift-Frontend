@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 
 const LP_hero = () => {
   const [coverAnimated, setCoverAnimated] = useState(false);
   const [textAnimated, setTextAnimated] = useState(false);
+  const [buttonHovered, setButtonHovered] = useState(false);
 
   useEffect(() => {
     // Text slides down first
@@ -79,6 +81,34 @@ const LP_hero = () => {
 
   
 </div>
+
+      {/* Get Started Button - Bottom Right */}
+      <Link
+        to="/login"
+        onMouseEnter={() => setButtonHovered(true)}
+        onMouseLeave={() => setButtonHovered(false)}
+        style={{
+          position: 'absolute',
+          bottom: '40px',
+          right: '40px',
+          zIndex: 30,
+          backgroundColor: buttonHovered ? 'white' : 'rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(10px)',
+          color: buttonHovered ? 'black' : 'white',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          borderRadius: '16px',
+          padding: '10px 16px',
+          fontWeight: 700,
+          fontSize: '12px',
+          cursor: 'pointer',
+          transition: 'transform 0.3s ease, background 0.3s ease, color 0.3s ease',
+          textDecoration: 'none',
+          display: 'inline-block',
+          transform: buttonHovered ? 'translateY(-8px)' : 'translateY(0)'
+        }}
+      >
+        Get Started
+      </Link>
 
       {/* <div className="hero-content">
         <div style={{ maxWidth: '32rem' }}>
