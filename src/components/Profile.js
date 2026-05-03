@@ -308,7 +308,7 @@ const Profile = () => {
           min-height: 100vh;
           background: var(--dark-bg);
           color: var(--dark-text);
-          padding: 22px 0 36px;
+          padding: 104px 0 36px;
         }
         .profile-page {
           max-width: 1180px;
