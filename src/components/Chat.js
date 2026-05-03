@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import apiClient from '../lib/apiClient';
+import ChatMarkdown from './ChatMarkdown';
+import './Chat.css';
 
 const suggestedQuestions = [
   'Where can I get an oil change?',
@@ -87,9 +89,16 @@ const Chat = () => {
                     ...styles.bubble,
                     ...(msg.role === 'user' ? styles.userBubble : styles.assistantBubble),
                     ...(msg.isError ? styles.errorBubble : {}),
+                    ...(msg.role === 'assistant' && !msg.isError ? styles.bubbleMarkdown : {}),
                   }}
                 >
-                  {msg.text}
+                  {msg.role === 'assistant' && !msg.isError ? (
+                    <div className="chat-md">
+                      <ChatMarkdown>{msg.text}</ChatMarkdown>
+                    </div>
+                  ) : (
+                    msg.text
+                  )}
                 </div>
               </div>
             ))}
@@ -222,6 +231,9 @@ const styles = {
     lineHeight: '1.55',
     whiteSpace: 'pre-wrap',
     wordBreak: 'break-word',
+  },
+  bubbleMarkdown: {
+    whiteSpace: 'normal',
   },
   userBubble: {
     background: 'var(--dark-accent)',
