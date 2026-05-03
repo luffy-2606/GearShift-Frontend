@@ -15,6 +15,7 @@ import SystemMessages from './components/SystemMessages';
 import LandingPage from './components/LandingPage';
 import SystemMessagesCenter from './components/SystemMessagesCenter';
 import NavBar from './components/NavBar';
+import PageLoadSkeleton from './components/PageLoadSkeleton';
 import './App.css';
 
 function ProtectedRoute({ children, adminOnly = false }) {
@@ -23,7 +24,7 @@ function ProtectedRoute({ children, adminOnly = false }) {
   if (loading) {
     return (
       <div className="auth-page">
-        <div style={{ color: 'white', fontSize: 16 }}>Loading…</div>
+        <PageLoadSkeleton variant="minimal" message="Verifying your session" ariaLabel="Loading session" />
       </div>
     );
   }

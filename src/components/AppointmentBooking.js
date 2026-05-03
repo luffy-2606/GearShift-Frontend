@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import apiClient from '../lib/apiClient';
 import { Calendar, Car, CheckCircle2, Clock, MapPin, Phone, X } from 'lucide-react';
+import PageLoadSkeleton from './PageLoadSkeleton';
 import './AppointmentBooking.css';
 
 const AppointmentBooking = ({ shop, selectedServices, onClose }) => {
@@ -155,7 +156,11 @@ const AppointmentBooking = ({ shop, selectedServices, onClose }) => {
                 <>
                   <h4>Select a vehicle</h4>
                   {vehiclesLoading ? (
-                    <p className="appointment-muted">Loading your vehicles…</p>
+                    <PageLoadSkeleton
+                      variant="compact"
+                      message="Loading your vehicles…"
+                      ariaLabel="Loading your vehicles"
+                    />
                   ) : vehiclesError ? (
                     <>
                       <p className="appointment-muted">{vehiclesError}</p>

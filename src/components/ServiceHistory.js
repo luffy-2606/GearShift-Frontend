@@ -15,6 +15,7 @@ import {
   ClipboardList,
   ArrowRight
 } from 'lucide-react';
+import PageLoadSkeleton from './PageLoadSkeleton';
 import './ServiceHistory.css';
 
 const getGreeting = () => {
@@ -312,10 +313,7 @@ const ServiceHistory = () => {
                 </p>
               </div>
             ) : initialHistoryLoading ? (
-              <div style={{ textAlign: 'center', padding: '48px 24px', color: 'rgba(255,255,255,0.65)' }}>
-                <div className="service-history-page__spinner" style={{ margin: '0 auto' }} />
-                <p style={{ margin: '16px 0 0', fontSize: '1.05rem', fontWeight: 500 }}>Loading service history…</p>
-              </div>
+              <PageLoadSkeleton variant="inline-timeline" ariaLabel="Loading service history" />
             ) : filteredHistory.length === 0 ? (
               <div className="service-history-page__empty">
                 <div style={{ fontSize: '2.5rem', marginBottom: '12px', opacity: 0.75 }} aria-hidden>

@@ -14,6 +14,7 @@ import {
   ArrowRight,
   Hammer
 } from 'lucide-react';
+import PageLoadSkeleton from './PageLoadSkeleton';
 import './MechanicsList.css';
 
 const getGreeting = () => {
@@ -133,11 +134,8 @@ const MechanicsList = () => {
 
   if (loading) {
     return (
-      <div className="mechanics-page mechanics-page--loading">
-        <div style={{ textAlign: 'center', color: 'rgba(255,255,255,0.75)' }}>
-          <div className="mechanics-page__loading-spinner" />
-          <p style={{ margin: 0, fontSize: '1.05rem', fontWeight: 500 }}>Finding the best mechanics for you…</p>
-        </div>
+      <div className="mechanics-page" aria-busy="true">
+        <PageLoadSkeleton variant="list" message="Finding the best mechanics for you" ariaLabel="Loading mechanics" />
       </div>
     );
   }

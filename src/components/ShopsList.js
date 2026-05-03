@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import apiClient from '../lib/apiClient';
 import AppointmentBooking from './AppointmentBooking';
 import { Star, MapPin, Phone, User, Wrench, Search, Filter, ArrowRight, Store } from 'lucide-react';
+import PageLoadSkeleton from './PageLoadSkeleton';
 import './ShopsList.css';
 
 const getGreeting = () => {
@@ -128,14 +129,8 @@ const ShopsList = () => {
 
   if (loading) {
     return (
-      <div className="shops-page shops-page--loading">
-        <div style={{
-          color: '#ffffff',
-          fontSize: '1.5rem',
-          fontWeight: 500
-        }}>
-          Finding the best shops for you…
-        </div>
+      <div className="shops-page" aria-busy="true">
+        <PageLoadSkeleton variant="list" message="Finding the best shops for you" ariaLabel="Loading shops" />
       </div>
     );
   }

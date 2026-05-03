@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import apiClient from '../lib/apiClient';
 import {
   Calendar,
@@ -16,10 +16,74 @@ import {
 } from 'lucide-react';
 import { countSystemMessages } from '../lib/systemMessagesStore';
 import { useNavigate, Link } from 'react-router-dom';
+import RevealOnScroll from './RevealOnScroll';
+import PageLoadSkeleton from './PageLoadSkeleton';
 import './UserDashboard.css';
+
+function buildHeroDescription({
+  vehiclesCount,
+  servicesRecorded,
+  shopsCount,
+  reminderCount,
+  highReminderCount,
+  unreadMessages,
+  garageCondition,
+  hasMonthlyBudget,
+  monthlyBudgetSpent
+}) {
+  if (vehiclesCount === 0) {
+    return 'Add at least one vehicle in Profile to unlock garage health, maintenance reminders, and personalized shortcuts.';
+  }
+
+  const parts = [];
+
+  if (highReminderCount > 0) {
+    parts.push(
+      `You have ${highReminderCount} high-priority maintenance item${highReminderCount === 1 ? '' : 's'} — worth scheduling soon.`
+    );
+  } else if (reminderCount > 0) {
+    parts.push(
+      `${reminderCount} reminder${reminderCount === 1 ? '' : 's'} on your list — stay ahead of due dates.`
+    );
+  } else {
+    parts.push('No outstanding maintenance reminders — your garage looks clear.');
+  }
+
+  if (garageCondition < 55) {
+    parts.push(`Garage health is at ${garageCondition}% — catching up on overdue service will lift your score.`);
+  } else if (garageCondition >= 85) {
+    parts.push(`Garage health is strong at ${garageCondition}%.`);
+  }
+
+  if (servicesRecorded === 0) {
+    parts.push('After your first logged service, spending trends and top jobs will populate below.');
+  } else {
+    parts.push(
+      `${servicesRecorded} service record${servicesRecorded === 1 ? '' : 's'} feed your budget and cost insights.`
+    );
+  }
+
+  if (hasMonthlyBudget && monthlyBudgetSpent >= 90) {
+    parts.push('You are close to this month’s maintenance budget cap — review upcoming work.');
+  }
+
+  if (unreadMessages > 0) {
+    parts.push(
+      `${unreadMessages} unread system message${unreadMessages === 1 ? '' : 's'} — check notifications for booking updates.`
+    );
+  }
+
+  if (shopsCount > 0) {
+    parts.push(`${shopsCount} shop${shopsCount === 1 ? '' : 's'} in the network when you are ready to book.`);
+  }
+
+  return parts.join(' ');
+}
 
 const UserDashboard = () => {
   const navigate = useNavigate();
+  const innerRef = useRef(null);
+  const prevDataKey = useRef(null);
   
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
@@ -358,6 +422,19 @@ const UserDashboard = () => {
   };
 
   const dashboardData = getDashboardData();
+  const servicesRecorded = serviceHistory?.length ?? 0;
+
+  const heroSummary = buildHeroDescription({
+    vehiclesCount: vehicles.length,
+    servicesRecorded,
+    shopsCount: shops.length,
+    reminderCount: dashboardData.maintenanceReminders.length,
+    highReminderCount: dashboardData.maintenanceReminders.filter((r) => r.priority === 'high').length,
+    unreadMessages,
+    garageCondition: dashboardData.garageCondition,
+    hasMonthlyBudget: dashboardData.hasMonthlyBudget,
+    monthlyBudgetSpent: dashboardData.monthlyBudgetSpent
+  });
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -449,53 +526,89 @@ const UserDashboard = () => {
     [unreadMessages]
   );
 
+  const didApplyMountClass = useRef(false);
+  useEffect(() => {
+    if (loading || error) return;
+    if (!innerRef.current || didApplyMountClass.current) return;
+    innerRef.current.classList.add('user-dashboard-page__inner--mount');
+    didApplyMountClass.current = true;
+  }, [loading, error]);
+
+  useEffect(() => {
+    if (loading || error) return;
+    const key = `${vehicles.length}-${serviceHistory.length}-${shops.length}`;
+    if (prevDataKey.current === null) {
+      prevDataKey.current = key;
+      return;
+    }
+    if (prevDataKey.current === key) return;
+    prevDataKey.current = key;
+    const el = innerRef.current;
+    if (!el) return;
+    el.classList.remove('user-dashboard-page__inner--refresh');
+    void el.offsetWidth;
+    el.classList.add('user-dashboard-page__inner--refresh');
+  }, [loading, error, vehicles.length, serviceHistory.length, shops.length]);
+
   if (loading) {
     return (
-      <div className="user-dashboard-page">
-        <div
-          style={{
-            padding: '120px 2rem 2rem',
-            minHeight: '100vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        >
-          <div style={{ color: '#ffffff', fontSize: '1.5rem', fontWeight: 500 }}>
-            Loading dashboard…
-          </div>
-        </div>
+      <div className="user-dashboard-page" aria-busy="true">
+        <PageLoadSkeleton
+          variant="dashboard"
+          message="Syncing your garage, shops, and service history"
+          ariaLabel="Loading dashboard"
+        />
       </div>
     );
   }
 
   if (error || !dashboardData) {
+    const isFetchError = Boolean(error);
+    const bodyText =
+      error ||
+      'Add a vehicle in Profile to unlock maintenance tracking, reminders, and personalized stats. You can still browse shops and mechanics anytime.';
+
     return (
       <div className="user-dashboard-page">
-        <div
-          style={{
-            padding: '120px 2rem 2rem',
-            minHeight: '100vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}
-        >
-          <div style={{ color: '#ffffff', fontSize: '1.5rem', fontWeight: 500, textAlign: 'center', maxWidth: 480 }}>
-            {error || 'No vehicle data found. Please add a vehicle to view your dashboard.'}
+        <div className="user-dashboard-error">
+          <div className="user-dashboard-error__card">
+            <h2 className="user-dashboard-error__title">
+              {isFetchError ? 'Couldn’t load your dashboard' : 'Your garage is almost ready'}
+            </h2>
+            <p className="user-dashboard-error__text">{bodyText}</p>
+            <div className="user-dashboard-error__actions">
+              {isFetchError ? (
+                <button
+                  type="button"
+                  className="user-dashboard-error__btn user-dashboard-error__btn--primary"
+                  onClick={() => window.location.reload()}
+                >
+                  Try again
+                </button>
+              ) : null}
+              <Link
+                to="/profile"
+                className={`user-dashboard-error__btn ${
+                  isFetchError ? 'user-dashboard-error__btn--ghost' : 'user-dashboard-error__btn--primary'
+                }`}
+              >
+                {isFetchError ? 'Open Profile' : 'Add vehicles in Profile'}
+              </Link>
+              <Link to="/shops" className="user-dashboard-error__btn user-dashboard-error__btn--ghost">
+                Browse shops
+              </Link>
+            </div>
           </div>
         </div>
       </div>
     );
   }
 
-  const servicesRecorded = serviceHistory?.length ?? 0;
-
   return (
     <div className="user-dashboard-page">
-      <div className="user-dashboard-page__inner">
-        {/* Hero */}
-        <header className="user-dashboard-page__hero">
+      <div ref={innerRef} className="user-dashboard-page__inner">
+        {/* Hero — visible immediately (no scroll gate) */}
+        <RevealOnScroll as="header" className="user-dashboard-page__hero" disabled rootMargin="0px">
           <div>
             <p
               style={{
@@ -524,15 +637,15 @@ const UserDashboard = () => {
             <p
               style={{
                 fontSize: '1.0625rem',
-                color: 'rgba(255, 255, 255, 0.62)',
+                color: 'rgba(255, 255, 255, 0.72)',
                 fontWeight: 400,
                 letterSpacing: '0.01em',
                 margin: 0,
-                maxWidth: 520,
-                lineHeight: 1.55
+                maxWidth: 640,
+                lineHeight: 1.6
               }}
             >
-              Garage health, spending, and shortcuts to every part of GearShift — stay ahead of maintenance in one place.
+              {heroSummary}
             </p>
           </div>
           <div className="user-dashboard-page__hero-stats" aria-label="Quick facts">
@@ -549,9 +662,10 @@ const UserDashboard = () => {
               <p className="user-dashboard-page__hero-stat-label">Shops listed</p>
             </div>
           </div>
-        </header>
+        </RevealOnScroll>
 
         {/* Stats Cards */}
+        <RevealOnScroll rootMargin="120px 0px -10% 0px">
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
@@ -738,10 +852,10 @@ const UserDashboard = () => {
           </div>
         </div>
       </div>
-
-
+        </RevealOnScroll>
 
       {/* Quick Actions */}
+      <RevealOnScroll rootMargin="100px 0px -12% 0px" delayMs={40}>
       <div 
         style={{ ...cardStyle, marginTop: '28px' }}
         onMouseEnter={(e) => {
@@ -795,8 +909,10 @@ const UserDashboard = () => {
           ))}
         </div>
       </div>
+      </RevealOnScroll>
 
       {/* My Vehicle Catalogue */}
+      <RevealOnScroll rootMargin="80px 0px -12% 0px" delayMs={80}>
       <div 
         style={{ ...cardStyle, marginTop: '28px' }}
         onMouseEnter={(e) => {
@@ -849,8 +965,10 @@ const UserDashboard = () => {
           )}
         </div>
       </div>
+      </RevealOnScroll>
 
       {/* Maintenance Reminders & Shops Frequently Visited */}
+      <RevealOnScroll rootMargin="80px 0px -12% 0px" delayMs={100}>
       <div className="user-dashboard-page__two-col" style={{ marginTop: '28px' }}>
         <div 
           style={cardStyle}
@@ -997,8 +1115,10 @@ const UserDashboard = () => {
           </div>
         </div>
       </div>
+      </RevealOnScroll>
 
       {/* Most Expensive Services */}
+      <RevealOnScroll rootMargin="80px 0px -12% 0px" delayMs={120}>
       <div 
         style={{ ...cardStyle, marginTop: '28px', marginBottom: '24px' }}
         onMouseEnter={(e) => {
@@ -1054,8 +1174,9 @@ const UserDashboard = () => {
           )}
         </div>
       </div>
-      </div>
+      </RevealOnScroll>
     </div>
+  </div>
   );
 };
 

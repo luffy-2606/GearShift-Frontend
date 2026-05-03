@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../lib/apiClient';
 import { TrendingUp, DollarSign, Car, BarChart3, PieChart } from 'lucide-react';
+import PageLoadSkeleton from './PageLoadSkeleton';
 import './CostInsights.css';
 
 const getGreeting = () => {
@@ -122,11 +123,8 @@ const CostInsights = () => {
 
   if (loading) {
     return (
-      <div className="cost-insights-page__loading">
-        <div style={{ textAlign: 'center' }}>
-          <div className="cost-insights-page__spinner" />
-          <p style={{ margin: 0 }}>Loading cost insights…</p>
-        </div>
+      <div className="cost-insights-page" aria-busy="true" style={{ minHeight: '100vh' }}>
+        <PageLoadSkeleton variant="analytics" message="Loading cost insights" ariaLabel="Loading cost insights" />
       </div>
     );
   }

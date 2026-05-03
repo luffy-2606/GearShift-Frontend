@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import supabase from '../lib/supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../lib/apiClient';
+import PageLoadSkeleton from './PageLoadSkeleton';
 
 const OAuthCallback = () => {
   const navigate = useNavigate();
@@ -82,13 +83,12 @@ const OAuthCallback = () => {
   return (
     <div className="auth-page">
       <div className="auth-card" style={{ textAlign: 'center' }}>
-        <div style={{ marginBottom: 20, color: 'var(--brand)' }}>
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ animation: 'spin 1s linear infinite' }}>
-            <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-          </svg>
-        </div>
-        <h1 className="auth-title">Completing sign-in…</h1>
-        <p className="auth-subtitle">Please wait while we set up your account.</p>
+        <PageLoadSkeleton
+          variant="auth-card"
+          tone="light"
+          message="Please wait while we set up your account."
+          ariaLabel="Completing sign-in"
+        />
       </div>
     </div>
   );

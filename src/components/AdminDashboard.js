@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../lib/apiClient';
+import PageLoadSkeleton from './PageLoadSkeleton';
 
 const TABS = [
   { id: 'users',         label: 'Manage Users' },
@@ -133,7 +134,7 @@ const ManageUsers = ({ currentAdminId }) => {
   });
 
   if (loading) {
-    return <div className="admin-tab-empty">Loading users…</div>;
+    return <PageLoadSkeleton variant="table" tone="light" message="Loading users" ariaLabel="Loading users" />;
   }
 
   return (
