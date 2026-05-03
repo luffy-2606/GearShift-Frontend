@@ -39,8 +39,12 @@ const NavBar = () => {
         justifyContent: 'space-between',
         alignItems: 'center'
       }}>
-        {/* Left - GearShift with hover menu for navigation */}
-        <div style={{ position: 'relative' }}>
+        {/* Left: hover zone wraps label + dropdown so pointer can reach links */}
+        <div
+          style={{ position: 'relative' }}
+          onMouseEnter={() => setMenuOpen(true)}
+          onMouseLeave={() => setMenuOpen(false)}
+        >
           <div
             style={{
               cursor: 'pointer',
@@ -49,24 +53,19 @@ const NavBar = () => {
               color: 'white',
               padding: '10px 0'
             }}
-            onMouseEnter={() => setMenuOpen(true)}
-            onMouseLeave={() => setMenuOpen(false)}
           >
             GearShift
+          </div>
 
-            {/* Hover menu - appears below with navigation links */}
-            {menuOpen && (
+          {menuOpen && (
               <div
-                onMouseEnter={() => setMenuOpen(true)}
-                onMouseLeave={() => setMenuOpen(false)}
                 style={{
                   position: 'absolute',
                   top: '100%',
                   left: 0,
                   backgroundColor: 'transparent',
-                  padding: '15px',
+                  padding: '12px 15px 15px',
                   minWidth: '180px',
-                  marginTop: '5px',
                   animation: 'fadeIn 0.3s ease-out',
                   transition: 'all 0.3s ease'
                 }}
@@ -132,8 +131,7 @@ const NavBar = () => {
                   filter: hoveredLink === 'cost-insights' ? 'brightness(1.3)' : 'brightness(1)'
                 }} onMouseEnter={() => setHoveredLink('cost-insights')} onMouseLeave={() => setHoveredLink(null)}>Cost Analysis</Link>
               </div>
-            )}
-          </div>
+          )}
         </div>
 
         {/* Center - Logo */}
@@ -141,8 +139,12 @@ const NavBar = () => {
           <img className="logo-spin" src="/GearShift/logo.png" alt="Logo" style={{ height: '40px', width: 'auto' }} />
         </div>
 
-        {/* Right - 3 lines with hover menu for Profile/Logout */}
-        <div style={{ position: 'relative' }}>
+        {/* Right: same hover wrapper pattern */}
+        <div
+          style={{ position: 'relative' }}
+          onMouseEnter={() => setRightMenuOpen(true)}
+          onMouseLeave={() => setRightMenuOpen(false)}
+        >
           <div
             style={{
               display: 'flex',
@@ -150,26 +152,21 @@ const NavBar = () => {
               gap: '4px',
               cursor: 'pointer'
             }}
-            onMouseEnter={() => setRightMenuOpen(true)}
-            onMouseLeave={() => setRightMenuOpen(false)}
           >
             <div style={{ width: '25px', height: '2px', backgroundColor: 'white' }}></div>
             <div style={{ width: '25px', height: '2px', backgroundColor: 'white' }}></div>
             <div style={{ width: '25px', height: '2px', backgroundColor: 'white' }}></div>
+          </div>
 
-            {/* Hover menu - appears below with Profile/Logout */}
-            {rightMenuOpen && user && (
+          {rightMenuOpen && user && (
               <div
-                onMouseEnter={() => setRightMenuOpen(true)}
-                onMouseLeave={() => setRightMenuOpen(false)}
                 style={{
                   position: 'absolute',
                   top: '100%',
                   right: 0,
                   backgroundColor: 'transparent',
-                  padding: '15px',
+                  padding: '12px 15px 15px',
                   minWidth: '180px',
-                  marginTop: '5px',
                   animation: 'fadeIn 0.3s ease-out',
                   transition: 'all 0.3s ease'
                 }}
@@ -203,8 +200,7 @@ const NavBar = () => {
                   textAlign: 'left'
                 }} onMouseEnter={() => setHoveredLink('logout')} onMouseLeave={() => setHoveredLink(null)}>Logout</button>
               </div>
-            )}
-          </div>
+          )}
         </div>
       </nav>
     </>

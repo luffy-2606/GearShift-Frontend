@@ -85,8 +85,12 @@ const LandingPage = () => {
         justifyContent: 'space-between',
         alignItems: 'center'
       }}>
-        {/* Left - Ascend with hover menu */}
-        <div style={{ position: 'relative' }}>
+        {/* Left: hover wraps label + menu; removed margin gap that closed menu */}
+        <div
+          style={{ position: 'relative' }}
+          onMouseEnter={() => setMenuOpen(true)}
+          onMouseLeave={() => setMenuOpen(false)}
+        >
           <div
             style={{
               cursor: 'pointer',
@@ -95,24 +99,19 @@ const LandingPage = () => {
               color: 'white',
               padding: '10px 0'
             }}
-            onMouseEnter={() => setMenuOpen(true)}
-            onMouseLeave={() => setMenuOpen(false)}
           >
             GearShift
+          </div>
 
-            {/* Hover menu - appears below */}
             {menuOpen && (
               <div
-                onMouseEnter={() => setMenuOpen(true)}
-                onMouseLeave={() => setMenuOpen(false)}
                 style={{
                   position: 'absolute',
                   top: '100%',
                   left: 0,
                   backgroundColor: 'transparent',
-                  padding: '15px',
+                  padding: '12px 15px 15px',
                   minWidth: '180px',
-                  marginTop: '5px',
                   animation: 'fadeIn 0.3s ease-out',
                   transition: 'all 0.3s ease'
                 }}
@@ -167,7 +166,6 @@ const LandingPage = () => {
                 }} onMouseEnter={() => setHoveredLink('cost-insights')} onMouseLeave={() => setHoveredLink(null)}>Cost Insights</Link>
               </div>
             )}
-          </div>
         </div>
 
         {/* Center - Logo */}
