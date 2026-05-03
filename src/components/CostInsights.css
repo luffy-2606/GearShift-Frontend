@@ -1,348 +1,491 @@
-.cost-insights {
-  padding: 20px;
-  max-width: 1200px;
+/* Cost insights — glass-on-black; LEFT vertical nav rail + RIGHT content (distinct from shops/mechanics/service-history) */
+
+.cost-insights-page {
+  min-height: 100vh;
+  background: #000000;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  box-sizing: border-box;
+}
+
+.cost-insights-page *,
+.cost-insights-page *::before,
+.cost-insights-page *::after {
+  box-sizing: border-box;
+}
+
+.cost-insights-page__inner {
+  max-width: 1440px;
   margin: 0 auto;
+  padding: 120px 80px 88px;
 }
 
-.cost-insights h2 {
-  text-align: center;
-  color: #333;
-  margin-bottom: 30px;
-}
-
-.loading {
-  text-align: center;
-  padding: 40px;
-  color: #6c757d;
-  font-size: 18px;
-}
-
-.error {
-  text-align: center;
-  padding: 40px;
-  color: #dc3545;
-  font-size: 18px;
-}
-
-/* Tab Navigation */
-.tab-navigation {
+.cost-insights-page__hero {
   display: flex;
-  justify-content: center;
-  margin-bottom: 30px;
-  border-bottom: 2px solid #e9ecef;
-}
-
-.tab-btn {
-  background: none;
-  border: none;
-  padding: 12px 24px;
-  cursor: pointer;
-  font-size: 16px;
-  color: #6c757d;
-  border-bottom: 3px solid transparent;
-  transition: all 0.3s ease;
-}
-
-.tab-btn:hover {
-  color: #007bff;
-}
-
-.tab-btn.active {
-  color: #007bff;
-  border-bottom-color: #007bff;
-}
-
-/* Overview Tab */
-.summary-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 28px;
   margin-bottom: 40px;
 }
 
-.summary-card {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  text-align: center;
-  border: 1px solid #e0e0e0;
+.cost-insights-page__layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+  gap: 36px;
+  align-items: start;
 }
 
-.summary-card h3 {
-  margin: 0 0 12px 0;
-  color: #495057;
-  font-size: 16px;
+.cost-insights-page__rail {
+  position: sticky;
+  top: 100px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cost-insights-page__rail-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: rgba(255, 255, 255, 0.42);
+  margin: 0 0 8px 4px;
+}
+
+.cost-insights-page__rail-btn {
+  width: 100%;
+  text-align: left;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 0.9rem;
   font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
-.summary-card .amount {
-  font-size: 32px;
-  font-weight: bold;
-  color: #007bff;
-  margin-bottom: 8px;
+.cost-insights-page__rail-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
-.summary-card p {
+.cost-insights-page__rail-btn--active {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  box-shadow: 0 6px 28px rgba(255, 255, 255, 0.06);
+}
+
+.cost-insights-page__content {
+  min-width: 0;
+}
+
+.cost-ci-panel {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 22px;
+  padding: 26px 28px;
+  box-shadow: 0 10px 36px rgba(0, 0, 0, 0.38);
+  transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+}
+
+.cost-ci-panel:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 18px 52px rgba(0, 0, 0, 0.45);
+}
+
+.cost-ci-panel__title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 18px;
+  color: #ffffff;
+}
+
+.cost-ci-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.cost-ci-kpi {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.11);
+  border-radius: 18px;
+  padding: 22px;
+}
+
+.cost-ci-kpi__label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.11em;
+  color: rgba(255, 255, 255, 0.45);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cost-ci-kpi__value {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: #ffffff;
+  margin: 0 0 8px;
+  line-height: 1;
+}
+
+.cost-ci-kpi__hint {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.48);
   margin: 0;
-  color: #6c757d;
-  font-size: 14px;
 }
 
-.section {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 30px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  border: 1px solid #e0e0e0;
+/* Overview: two-column split */
+.cost-ci-overview-split {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+  gap: 22px;
 }
 
-.section h3 {
-  margin: 0 0 20px 0;
-  color: #333;
-  font-size: 20px;
-}
-
-.service-list {
+.cost-ci-row-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.service-item {
+.cost-ci-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px;
-  background: #f8f9fa;
-  border-radius: 8px;
-  border: 1px solid #e9ecef;
+  gap: 16px;
+  padding: 18px 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 16px;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
-.service-info h4 {
-  margin: 0 0 4px 0;
-  color: #333;
-  font-size: 16px;
+.cost-ci-row:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
-.service-info p {
-  margin: 0 0 2px 0;
-  color: #6c757d;
-  font-size: 14px;
+.cost-ci-row__title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 6px;
 }
 
-.service-cost {
-  font-size: 18px;
-  font-weight: bold;
-  color: #007bff;
+.cost-ci-row__meta {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.48);
+  margin: 0;
+  line-height: 1.45;
 }
 
-/* Vehicles Tab */
-.vehicle-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 20px;
+.cost-ci-row__price {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.92);
+  letter-spacing: -0.02em;
+  flex-shrink: 0;
 }
 
-.vehicle-card {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  border: 1px solid #e0e0e0;
-}
-
-.vehicle-header h3 {
-  margin: 0 0 8px 0;
-  color: #333;
-  font-size: 18px;
-}
-
-.vehicle-header p {
-  margin: 0 0 16px 0;
-  color: #6c757d;
-  font-size: 14px;
-}
-
-.vehicle-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.stat {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 0;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.stat:last-child {
-  border-bottom: none;
-}
-
-.stat .label {
-  color: #495057;
-  font-size: 14px;
-}
-
-.stat .value {
-  color: #333;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-/* Services Tab */
-.service-type-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-}
-
-.service-type-card {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  border: 1px solid #e0e0e0;
-}
-
-.service-type-header h3 {
-  margin: 0 0 16px 0;
-  color: #333;
-  font-size: 18px;
-}
-
-.service-type-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* Trends Tab */
-.trends-section {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  margin-bottom: 30px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  border: 1px solid #e0e0e0;
-}
-
-.trends-chart {
+/* Vehicles: full-width ledger rows */
+.cost-ci-ledger {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  margin-top: 20px;
 }
 
-.trend-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px;
-  background: #f8f9fa;
-  border-radius: 6px;
-  border: 1px solid #e9ecef;
-}
-
-.trend-label {
-  color: #495057;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.trend-amount {
-  color: #007bff;
-  font-weight: bold;
-  font-size: 14px;
-}
-
-.provider-section {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  border: 1px solid #e0e0e0;
-}
-
-.provider-list {
+.cost-ci-ledger__row {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
+  grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(96px, 1fr));
+  gap: 16px;
+  align-items: center;
+  padding: 20px 22px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
 }
 
-.provider-card {
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 20px;
-  border: 1px solid #e9ecef;
+.cost-ci-ledger__vehicle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 6px;
 }
 
-.provider-header {
+.cost-ci-ledger__plate {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.45);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.cost-ci-ledger__stat {
+  text-align: right;
+}
+
+.cost-ci-ledger__stat-lbl {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.38);
+  margin-bottom: 6px;
+}
+
+.cost-ci-ledger__stat-val {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+/* Service types: proportional bars */
+.cost-ci-bar-row {
+  margin-bottom: 18px;
+}
+
+.cost-ci-bar-row:last-child {
+  margin-bottom: 0;
+}
+
+.cost-ci-bar-row__top {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.cost-ci-bar-row__name {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.cost-ci-bar-row__nums {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.48);
+  white-space: nowrap;
+}
+
+.cost-ci-bar-row__track {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.cost-ci-bar-row__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.35));
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.cost-ci-save-btn {
+  display: inline-flex;
   align-items: center;
-  margin-bottom: 16px;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
-.provider-header h4 {
+.cost-ci-save-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+.cost-ci-save-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* Trends */
+.cost-ci-month-row {
+  display: grid;
+  grid-template-columns: 120px 1fr minmax(88px, auto);
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.cost-ci-month-row:last-child {
+  margin-bottom: 0;
+}
+
+.cost-ci-month-row__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.cost-ci-month-row__track {
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+
+.cost-ci-month-row__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.cost-ci-month-row__amt {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #ffffff;
+  text-align: right;
+}
+
+.cost-ci-provider-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.cost-ci-provider-card {
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+}
+
+.cost-ci-provider-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.cost-ci-provider-card__name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffffff;
   margin: 0;
-  color: #333;
-  font-size: 16px;
+  line-height: 1.25;
 }
 
-.provider-type {
-  background: #007bff;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 12px;
+.cost-ci-badge {
+  flex-shrink: 0;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #111111;
+}
+
+.cost-ci-muted {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.48);
+  margin: 0;
+  line-height: 1.55;
+}
+
+.cost-insights-page__loading,
+.cost-insights-page__error {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 120px 24px;
+  background: #000000;
+  color: #ffffff;
+  font-size: 1.25rem;
   font-weight: 500;
 }
 
-.provider-stats {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.cost-insights-page__error {
+  color: rgba(248, 113, 113, 0.95);
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .cost-insights {
-    padding: 15px;
+.cost-insights-page__spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.12);
+  border-top-color: rgba(255, 255, 255, 0.85);
+  border-radius: 50%;
+  animation: ci-spin 0.85s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes ci-spin {
+  to {
+    transform: rotate(360deg);
   }
-  
-  .tab-navigation {
+}
+
+@media (max-width: 1024px) {
+  .cost-insights-page__layout {
+    grid-template-columns: 1fr;
+  }
+
+  .cost-insights-page__rail {
+    position: static;
+    flex-direction: row;
     flex-wrap: wrap;
-    gap: 10px;
   }
-  
-  .tab-btn {
-    padding: 10px 16px;
-    font-size: 14px;
+
+  .cost-insights-page__rail-label {
+    width: 100%;
   }
-  
-  .summary-cards {
+
+  .cost-insights-page__rail-btn {
+    flex: 1 1 auto;
+    min-width: 140px;
+    text-align: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .cost-insights-page__inner {
+    padding: 100px 24px 56px;
+  }
+
+  .cost-ci-ledger__row {
     grid-template-columns: 1fr;
+    text-align: left;
   }
-  
-  .vehicle-list,
-  .service-type-list,
-  .provider-list {
+
+  .cost-ci-ledger__stat {
+    text-align: left;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .cost-ci-month-row {
     grid-template-columns: 1fr;
-  }
-  
-  .service-item {
-    flex-direction: column;
-    align-items: flex-start;
     gap: 8px;
   }
-  
-  .service-cost {
-    align-self: flex-end;
+
+  .cost-ci-month-row__amt {
+    text-align: left;
   }
 }

@@ -1,25 +1,92 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useAuth } from '../context/AuthContext';
 import apiClient from '../lib/apiClient';
 import { useSearchParams } from 'react-router-dom';
+import { updateSystemMessage } from '../lib/systemMessagesStore';
+import {
+  Calendar,
+  Wrench,
+  Clock,
+  MapPin,
+  Phone,
+  FileText,
+  CheckCircle,
+  Search,
+  ClipboardList,
+  ArrowRight
+} from 'lucide-react';
+import PageLoadSkeleton from './PageLoadSkeleton';
+import './ServiceHistory.css';
+
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+};
+
+const cardStyle = {
+  background: 'rgba(255, 255, 255, 0.05)',
+  backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(255, 255, 255, 0.15)',
+  borderRadius: '24px',
+  padding: '32px',
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+};
+
+const cardHoverStyle = {
+  transform: 'translateY(-8px)',
+  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+  borderColor: 'rgba(255, 255, 255, 0.25)'
+};
+
+function timelineParts(dateString) {
+  const d = new Date(dateString);
+  if (Number.isNaN(d.getTime())) {
+    return { month: '—', day: '—', year: '—' };
+  }
+  return {
+    month: d.toLocaleDateString('en-US', { month: 'short' }),
+    day: d.getDate(),
+    year: d.getFullYear()
+  };
+}
+
+function formatDateLong(dateString) {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+}
 
 const ServiceHistory = () => {
+  const { user } = useAuth();
   const [vehicles, setVehicles] = useState([]);
   const [selectedVehicle, setSelectedVehicle] = useState('');
   const [serviceHistory, setServiceHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showAddService, setShowAddService] = useState(false);
   const [searchParams] = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const displayName =
+    user?.first_name?.trim() ||
+    [user?.first_name, user?.last_name].filter(Boolean).join(' ').trim() ||
+    'there';
 
   useEffect(() => {
     fetchVehicles();
   }, []);
 
   useEffect(() => {
-    // Check for appointment confirmation only after vehicles are loaded
     if (vehicles.length > 0) {
       const confirmAppointmentId = searchParams.get('confirm');
-      if (confirmAppointmentId) {
-        handleAppointmentConfirmation(confirmAppointmentId);
+      const confirmMessageId = searchParams.get('msg');
+      if (confirmAppointmentId && !sessionStorage.getItem(`confirmed-${confirmAppointmentId}`)) {
+        handleAppointmentConfirmation(confirmAppointmentId, confirmMessageId);
+        sessionStorage.setItem(`confirmed-${confirmAppointmentId}`, 'true');
       }
     }
   }, [vehicles, searchParams]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -36,7 +103,7 @@ const ServiceHistory = () => {
       const response = await apiClient.get('/api/vehicles', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       if (response.data.success) {
         setVehicles(response.data.data);
         if (response.data.data.length > 0) {
@@ -50,14 +117,14 @@ const ServiceHistory = () => {
 
   const fetchServiceHistory = async () => {
     if (!selectedVehicle) return;
-    
+
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
       const response = await apiClient.get(`/api/vehicles/${selectedVehicle}/service-history`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       if (response.data.success) {
         setServiceHistory(response.data.data);
       }
@@ -69,45 +136,33 @@ const ServiceHistory = () => {
   };
 
   const handleVisitConfirmation = (appointmentId) => {
-    // This would open a modal to confirm the visit and add to service history
     console.log('Confirming visit for appointment:', appointmentId);
     setShowAddService(true);
   };
 
-  const handleAppointmentConfirmation = async (appointmentId) => {
+  const handleAppointmentConfirmation = async (appointmentId, messageId) => {
     try {
-      console.log('Confirming appointment:', appointmentId);
       const token = localStorage.getItem('token');
-      
-      // First, get appointment details
+
       const appointmentResponse = await apiClient.get(`/api/appointments`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      console.log('Appointments response:', appointmentResponse.data);
-
       if (appointmentResponse.data.success) {
-        const appointment = appointmentResponse.data.data.find(apt => apt.id === appointmentId);
-        
-        console.log('Found appointment:', appointment);
-        
+        const appointment = appointmentResponse.data.data.find(apt => String(apt.id) === String(appointmentId));
+
         if (appointment) {
-          // Update appointment status to completed
-          const statusResponse = await apiClient.put(`/api/appointments/${appointmentId}/status`, 
+          await apiClient.put(
+            `/api/appointments/${appointmentId}/status`,
             { status: 'completed' },
             { headers: { Authorization: `Bearer ${token}` } }
           );
-          
-          console.log('Status update response:', statusResponse.data);
 
-          // Find the vehicle for this appointment
           const vehicle = vehicles.find(v => v.id === appointment.vehicle_id);
-          console.log('Found vehicle:', vehicle);
-          
+
           if (vehicle) {
             setSelectedVehicle(vehicle.id);
-            
-            // Auto-add to service history with basic info
+
             const serviceData = {
               service_type: appointment.service_name,
               service_description: appointment.service_description || 'Service completed',
@@ -116,98 +171,306 @@ const ServiceHistory = () => {
               parts_cost: Math.floor((appointment.actual_cost || appointment.estimated_cost || 0) * 0.4),
               notes: 'Automatically added from appointment completion'
             };
-            
-            console.log('Service history data:', serviceData);
-            
-            const serviceResponse = await apiClient.post(`/api/appointments/${appointmentId}/service-history`, 
+
+            const serviceResponse = await apiClient.post(
+              `/api/appointments/${appointmentId}/service-history`,
               serviceData,
               { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            console.log('Service history response:', serviceResponse.data);
-
             if (serviceResponse.data.success) {
               alert('Service has been added to your vehicle history!');
+              if (messageId) {
+                updateSystemMessage(messageId, { status: 'completed', completedAt: new Date().toISOString() });
+              }
               fetchServiceHistory();
             } else {
               alert('Failed to add service history: ' + (serviceResponse.data.message || 'Unknown error'));
             }
           } else {
-            console.error('Vehicle not found for appointment:', appointment.vehicle_id);
             alert('Vehicle not found for this appointment.');
           }
         } else {
-          console.error('Appointment not found:', appointmentId);
           alert('Appointment not found.');
         }
       }
     } catch (error) {
       console.error('Error confirming appointment:', error);
-      if (error.response) {
-        console.error('Error response:', error.response.data);
-      }
       alert('There was an issue confirming your appointment. Please add it manually.');
     }
   };
 
-  const selectedVehicleData = vehicles.find(v => v.id === selectedVehicle);
+  const selectedVehicleData = vehicles.find(v => String(v.id) === String(selectedVehicle));
+
+  const filteredHistory = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    const sorted = [...serviceHistory].sort(
+      (a, b) => new Date(b.service_date).getTime() - new Date(a.service_date).getTime()
+    );
+    if (!q) return sorted;
+    return sorted.filter(
+      (s) =>
+        (s.service_type || '').toLowerCase().includes(q) ||
+        (s.description || '').toLowerCase().includes(q) ||
+        (s.shop?.name || '').toLowerCase().includes(q) ||
+        `${s.mechanic?.first_name || ''} ${s.mechanic?.last_name || ''}`.toLowerCase().includes(q)
+    );
+  }, [serviceHistory, searchTerm]);
+
+  const totals = useMemo(() => {
+    const total = filteredHistory.reduce((sum, row) => sum + (Number(row.total_cost) || 0), 0);
+    return { count: filteredHistory.length, total };
+  }, [filteredHistory]);
+
+  const initialHistoryLoading = selectedVehicle && loading;
 
   return (
-    <div className="service-history">
-      <h2>Service History</h2>
-      
-      {/* Vehicle Selection */}
-      <div className="vehicle-selector">
-        <label>Select Vehicle:</label>
-        <select 
-          value={selectedVehicle} 
-          onChange={(e) => setSelectedVehicle(e.target.value)}
-        >
-          {vehicles.map(vehicle => (
-            <option key={vehicle.id} value={vehicle.id}>
-              {vehicle.year} {vehicle.make} {vehicle.model} ({vehicle.license_plate || 'No Plate'})
-            </option>
-          ))}
-        </select>
+    <div className="service-history-page">
+      <div className="service-history-page__inner">
+        <header className="service-history-page__hero">
+          <div>
+            <p
+              style={{
+                fontSize: '0.8125rem',
+                color: 'rgba(255, 255, 255, 0.5)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.14em',
+                fontWeight: 600,
+                margin: '0 0 12px'
+              }}
+            >
+              {getGreeting()}, {displayName}
+            </p>
+            <h1
+              style={{
+                fontSize: 'clamp(2rem, 4vw, 3.25rem)',
+                fontWeight: 700,
+                color: '#ffffff',
+                margin: '0 0 12px',
+                letterSpacing: '-0.03em',
+                lineHeight: 1.1
+              }}
+            >
+              Service <span style={{ color: 'rgba(255, 255, 255, 0.82)' }}>history</span>
+            </h1>
+            <p
+              style={{
+                fontSize: '1.0625rem',
+                color: 'rgba(255, 255, 255, 0.62)',
+                fontWeight: 400,
+                letterSpacing: '0.01em',
+                margin: 0,
+                maxWidth: 540,
+                lineHeight: 1.55
+              }}
+            >
+              A vertical timeline per vehicle — costs on the rail side, details in wide cards. Filters sit on the right
+              so your log stays front and center.
+            </p>
+          </div>
+          <div
+            style={{ ...cardStyle, alignSelf: 'flex-start', minWidth: 'min(100%, 240px)' }}
+            onMouseEnter={(e) => Object.assign(e.currentTarget.style, cardHoverStyle)}
+            onMouseLeave={(e) => Object.assign(e.currentTarget.style, cardStyle)}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <ClipboardList size={28} style={{ color: '#ffffff' }} strokeWidth={1.75} />
+            </div>
+            <p
+              style={{
+                fontSize: '0.8rem',
+                color: 'rgba(255, 255, 255, 0.55)',
+                margin: '0 0 8px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                fontWeight: 600
+              }}
+            >
+              Showing (filtered)
+            </p>
+            <p style={{ fontSize: '2.25rem', fontWeight: 700, color: '#ffffff', margin: 0, letterSpacing: '-0.02em' }}>
+              {totals.count}
+            </p>
+            <p style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.55)', margin: '10px 0 0' }}>
+              Records •{' '}
+              <strong style={{ color: '#ffffff', fontWeight: 700 }}>
+                ${totals.total.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}
+              </strong>{' '}
+              total
+            </p>
+          </div>
+        </header>
+
+        <div className="service-history-page__layout">
+          <section className="service-history-page__main">
+            {!selectedVehicle || vehicles.length === 0 ? (
+              <div className="service-history-page__empty" style={{ margin: '0 auto' }}>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 600, margin: '0 0 10px', color: '#ffffff' }}>
+                  Add a vehicle first
+                </h3>
+                <p style={{ color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.6 }}>
+                  Service history is tied to a vehicle in your garage. Add one from your profile to see visits here.
+                </p>
+              </div>
+            ) : initialHistoryLoading ? (
+              <PageLoadSkeleton variant="inline-timeline" ariaLabel="Loading service history" />
+            ) : filteredHistory.length === 0 ? (
+              <div className="service-history-page__empty">
+                <div style={{ fontSize: '2.5rem', marginBottom: '12px', opacity: 0.75 }} aria-hidden>
+                  📋
+                </div>
+                <h3 style={{ fontSize: '1.35rem', fontWeight: 600, color: '#ffffff', margin: '0 0 8px', letterSpacing: '-0.02em' }}>
+                  No matching records
+                </h3>
+                <p style={{ color: 'rgba(255, 255, 255, 0.5)', margin: 0, lineHeight: 1.6, fontSize: '1rem' }}>
+                  {serviceHistory.length === 0
+                    ? 'No service records for this vehicle yet. Completed appointments can appear here automatically.'
+                    : 'Try a different search term to widen results.'}
+                </p>
+              </div>
+            ) : (
+              <>
+                <p className="service-history-page__timeline-intro">
+                  Newest first • {filteredHistory.length}{' '}
+                  {filteredHistory.length === 1 ? 'entry' : 'entries'}
+                  {selectedVehicleData
+                    ? ` for ${selectedVehicleData.year} ${selectedVehicleData.make} ${selectedVehicleData.model}`
+                    : ''}
+                </p>
+                <div className="sh-timeline">
+                  {filteredHistory.map((service) => (
+                    <ServiceTimelineRow key={service.id} service={service} onVisitConfirmation={handleVisitConfirmation} />
+                  ))}
+                </div>
+              </>
+            )}
+          </section>
+
+          <aside className="service-history-page__sidebar">
+            <div
+              style={cardStyle}
+              onMouseEnter={(e) => Object.assign(e.currentTarget.style, cardHoverStyle)}
+              onMouseLeave={(e) => Object.assign(e.currentTarget.style, cardStyle)}
+            >
+              <h2
+                style={{
+                  fontSize: '1.25rem',
+                  color: '#ffffff',
+                  margin: '0 0 20px',
+                  fontWeight: 600,
+                  letterSpacing: '-0.02em'
+                }}
+              >
+                Vehicle & search
+              </h2>
+
+              <div className="service-history-page__search-shell">
+                <Search size={20} style={{ color: 'rgba(255, 255, 255, 0.45)', flexShrink: 0 }} />
+                <input
+                  type="text"
+                  className="service-history-page__search-input"
+                  placeholder="Filter by service, shop, mechanic…"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  disabled={vehicles.length === 0}
+                />
+              </div>
+
+              <label htmlFor="vehicle-select-service-history" style={{ display: 'none' }}>
+                Vehicle
+              </label>
+              <select
+                id="vehicle-select-service-history"
+                className="service-history-page__select"
+                value={selectedVehicle}
+                onChange={(e) => setSelectedVehicle(e.target.value)}
+              >
+                {vehicles.map((vehicle) => (
+                  <option key={vehicle.id} value={vehicle.id}>
+                    {vehicle.year} {vehicle.make} {vehicle.model} ({vehicle.license_plate || 'No plate'})
+                  </option>
+                ))}
+              </select>
+
+              {selectedVehicleData && (
+                <div className="service-history-page__vehicle-summary">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
+                    <h3 style={{ fontSize: '1.05rem', fontWeight: 700, color: '#ffffff', margin: 0, lineHeight: 1.3 }}>
+                      {selectedVehicleData.year} {selectedVehicleData.make} {selectedVehicleData.model}
+                    </h3>
+                    <span
+                      style={{
+                        flexShrink: 0,
+                        fontSize: '0.68rem',
+                        fontWeight: 700,
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.06em',
+                        background: 'rgba(255,255,255,0.95)',
+                        color: '#111111',
+                        padding: '6px 10px',
+                        borderRadius: '999px'
+                      }}
+                    >
+                      Active
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '14px 22px', fontSize: '0.8125rem', color: 'rgba(255,255,255,0.52)' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <Clock size={14} />
+                      {(selectedVehicleData.mileage ?? 0).toLocaleString()} mi
+                    </span>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                      <FileText size={14} />
+                      {selectedVehicleData.license_plate || 'No plate'}
+                    </span>
+                  </div>
+
+                  <div className="service-history-page__sidebar-stats">
+                    <div className="service-history-page__sidebar-stat">
+                      <p className="service-history-page__sidebar-stat-val">{totals.count}</p>
+                      <p className="service-history-page__sidebar-stat-lbl">Shown</p>
+                    </div>
+                    <div className="service-history-page__sidebar-stat">
+                      <p className="service-history-page__sidebar-stat-val">
+                        ${Math.round(totals.total).toLocaleString()}
+                      </p>
+                      <p className="service-history-page__sidebar-stat-lbl">Total</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <p className="service-history-page__hint">
+                Confirm completed visits from appointments when prompted — completed bookings can sync into this timeline automatically.
+              </p>
+            </div>
+          </aside>
+        </div>
       </div>
 
-      {selectedVehicleData && (
-        <div className="vehicle-info">
-          <h3>{selectedVehicleData.year} {selectedVehicleData.make} {selectedVehicleData.model}</h3>
-          <p>Current Mileage: {selectedVehicleData.mileage?.toLocaleString() || 0} miles</p>
-          <p>License Plate: {selectedVehicleData.license_plate || 'Not specified'}</p>
-        </div>
-      )}
-
-      {/* Service History List */}
-      {loading ? (
-        <div className="loading">Loading service history...</div>
-      ) : (
-        <div className="service-history-list">
-          {serviceHistory.length === 0 ? (
-            <div className="no-history">
-              <p>No service history found for this vehicle.</p>
-            </div>
-          ) : (
-            serviceHistory.map(service => (
-              <ServiceHistoryCard 
-                key={service.id} 
-                service={service}
-                onVisitConfirmation={handleVisitConfirmation}
-              />
-            ))
-          )}
-        </div>
-      )}
-
-      {/* Add Service Modal */}
       {showAddService && (
-        <AddServiceModal 
-          vehicleId={selectedVehicle}
-          onClose={() => setShowAddService(false)}
-          onSuccess={fetchServiceHistory}
-        />
+        <AddServiceModal vehicleId={selectedVehicle} onClose={() => setShowAddService(false)} onSuccess={fetchServiceHistory} />
       )}
+    </div>
+  );
+};
+
+const ServiceTimelineRow = ({ service, onVisitConfirmation }) => {
+  const { month, day, year } = timelineParts(service.service_date);
+
+  return (
+    <div className="sh-timeline__item">
+      <div className="sh-timeline__rail">
+        <div className="sh-timeline__dates">
+          <span className="sh-timeline__month">{month}</span>
+          <span className="sh-timeline__day">{day}</span>
+          <span className="sh-timeline__year">{year}</span>
+        </div>
+        <div className="sh-timeline__dot" aria-hidden />
+      </div>
+      <div className="sh-timeline__card-wrap">
+        <ServiceHistoryCard service={service} onVisitConfirmation={onVisitConfirmation} />
+      </div>
     </div>
   );
 };
@@ -215,104 +478,157 @@ const ServiceHistory = () => {
 const ServiceHistoryCard = ({ service, onVisitConfirmation }) => {
   const [showDetails, setShowDetails] = useState(false);
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
   return (
-    <div className="service-card">
-      <div className="service-header">
-        <h4>{service.service_type}</h4>
-        <div className="service-date">{formatDate(service.service_date)}</div>
-      </div>
-      
-      <div className="service-shop">
-        <strong>Shop:</strong> {service.shop?.name || 'Unknown'}
-      </div>
-      
-      <div className="service-summary">
-        <p><strong>Mileage at service:</strong> {service.mileage_at_service?.toLocaleString()} miles</p>
-        <p><strong>Cost:</strong> ${service.total_cost?.toFixed(2) || 'N/A'}</p>
-        <p><strong>Duration:</strong> {service.duration_minutes || 'N/A'} minutes</p>
+    <article className="service-card-timeline">
+      <div className="service-card-timeline__header">
+        <div>
+          <h3 className="service-card-timeline__title">{service.service_type}</h3>
+          <div className="service-card-timeline__meta-row">
+            <span>
+              <Calendar size={14} style={{ opacity: 0.65 }} />
+              {formatDateLong(service.service_date)}
+            </span>
+          </div>
+        </div>
+        <div className="service-card-timeline__cost">
+          <div className="service-card-timeline__cost-label">Total</div>
+          <div className="service-card-timeline__cost-val">${service.total_cost?.toFixed(2) ?? 'N/A'}</div>
+        </div>
       </div>
 
       {service.description && (
-        <div className="service-description">
-          <p>{service.description}</p>
+        <div className="service-card-timeline__desc">{service.description}</div>
+      )}
+
+      {service.shop && (
+        <div className="service-card-timeline__panel">
+          <div className="service-card-timeline__panel-head">
+            <MapPin size={14} /> Service location
+          </div>
+          <div className="service-card-timeline__panel-body">
+            <strong style={{ color: '#ffffff' }}>{service.shop.name || 'Unknown shop'}</strong>
+            {service.shop.address && (
+              <div style={{ marginTop: 6, fontSize: '0.8125rem', color: 'rgba(255,255,255,0.55)' }}>{service.shop.address}</div>
+            )}
+            {service.shop.phone && (
+              <div style={{ marginTop: 6, fontSize: '0.8125rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Phone size={13} /> {service.shop.phone}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
-      <button 
-        className="details-toggle"
-        onClick={() => setShowDetails(!showDetails)}
-      >
-        {showDetails ? 'Hide' : 'Show'} Details
+      {service.mechanic && (
+        <div className="service-card-timeline__panel">
+          <div className="service-card-timeline__panel-head">
+            <Wrench size={14} /> Technician
+          </div>
+          <div className="service-card-timeline__panel-body">
+            {service.mechanic.first_name} {service.mechanic.last_name}
+          </div>
+        </div>
+      )}
+
+      {(service.mileage_at_service != null ||
+        service.duration_minutes != null ||
+        service.labor_cost != null ||
+        service.parts_cost != null) && (
+        <div className="service-card-timeline__panel">
+          <div className="service-card-timeline__panel-head">
+            <FileText size={14} /> Job details
+          </div>
+          <div className="service-card-timeline__metrics">
+            {service.mileage_at_service != null && (
+              <div className="service-card-timeline__metric">
+                <div className="service-card-timeline__metric-lbl">Mileage</div>
+                <div className="service-card-timeline__metric-val">{Number(service.mileage_at_service).toLocaleString()} mi</div>
+              </div>
+            )}
+            {service.duration_minutes != null && (
+              <div className="service-card-timeline__metric">
+                <div className="service-card-timeline__metric-lbl">Duration</div>
+                <div className="service-card-timeline__metric-val">{service.duration_minutes} min</div>
+              </div>
+            )}
+            {(service.labor_cost != null || service.parts_cost != null) && (
+              <div className="service-card-timeline__metric">
+                <div className="service-card-timeline__metric-lbl">Labor / parts</div>
+                <div className="service-card-timeline__metric-val">
+                  ${service.labor_cost ?? '0'} / ${service.parts_cost ?? '0'}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <button type="button" className="details-toggle-btn" onClick={() => setShowDetails(!showDetails)}>
+        <FileText size={16} />
+        {showDetails ? 'Hide' : 'View'} additional details
+        <ArrowRight size={14} style={{ transition: 'transform 0.2s ease', transform: showDetails ? 'rotate(90deg)' : 'none' }} />
       </button>
 
       {showDetails && (
-        <div className="service-details">
-          <div className="detail-row">
-            <strong>Shop Address:</strong> {service.shop?.address || 'N/A'}
-          </div>
-          <div className="detail-row">
-            <strong>Shop Phone:</strong> {service.shop?.phone || 'N/A'}
-          </div>
-          <div className="detail-row">
-            <strong>Mechanic:</strong> {service.mechanic?.first_name} {service.mechanic?.last_name}
-          </div>
-          {service.labor_cost && (
-            <div className="detail-row">
-              <strong>Labor Cost:</strong> ${service.labor_cost.toFixed(2)}
-            </div>
-          )}
-          {service.parts_cost && (
-            <div className="detail-row">
-              <strong>Parts Cost:</strong> ${service.parts_cost.toFixed(2)}
-            </div>
-          )}
-          {service.tax_amount && (
-            <div className="detail-row">
-              <strong>Tax:</strong> ${service.tax_amount.toFixed(2)}
-            </div>
-          )}
+        <div className="additional-details-modern">
           {service.warranty_months && (
-            <div className="detail-row">
-              <strong>Warranty:</strong> {service.warranty_months} months / {service.warranty_mileage?.toLocaleString()} miles
+            <div className="service-card-timeline__panel">
+              <div className="service-card-timeline__panel-head">
+                <CheckCircle size={14} /> Warranty
+              </div>
+              <div className="service-card-timeline__panel-body" style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.58)' }}>
+                {service.warranty_months} months
+                {service.warranty_mileage ? ` • ${Number(service.warranty_mileage).toLocaleString()} mi` : ''}
+              </div>
             </div>
           )}
+
           {service.next_service_due_date && (
-            <div className="detail-row">
-              <strong>Next Service Due:</strong> {formatDate(service.next_service_due_date)}
+            <div className="service-card-timeline__panel">
+              <div className="service-card-timeline__panel-head">
+                <Calendar size={14} /> Next service due
+              </div>
+              <div className="service-card-timeline__panel-body" style={{ fontSize: '0.8125rem', color: 'rgba(255,255,255,0.58)' }}>
+                {formatDateLong(service.next_service_due_date)}
+                {service.next_service_due_mileage
+                  ? ` • ${Number(service.next_service_due_mileage).toLocaleString()} mi`
+                  : ''}
+              </div>
             </div>
           )}
+
           {service.notes && (
-            <div className="detail-row">
-              <strong>Notes:</strong> {service.notes}
+            <div className="service-card-timeline__panel">
+              <div className="service-card-timeline__panel-head">
+                <FileText size={14} /> Notes
+              </div>
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: '0.8125rem',
+                  color: 'rgba(255,255,255,0.58)',
+                  lineHeight: 1.55,
+                  fontStyle: service.notes.includes('Automatically added') ? 'italic' : 'normal'
+                }}
+              >
+                {service.notes}
+              </p>
             </div>
           )}
         </div>
       )}
 
-      {/* Visit Confirmation Button */}
       {service.appointment_id && !service.notes?.includes('Automatically added from appointment completion') && (
-        <div className="visit-confirmation">
-          <button 
-            className="confirm-visit-btn"
-            onClick={() => onVisitConfirmation(service.appointment_id)}
-          >
-            Confirm Visit Completed
-          </button>
-        </div>
+        <button type="button" className="confirm-visit-btn-modern" onClick={() => onVisitConfirmation(service.appointment_id)}>
+          <CheckCircle size={16} />
+          Confirm visit completed
+        </button>
       )}
-    </div>
+    </article>
   );
 };
 
-const AddServiceModal = ({ vehicleId, onClose, onSuccess }) => {
+const AddServiceModal = ({ vehicleId: _vehicleId, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     service_type: '',
     service_description: '',
@@ -327,12 +643,9 @@ const AddServiceModal = ({ vehicleId, onClose, onSuccess }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     try {
       setLoading(true);
-      
-      // This would be a different endpoint for manual service entry
-      // For now, we'll just close the modal
       alert('Service added successfully!');
       onSuccess();
       onClose();
@@ -345,7 +658,7 @@ const AddServiceModal = ({ vehicleId, onClose, onSuccess }) => {
   };
 
   const handleChange = (e) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value
     }));
@@ -354,98 +667,50 @@ const AddServiceModal = ({ vehicleId, onClose, onSuccess }) => {
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <h3>Add Service to History</h3>
-        
+        <h3>Add service to history</h3>
+
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>Service Type:</label>
-            <input
-              type="text"
-              name="service_type"
-              value={formData.service_type}
-              onChange={handleChange}
-              required
-            />
+            <label htmlFor="sh-modal-service-type">Service type</label>
+            <input id="sh-modal-service-type" type="text" name="service_type" value={formData.service_type} onChange={handleChange} required />
           </div>
 
           <div className="form-group">
-            <label>Description:</label>
-            <textarea
-              name="service_description"
-              value={formData.service_description}
-              onChange={handleChange}
-              rows={3}
-            />
+            <label htmlFor="sh-modal-desc">Description</label>
+            <textarea id="sh-modal-desc" name="service_description" value={formData.service_description} onChange={handleChange} rows={3} />
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label>Total Cost:</label>
-              <input
-                type="number"
-                name="cost"
-                value={formData.cost}
-                onChange={handleChange}
-                step="0.01"
-                min="0"
-              />
+              <label htmlFor="sh-modal-cost">Total cost</label>
+              <input id="sh-modal-cost" type="number" name="cost" value={formData.cost} onChange={handleChange} step="0.01" min="0" />
             </div>
 
             <div className="form-group">
-              <label>Labor Cost:</label>
-              <input
-                type="number"
-                name="labor_cost"
-                value={formData.labor_cost}
-                onChange={handleChange}
-                step="0.01"
-                min="0"
-              />
+              <label htmlFor="sh-modal-labor">Labor cost</label>
+              <input id="sh-modal-labor" type="number" name="labor_cost" value={formData.labor_cost} onChange={handleChange} step="0.01" min="0" />
             </div>
 
             <div className="form-group">
-              <label>Parts Cost:</label>
-              <input
-                type="number"
-                name="parts_cost"
-                value={formData.parts_cost}
-                onChange={handleChange}
-                step="0.01"
-                min="0"
-              />
+              <label htmlFor="sh-modal-parts">Parts cost</label>
+              <input id="sh-modal-parts" type="number" name="parts_cost" value={formData.parts_cost} onChange={handleChange} step="0.01" min="0" />
             </div>
           </div>
 
           <div className="form-group">
-            <label>Notes:</label>
-            <textarea
-              name="notes"
-              value={formData.notes}
-              onChange={handleChange}
-              rows={3}
-            />
+            <label htmlFor="sh-modal-notes">Notes</label>
+            <textarea id="sh-modal-notes" name="notes" value={formData.notes} onChange={handleChange} rows={3} />
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label>Next Service Date:</label>
-              <input
-                type="date"
-                name="next_service_date"
-                value={formData.next_service_date}
-                onChange={handleChange}
-              />
+              <label htmlFor="sh-modal-next-date">Next service date</label>
+              <input id="sh-modal-next-date" type="date" name="next_service_date" value={formData.next_service_date} onChange={handleChange} />
             </div>
 
             <div className="form-group">
-              <label>Next Service Mileage:</label>
-              <input
-                type="number"
-                name="next_service_mileage"
-                value={formData.next_service_mileage}
-                onChange={handleChange}
-                min="0"
-              />
+              <label htmlFor="sh-modal-next-mi">Next service mileage</label>
+              <input id="sh-modal-next-mi" type="number" name="next_service_mileage" value={formData.next_service_mileage} onChange={handleChange} min="0" />
             </div>
           </div>
 
@@ -454,7 +719,7 @@ const AddServiceModal = ({ vehicleId, onClose, onSuccess }) => {
               Cancel
             </button>
             <button type="submit" className="submit-btn" disabled={loading}>
-              {loading ? 'Adding...' : 'Add Service'}
+              {loading ? 'Adding…' : 'Add service'}
             </button>
           </div>
         </form>

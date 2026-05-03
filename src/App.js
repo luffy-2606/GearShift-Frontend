@@ -12,6 +12,12 @@ import ServiceHistory from './components/ServiceHistory';
 import MechanicsList from './components/MechanicsList';
 import CostInsights from './components/CostInsights';
 import SystemMessages from './components/SystemMessages';
+import LandingPage from './components/LandingPage';
+import SystemMessagesCenter from './components/SystemMessagesCenter';
+import NavBar from './components/NavBar';
+import PageLoadSkeleton from './components/PageLoadSkeleton';
+import Chat from './components/Chat';
+import SavedItems from './components/SavedItems';
 import './App.css';
 
 function ProtectedRoute({ children, adminOnly = false }) {
@@ -20,7 +26,7 @@ function ProtectedRoute({ children, adminOnly = false }) {
   if (loading) {
     return (
       <div className="auth-page">
-        <div style={{ color: 'white', fontSize: 16 }}>Loading…</div>
+        <PageLoadSkeleton variant="minimal" message="Verifying your session" ariaLabel="Loading session" />
       </div>
     );
   }
@@ -31,7 +37,12 @@ function ProtectedRoute({ children, adminOnly = false }) {
     return <Navigate to="/dashboard" />;
   }
 
-  return children;
+  return (
+    <>
+      <NavBar />
+      {children}
+    </>
+  );
 }
 
 function App() {
@@ -93,6 +104,30 @@ function App() {
               }
             />
             <Route
+              path="/system-messages"
+              element={
+                <ProtectedRoute>
+                  <SystemMessagesCenter />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/chat"
+              element={
+                <ProtectedRoute>
+                  <Chat />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/saved"
+              element={
+                <ProtectedRoute>
+                  <SavedItems />
+                </ProtectedRoute>
+              }
+            />
+            <Route
               path="/admin/dashboard"
               element={
                 <ProtectedRoute adminOnly>
@@ -101,7 +136,7 @@ function App() {
               }
             />
             <Route path="/admin" element={<Navigate to="/admin/dashboard" />} />
-            <Route path="/" element={<Navigate to="/dashboard" />} />
+            <Route path="/" element={<LandingPage />} />
           </Routes>
         </div>
       </Router>

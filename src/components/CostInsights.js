@@ -1,12 +1,59 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useAuth } from '../context/AuthContext';
 import apiClient from '../lib/apiClient';
+import { TrendingUp, DollarSign, Car, BarChart3, PieChart, Bookmark } from 'lucide-react';
+import PageLoadSkeleton from './PageLoadSkeleton';
 import './CostInsights.css';
 
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+};
+
+const TABS = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'vehicles', label: 'By vehicle' },
+  { id: 'services', label: 'Service types' },
+  { id: 'trends', label: 'Trends' }
+];
+
+function formatMonthLabel(ym) {
+  if (!ym || typeof ym !== 'string' || ym.length < 7) return ym || '—';
+  const [y, m] = ym.split('-').map(Number);
+  if (!y || !m) return ym;
+  return new Date(y, m - 1).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+}
+
+const heroStatCardStyle = {
+  background: 'rgba(255, 255, 255, 0.05)',
+  backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(255, 255, 255, 0.15)',
+  borderRadius: '24px',
+  padding: '32px',
+  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+};
+
+const heroStatHover = {
+  transform: 'translateY(-8px)',
+  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)',
+  borderColor: 'rgba(255, 255, 255, 0.25)'
+};
+
 const CostInsights = () => {
+  const { user } = useAuth();
   const [insights, setInsights] = useState(null);
   const [trends, setTrends] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [savingServiceKey, setSavingServiceKey] = useState(null);
+
+  const displayName =
+    user?.first_name?.trim() ||
+    [user?.first_name, user?.last_name].filter(Boolean).join(' ').trim() ||
+    'there';
 
   useEffect(() => {
     fetchCostInsights();
@@ -19,7 +66,7 @@ const CostInsights = () => {
       const response = await apiClient.get('/api/cost-insights', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       if (response.data.success) {
         setInsights(response.data.data);
       }
@@ -36,7 +83,7 @@ const CostInsights = () => {
       const response = await apiClient.get('/api/cost-insights/trends', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       if (response.data.success) {
         setTrends(response.data.data);
       }
@@ -45,230 +92,394 @@ const CostInsights = () => {
     }
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
+  const formatCurrency = (amount) =>
+    new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD'
     }).format(amount || 0);
-  };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateString) =>
+    new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
+
+  const saveServiceTypeBookmark = async (serviceType, data) => {
+    try {
+      setSavingServiceKey(serviceType);
+      await apiClient.post('/api/bookmarks', {
+        entity_type: 'quote_snapshot',
+        title: `Spending: ${serviceType}`,
+        snapshot: {
+          source: 'cost_insights_by_service',
+          serviceType,
+          totalSpent: data.totalSpent,
+          serviceCount: data.serviceCount,
+          averageCost: data.averageCost,
+        },
+        tags: ['cost-insights'],
+      });
+      alert('Saved to your Saved list.');
+    } catch (e) {
+      alert(e.response?.data?.message || 'Could not save.');
+    } finally {
+      setSavingServiceKey(null);
+    }
   };
 
+  const trendMaxAmount = useMemo(() => {
+    if (!trends?.trends?.length) return 1;
+    return Math.max(...trends.trends.map((t) => Number(t.amount) || 0), 1);
+  }, [trends]);
+
+  const serviceTypeBars = useMemo(() => {
+    if (!insights?.spendingByServiceType) return [];
+    const total = Number(insights.totalSpent) || 1;
+    return Object.entries(insights.spendingByServiceType)
+      .sort(([, a], [, b]) => b.totalSpent - a.totalSpent)
+      .map(([name, data]) => ({
+        name,
+        ...data,
+        pct: Math.min(100, ((data.totalSpent || 0) / total) * 100)
+      }));
+  }, [insights]);
+
   if (loading) {
-    return <div className="loading">Loading cost insights...</div>;
+    return (
+      <div className="cost-insights-page" aria-busy="true" style={{ minHeight: '100vh' }}>
+        <PageLoadSkeleton variant="analytics" message="Loading cost insights" ariaLabel="Loading cost insights" />
+      </div>
+    );
   }
 
   if (!insights) {
-    return <div className="error">Failed to load cost insights</div>;
+    return (
+      <div className="cost-insights-page__error">
+        Failed to load cost insights. Try again later.
+      </div>
+    );
   }
 
+  const expensive = insights.mostExpensiveServices || [];
+  const recent = insights.recentServices || [];
+  const vehiclesLedger = insights.spendingByVehicle || [];
+  const providersSorted = Object.entries(insights.spendingByProvider || {}).sort(([, a], [, b]) => b.totalSpent - a.totalSpent);
+
   return (
-    <div className="cost-insights">
-      <h2>Cost Insights</h2>
-      
-      {/* Tab Navigation */}
-      <div className="tab-navigation">
-        <button 
-          className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
-          onClick={() => setActiveTab('overview')}
-        >
-          Overview
-        </button>
-        <button 
-          className={`tab-btn ${activeTab === 'vehicles' ? 'active' : ''}`}
-          onClick={() => setActiveTab('vehicles')}
-        >
-          By Vehicle
-        </button>
-        <button 
-          className={`tab-btn ${activeTab === 'services' ? 'active' : ''}`}
-          onClick={() => setActiveTab('services')}
-        >
-          By Service Type
-        </button>
-        <button 
-          className={`tab-btn ${activeTab === 'trends' ? 'active' : ''}`}
-          onClick={() => setActiveTab('trends')}
-        >
-          Trends
-        </button>
-      </div>
-
-      {/* Overview Tab */}
-      {activeTab === 'overview' && (
-        <div className="overview-tab">
-          <div className="summary-cards">
-            <div className="summary-card">
-              <h3>Total Spent</h3>
-              <div className="amount">{formatCurrency(insights.totalSpent)}</div>
-              <p>Across {insights.totalServices} services</p>
-            </div>
-            <div className="summary-card">
-              <h3>Average Cost per Service</h3>
-              <div className="amount">{formatCurrency(insights.averageCostPerService)}</div>
-              <p>Per service average</p>
-            </div>
-            <div className="summary-card">
-              <h3>Total Vehicles</h3>
-              <div className="amount">{insights.vehicles.length}</div>
-              <p>Vehicles tracked</p>
-            </div>
+    <div className="cost-insights-page">
+      <div className="cost-insights-page__inner">
+        <header className="cost-insights-page__hero">
+          <div>
+            <p
+              style={{
+                fontSize: '0.8125rem',
+                color: 'rgba(255, 255, 255, 0.5)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.14em',
+                fontWeight: 600,
+                margin: '0 0 12px'
+              }}
+            >
+              {getGreeting()}, {displayName}
+            </p>
+            <h1
+              style={{
+                fontSize: 'clamp(2rem, 4vw, 3.25rem)',
+                fontWeight: 700,
+                color: '#ffffff',
+                margin: '0 0 12px',
+                letterSpacing: '-0.03em',
+                lineHeight: 1.1
+              }}
+            >
+              Cost <span style={{ color: 'rgba(255, 255, 255, 0.82)' }}>analysis</span>
+            </h1>
+            <p
+              style={{
+                fontSize: '1.0625rem',
+                color: 'rgba(255, 255, 255, 0.62)',
+                margin: 0,
+                maxWidth: 520,
+                lineHeight: 1.55
+              }}
+            >
+              Vertical nav on the left keeps sections one tap away; charts and ledger layouts change per tab so this page
+              feels purpose-built, not copy-pasted from shops or history.
+            </p>
           </div>
-
-          {/* Most Expensive Services */}
-          <div className="section">
-            <h3>Most Expensive Services</h3>
-            <div className="service-list">
-              {insights.mostExpensiveServices.map((service, index) => (
-                <div key={service.id} className="service-item">
-                  <div className="service-info">
-                    <h4>{service.service_type}</h4>
-                    <p>{service.vehicle?.year} {service.vehicle?.make} {service.vehicle?.model}</p>
-                    <p>{formatDate(service.service_date)}</p>
-                  </div>
-                  <div className="service-cost">
-                    {formatCurrency(service.total_cost)}
-                  </div>
-                </div>
-              ))}
+          <div
+            style={{ ...heroStatCardStyle, alignSelf: 'flex-start', minWidth: 'min(100%, 240px)' }}
+            onMouseEnter={(e) => Object.assign(e.currentTarget.style, heroStatHover)}
+            onMouseLeave={(e) => Object.assign(e.currentTarget.style, heroStatCardStyle)}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+              <PieChart size={28} style={{ color: '#ffffff' }} strokeWidth={1.75} />
             </div>
+            <p
+              style={{
+                fontSize: '0.8rem',
+                color: 'rgba(255, 255, 255, 0.55)',
+                margin: '0 0 8px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                fontWeight: 600
+              }}
+            >
+              Lifetime spend
+            </p>
+            <p style={{ fontSize: '2rem', fontWeight: 800, color: '#ffffff', margin: 0, letterSpacing: '-0.02em' }}>
+              {formatCurrency(insights.totalSpent)}
+            </p>
+            <p style={{ fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.48)', margin: '10px 0 0' }}>
+              {insights.totalServices || 0} services • {(insights.vehicles || []).length} vehicles
+            </p>
           </div>
+        </header>
 
-          {/* Recent Services */}
-          <div className="section">
-            <h3>Recent Services</h3>
-            <div className="service-list">
-              {insights.recentServices.map((service) => (
-                <div key={service.id} className="service-item">
-                  <div className="service-info">
-                    <h4>{service.service_type}</h4>
-                    <p>{service.vehicle?.year} {service.vehicle?.make} {service.vehicle?.model}</p>
-                    <p>{formatDate(service.service_date)}</p>
-                  </div>
-                  <div className="service-cost">
-                    {formatCurrency(service.total_cost)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* By Vehicle Tab */}
-      {activeTab === 'vehicles' && (
-        <div className="vehicles-tab">
-          <div className="vehicle-list">
-            {insights.spendingByVehicle.map((vehicleData) => (
-              <div key={vehicleData.vehicle.id} className="vehicle-card">
-                <div className="vehicle-header">
-                  <h3>{vehicleData.vehicle.year} {vehicleData.vehicle.make} {vehicleData.vehicle.model}</h3>
-                  <p>{vehicleData.vehicle.license_plate || 'No License Plate'}</p>
-                </div>
-                <div className="vehicle-stats">
-                  <div className="stat">
-                    <span className="label">Total Spent:</span>
-                    <span className="value">{formatCurrency(vehicleData.totalSpent)}</span>
-                  </div>
-                  <div className="stat">
-                    <span className="label">Services:</span>
-                    <span className="value">{vehicleData.serviceCount}</span>
-                  </div>
-                  <div className="stat">
-                    <span className="label">Average Cost:</span>
-                    <span className="value">{formatCurrency(vehicleData.averageCostPerService)}</span>
-                  </div>
-                </div>
-              </div>
+        <div className="cost-insights-page__layout">
+          <nav className="cost-insights-page__rail" aria-label="Analysis sections">
+            <p className="cost-insights-page__rail-label">Navigate</p>
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                className={`cost-insights-page__rail-btn ${activeTab === tab.id ? 'cost-insights-page__rail-btn--active' : ''}`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                {tab.label}
+              </button>
             ))}
-          </div>
-        </div>
-      )}
+          </nav>
 
-      {/* By Service Type Tab */}
-      {activeTab === 'services' && (
-        <div className="services-tab">
-          <div className="service-type-list">
-            {Object.entries(insights.spendingByServiceType)
-              .sort(([,a], [,b]) => b.totalSpent - a.totalSpent)
-              .map(([serviceType, data]) => (
-                <div key={serviceType} className="service-type-card">
-                  <div className="service-type-header">
-                    <h3>{serviceType}</h3>
+          <div className="cost-insights-page__content">
+            {activeTab === 'overview' && (
+              <>
+                <div className="cost-ci-kpi-grid">
+                  <div className="cost-ci-kpi">
+                    <div className="cost-ci-kpi__label">
+                      <DollarSign size={15} strokeWidth={2} /> Total spent
+                    </div>
+                    <p className="cost-ci-kpi__value">{formatCurrency(insights.totalSpent)}</p>
+                    <p className="cost-ci-kpi__hint">Across {insights.totalServices} logged services</p>
                   </div>
-                  <div className="service-type-stats">
-                    <div className="stat">
-                      <span className="label">Total Spent:</span>
-                      <span className="value">{formatCurrency(data.totalSpent)}</span>
+                  <div className="cost-ci-kpi">
+                    <div className="cost-ci-kpi__label">
+                      <TrendingUp size={15} strokeWidth={2} /> Average / service
                     </div>
-                    <div className="stat">
-                      <span className="label">Services:</span>
-                      <span className="value">{data.serviceCount}</span>
+                    <p className="cost-ci-kpi__value">{formatCurrency(insights.averageCostPerService)}</p>
+                    <p className="cost-ci-kpi__hint">Mean ticket size</p>
+                  </div>
+                  <div className="cost-ci-kpi">
+                    <div className="cost-ci-kpi__label">
+                      <Car size={15} strokeWidth={2} /> Vehicles
                     </div>
-                    <div className="stat">
-                      <span className="label">Average Cost:</span>
-                      <span className="value">{formatCurrency(data.averageCost)}</span>
-                    </div>
+                    <p className="cost-ci-kpi__value">{(insights.vehicles || []).length}</p>
+                    <p className="cost-ci-kpi__hint">Included in this analysis</p>
                   </div>
                 </div>
-              ))}
-          </div>
-        </div>
-      )}
 
-      {/* Trends Tab */}
-      {activeTab === 'trends' && (
-        <div className="trends-tab">
-          <div className="trends-section">
-            <h3>Monthly Spending Trends</h3>
-            {trends && trends.trends.length > 0 ? (
-              <div className="trends-chart">
-                {trends.trends.map((trend) => (
-                  <div key={trend.month} className="trend-bar">
-                    <div className="trend-label">{trend.month}</div>
-                    <div className="trend-amount">{formatCurrency(trend.amount)}</div>
+                <div className="cost-ci-overview-split">
+                  <section className="cost-ci-panel">
+                    <h2 className="cost-ci-panel__title">Most expensive jobs</h2>
+                    {expensive.length === 0 ? (
+                      <p className="cost-ci-muted">No billed services yet.</p>
+                    ) : (
+                      <div className="cost-ci-row-list">
+                        {expensive.map((service) => (
+                          <div key={service.id} className="cost-ci-row">
+                            <div>
+                              <p className="cost-ci-row__title">{service.service_type}</p>
+                              <p className="cost-ci-row__meta">
+                                {service.vehicle?.year} {service.vehicle?.make} {service.vehicle?.model}
+                                <br />
+                                {formatDate(service.service_date)}
+                              </p>
+                            </div>
+                            <span className="cost-ci-row__price">{formatCurrency(service.total_cost)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </section>
+
+                  <section className="cost-ci-panel">
+                    <h2 className="cost-ci-panel__title">Recent activity</h2>
+                    {recent.length === 0 ? (
+                      <p className="cost-ci-muted">No recent services.</p>
+                    ) : (
+                      <div className="cost-ci-row-list">
+                        {recent.map((service) => (
+                          <div key={service.id} className="cost-ci-row">
+                            <div>
+                              <p className="cost-ci-row__title">{service.service_type}</p>
+                              <p className="cost-ci-row__meta">
+                                {service.vehicle?.year} {service.vehicle?.make} {service.vehicle?.model}
+                                <br />
+                                {formatDate(service.service_date)}
+                              </p>
+                            </div>
+                            <span className="cost-ci-row__price">{formatCurrency(service.total_cost)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                </div>
+              </>
+            )}
+
+            {activeTab === 'vehicles' && (
+              <section className="cost-ci-panel">
+                <h2 className="cost-ci-panel__title">Spend by vehicle</h2>
+                <p className="cost-ci-muted" style={{ marginTop: '-8px', marginBottom: '22px' }}>
+                  Ledger-style rows — scan totals without opening each card.
+                </p>
+                {vehiclesLedger.length === 0 ? (
+                  <p className="cost-ci-muted">No vehicles or services yet.</p>
+                ) : (
+                  <div className="cost-ci-ledger">
+                    {vehiclesLedger.map(({ vehicle, totalSpent, serviceCount, averageCostPerService }) => (
+                      <div key={vehicle.id} className="cost-ci-ledger__row">
+                        <div>
+                          <p className="cost-ci-ledger__vehicle">
+                            {vehicle.year} {vehicle.make} {vehicle.model}
+                          </p>
+                          <p className="cost-ci-ledger__plate">{vehicle.license_plate || 'No plate on file'}</p>
+                        </div>
+                        <div className="cost-ci-ledger__stat">
+                          <span className="cost-ci-ledger__stat-lbl">Total</span>
+                          <span className="cost-ci-ledger__stat-val">{formatCurrency(totalSpent)}</span>
+                        </div>
+                        <div className="cost-ci-ledger__stat">
+                          <span className="cost-ci-ledger__stat-lbl">Services</span>
+                          <span className="cost-ci-ledger__stat-val">{serviceCount}</span>
+                        </div>
+                        <div className="cost-ci-ledger__stat">
+                          <span className="cost-ci-ledger__stat-lbl">Avg</span>
+                          <span className="cost-ci-ledger__stat-val">{formatCurrency(averageCostPerService)}</span>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p>No trend data available</p>
+                )}
+              </section>
+            )}
+
+            {activeTab === 'services' && (
+              <section className="cost-ci-panel">
+                <h2 className="cost-ci-panel__title">Mix by service type</h2>
+                <p className="cost-ci-muted" style={{ marginTop: '-8px', marginBottom: '22px' }}>
+                  Bar width shows share of your total recorded spend.
+                </p>
+                {serviceTypeBars.length === 0 ? (
+                  <p className="cost-ci-muted">No service-type breakdown yet.</p>
+                ) : (
+                  serviceTypeBars.map(({ name, totalSpent, serviceCount, averageCost, pct }) => (
+                    <div key={name} className="cost-ci-bar-row">
+                      <div className="cost-ci-bar-row__top">
+                        <span className="cost-ci-bar-row__name">{name}</span>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 10,
+                            flexWrap: 'wrap',
+                            justifyContent: 'flex-end',
+                          }}
+                        >
+                          <span className="cost-ci-bar-row__nums">
+                            {formatCurrency(totalSpent)} • {serviceCount}× • avg {formatCurrency(averageCost)}
+                          </span>
+                          <button
+                            type="button"
+                            className="cost-ci-save-btn"
+                            disabled={savingServiceKey === name}
+                            onClick={() =>
+                              saveServiceTypeBookmark(name, { totalSpent, serviceCount, averageCost })
+                            }
+                          >
+                            <Bookmark size={14} />
+                            {savingServiceKey === name ? '…' : 'Save'}
+                          </button>
+                        </div>
+                      </div>
+                      <div className="cost-ci-bar-row__track">
+                        <div className="cost-ci-bar-row__fill" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  ))
+                )}
+              </section>
+            )}
+
+            {activeTab === 'trends' && (
+              <>
+                <section className="cost-ci-panel">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                    <BarChart3 size={22} style={{ opacity: 0.9 }} />
+                    <h2 className="cost-ci-panel__title" style={{ marginBottom: 0 }}>
+                      Monthly trends
+                    </h2>
+                  </div>
+                  <p className="cost-ci-muted" style={{ marginBottom: '22px' }}>
+                    Relative bar lengths compare spend across months that had activity.
+                  </p>
+                  {!trends?.trends?.length ? (
+                    <p className="cost-ci-muted">No trend data yet — complete a few dated services first.</p>
+                  ) : (
+                    [...trends.trends]
+                      .sort((a, b) => b.month.localeCompare(a.month))
+                      .map((trend) => (
+                        <div key={trend.month} className="cost-ci-month-row">
+                          <span className="cost-ci-month-row__label">{formatMonthLabel(trend.month)}</span>
+                          <div className="cost-ci-month-row__track">
+                            <div
+                              className="cost-ci-month-row__fill"
+                              style={{
+                                width: `${((Number(trend.amount) || 0) / trendMaxAmount) * 100}%`
+                              }}
+                            />
+                          </div>
+                          <span className="cost-ci-month-row__amt">{formatCurrency(trend.amount)}</span>
+                        </div>
+                      ))
+                  )}
+                </section>
+
+                <section className="cost-ci-panel" style={{ marginTop: '22px' }}>
+                  <h2 className="cost-ci-panel__title">Spending by provider</h2>
+                  <p className="cost-ci-muted" style={{ marginTop: '-8px', marginBottom: '22px' }}>
+                    Shops and mechanics aggregated from your history.
+                  </p>
+                  {providersSorted.length === 0 ? (
+                    <p className="cost-ci-muted">No provider data yet.</p>
+                  ) : (
+                    <div className="cost-ci-provider-grid">
+                      {providersSorted.map(([providerName, data]) => (
+                        <div key={providerName} className="cost-ci-provider-card">
+                          <div className="cost-ci-provider-card__head">
+                            <h3 className="cost-ci-provider-card__name">{providerName}</h3>
+                            <span className="cost-ci-badge">{data.providerType}</span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+                            <span className="cost-ci-muted">Total</span>
+                            <strong style={{ color: '#ffffff' }}>{formatCurrency(data.totalSpent)}</strong>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginTop: '10px' }}>
+                            <span className="cost-ci-muted">Services</span>
+                            <strong style={{ color: '#ffffff' }}>{data.serviceCount}</strong>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </section>
+              </>
             )}
           </div>
-
-          {/* Spending by Provider */}
-          <div className="provider-section">
-            <h3>Spending by Provider</h3>
-            <div className="provider-list">
-              {Object.entries(insights.spendingByProvider)
-                .sort(([,a], [,b]) => b.totalSpent - a.totalSpent)
-                .map(([providerName, data]) => (
-                  <div key={providerName} className="provider-card">
-                    <div className="provider-header">
-                      <h4>{providerName}</h4>
-                      <span className="provider-type">{data.providerType}</span>
-                    </div>
-                    <div className="provider-stats">
-                      <div className="stat">
-                        <span className="label">Total Spent:</span>
-                        <span className="value">{formatCurrency(data.totalSpent)}</span>
-                      </div>
-                      <div className="stat">
-                        <span className="label">Services:</span>
-                        <span className="value">{data.serviceCount}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
