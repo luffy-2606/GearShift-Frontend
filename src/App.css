@@ -876,6 +876,194 @@ body {
 }
 
 /* =========================================================
+   Admin page dark-theme overrides
+   ========================================================= */
+.admin-page {
+  width: 100%;
+  color: var(--dark-text);
+  padding-top: 96px;
+  background: #000;
+  min-height: 100vh;
+}
+
+.admin-page-content {
+  max-width: 1320px;
+}
+
+.admin-page .dashboard-header {
+  background: linear-gradient(145deg, #121212, #1a1a1a);
+  border: 1px solid var(--dark-border);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+}
+
+.admin-page .dashboard-header h1 {
+  color: var(--dark-text);
+}
+
+.admin-page .admin-page-path {
+  display: block;
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--dark-text-muted);
+}
+
+.admin-page .user-info {
+  color: var(--dark-text-secondary);
+}
+
+.admin-page .role-admin {
+  background: rgba(220, 38, 38, 0.2);
+  color: #fca5a5;
+}
+
+.admin-page .btn-logout {
+  background: var(--dark-accent);
+  color: var(--dark-text);
+}
+
+.admin-page .btn-logout:hover {
+  background: var(--dark-accent-hover);
+}
+
+.admin-page .admin-tabs {
+  background: #121212;
+  border: 1px solid var(--dark-border);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.3);
+}
+
+.admin-page .admin-tabs-single {
+  overflow: hidden;
+}
+
+.admin-page .admin-tab-nav {
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom-color: var(--dark-border);
+}
+
+.admin-page .admin-tab-btn {
+  color: var(--dark-text-secondary);
+}
+
+.admin-page .admin-tab-btn:hover {
+  color: var(--dark-text);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.admin-page .admin-tab-btn.active {
+  color: #fca5a5;
+  border-bottom-color: var(--dark-accent);
+  background: rgba(220, 38, 38, 0.08);
+}
+
+.admin-page .admin-tab-panel-header {
+  padding-top: 24px;
+  border-bottom-color: var(--dark-border);
+}
+
+.admin-page .admin-tab-panel-header h2,
+.admin-page .admin-tab-empty h3 {
+  color: var(--dark-text);
+}
+
+.admin-page .admin-tab-empty,
+.admin-page .admin-tab-empty p,
+.admin-page .admin-table-count {
+  color: var(--dark-text-muted);
+}
+
+.admin-page .admin-tab-toolbar {
+  border-bottom-color: var(--dark-border);
+}
+
+.admin-page .admin-search,
+.admin-page .admin-create-form input,
+.admin-page .admin-create-form select,
+.admin-page .role-select {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: var(--dark-text);
+}
+
+.admin-page .admin-search::placeholder {
+  color: var(--dark-text-muted);
+}
+
+.admin-page .admin-search:focus,
+.admin-page .admin-create-form input:focus,
+.admin-page .admin-create-form select:focus,
+.admin-page .role-select:focus {
+  border-color: var(--dark-accent);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.16);
+}
+
+.admin-page .admin-create-form {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: var(--dark-border);
+}
+
+.admin-page .admin-create-form h3,
+.admin-page .admin-create-form .form-group label {
+  color: var(--dark-text);
+}
+
+.admin-page .admin-flash-success {
+  background: rgba(22, 163, 74, 0.22);
+  color: #86efac;
+}
+
+.admin-page .admin-flash-error {
+  background: rgba(239, 68, 68, 0.22);
+  color: #fca5a5;
+}
+
+.admin-page .admin-table {
+  background: transparent;
+  border: 1px solid var(--dark-border);
+}
+
+.admin-page .admin-table th {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--dark-text-secondary);
+  border-bottom-color: var(--dark-border);
+}
+
+.admin-page .admin-table td {
+  color: var(--dark-text);
+  border-bottom-color: var(--dark-border);
+}
+
+.admin-page .admin-table tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.admin-page .btn-primary,
+.admin-page .btn-role-save {
+  background: var(--dark-accent);
+  color: var(--dark-text);
+}
+
+.admin-page .btn-primary:hover:not(:disabled),
+.admin-page .btn-role-save:hover {
+  background: var(--dark-accent-hover);
+}
+
+.admin-page .btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: var(--dark-text);
+}
+
+.admin-page .btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+@media (max-width: 900px) {
+  .admin-page {
+    padding-top: 88px;
+  }
+}
+
+/* =========================================================
    Landing Page Styles
    ========================================================= */
 

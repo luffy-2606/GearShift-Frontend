@@ -3,14 +3,6 @@ import { useAuth } from '../context/AuthContext';
 import apiClient from '../lib/apiClient';
 import PageLoadSkeleton from './PageLoadSkeleton';
 
-const TABS = [
-  { id: 'users',         label: 'Manage Users' },
-  { id: 'reviews',       label: 'Moderate Reviews' },
-  { id: 'posts',         label: 'Moderate Posts' },
-  { id: 'announcements', label: 'Publish Announcements' },
-  { id: 'audit',         label: 'View Audit Logs' },
-];
-
 const ROLES = ['user', 'mechanic', 'admin'];
 
 const EMPTY_CREATE_FORM = {
@@ -338,92 +330,38 @@ const ManageUsers = ({ currentAdminId }) => {
   );
 };
 
-// ─── Placeholder tab ────────────────────────────────────────────────────────
-
-const ComingSoon = ({ title, description }) => (
-  <div className="admin-tab-empty">
-    <div className="admin-tab-empty-icon">🚧</div>
-    <h3>{title}</h3>
-    <p>{description}</p>
-  </div>
-);
-
 // ─── Admin Dashboard shell ───────────────────────────────────────────────────
 
 const AdminDashboard = () => {
   const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState('users');
 
   return (
-    <div className="container">
-      {/* header */}
-      <div className="dashboard-header">
-        <div>
-          <h1 style={{ margin: 0 }}>Admin Dashboard</h1>
-          <span style={{ fontSize: 13, color: 'var(--gray-500)', marginTop: 2, display: 'block' }}>
-            /admin/dashboard
-          </span>
-        </div>
-        <div className="user-info">
-          <span>
-            {user?.first_name} {user?.last_name}
-            <span className="role-badge role-admin" style={{ marginLeft: 8 }}>admin</span>
-          </span>
-          <button onClick={logout} className="btn-logout">Logout</button>
-        </div>
-      </div>
-
-      {/* tab navigation */}
-      <div className="admin-tabs">
-        <nav className="admin-tab-nav">
-          {TABS.map(tab => (
-            <button
-              key={tab.id}
-              className={`admin-tab-btn${activeTab === tab.id ? ' active' : ''}`}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </nav>
-
-        {/* tab panels */}
-        <div className="admin-tab-panel">
-          <div className="admin-tab-panel-header">
-            <h2>{TABS.find(t => t.id === activeTab)?.label}</h2>
+    <div className="admin-page">
+      <div className="container admin-page-content">
+        {/* header */}
+        <div className="dashboard-header">
+          <div>
+            <h1>Admin Dashboard</h1>
+            <span className="admin-page-path">
+              /admin/dashboard
+            </span>
           </div>
+          <div className="user-info">
+            <span>
+              {user?.first_name} {user?.last_name}
+              <span className="role-badge role-admin" style={{ marginLeft: 8 }}>admin</span>
+            </span>
+            <button onClick={logout} className="btn-logout">Logout</button>
+          </div>
+        </div>
 
-          {activeTab === 'users' && (
+        <div className="admin-tabs admin-tabs-single">
+          <div className="admin-tab-panel">
+            <div className="admin-tab-panel-header">
+              <h2>Manage Users</h2>
+            </div>
             <ManageUsers currentAdminId={user?.id} />
-          )}
-
-          {activeTab === 'reviews' && (
-            <ComingSoon
-              title="Moderate Reviews"
-              description="Review moderation tools are coming soon. You'll be able to view and delete inappropriate reviews here."
-            />
-          )}
-
-          {activeTab === 'posts' && (
-            <ComingSoon
-              title="Moderate Posts"
-              description="Post moderation tools are coming soon. You'll be able to view and remove unwanted posts here."
-            />
-          )}
-
-          {activeTab === 'announcements' && (
-            <ComingSoon
-              title="Publish Announcements"
-              description="Announcement publishing tools are coming soon. You'll be able to create and broadcast platform-wide announcements here."
-            />
-          )}
-
-          {activeTab === 'audit' && (
-            <ComingSoon
-              title="View Audit Logs"
-              description="Audit log viewer is coming soon. You'll be able to track all admin actions and system events here."
-            />
-          )}
+          </div>
         </div>
       </div>
     </div>
