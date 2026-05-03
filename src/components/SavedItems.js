@@ -166,11 +166,10 @@ const SavedItems = () => {
   };
 
   return (
-    <div style={styles.shell}>
-      <div style={styles.inner}>
+    <div style={styles.shell} className="saved-items-shell">
+      <div style={styles.inner} className="saved-items-inner">
         <header style={styles.header}>
           <h1 style={styles.title}>
-            <Bookmark size={28} style={{ verticalAlign: 'middle', marginRight: 8 }} />
             Saved & favorites
           </h1>
           <p style={styles.subtitle}>
@@ -181,7 +180,7 @@ const SavedItems = () => {
 
         {message && <div style={styles.alert}>{message}</div>}
 
-        <div style={styles.toolbar}>
+        <div style={styles.toolbar} className="saved-items-toolbar">
           <label style={styles.check}>
             <input
               type="checkbox"
@@ -196,8 +195,22 @@ const SavedItems = () => {
             value={tagFilter}
             onChange={(e) => setTagFilter(e.target.value)}
             style={styles.search}
+            className="saved-items-search"
           />
-          <button type="button" style={styles.btnPrimary} onClick={() => setShowAddParts(true)}>
+          <button
+            type="button"
+            style={styles.btnPrimary}
+            onClick={() => setShowAddParts(true)}
+            onMouseEnter={(e) => {
+              Object.assign(e.currentTarget.style, {
+                transform: 'translateY(-2px)',
+                boxShadow: '0 8px 28px rgba(255, 255, 255, 0.2)'
+              });
+            }}
+            onMouseLeave={(e) => {
+              Object.assign(e.currentTarget.style, styles.btnPrimary);
+            }}
+          >
             <Plus size={16} style={{ marginRight: 6 }} />
             Add parts list
           </button>
@@ -234,11 +247,51 @@ const SavedItems = () => {
             <PageLoadSkeleton variant="list" message="Loading your saved items" ariaLabel="Loading saved items" />
           </div>
         ) : items.length === 0 ? (
-          <p style={{ color: 'var(--dark-text-secondary)' }}>Nothing saved yet. Save a shop, mechanic, or quote from elsewhere in the app.</p>
+          <div style={{
+            textAlign: 'center',
+            padding: '48px 32px',
+            background: 'rgba(255, 255, 255, 0.05)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            borderRadius: '24px',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)'
+          }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: '12px', opacity: 0.75 }} aria-hidden>📋</div>
+            <h3 style={{
+              fontSize: '1.35rem',
+              fontWeight: 600,
+              color: '#ffffff',
+              margin: '0 0 8px',
+              letterSpacing: '-0.02em'
+            }}>
+              Nothing saved yet
+            </h3>
+            <p style={{
+              color: 'rgba(255, 255, 255, 0.5)',
+              margin: 0,
+              lineHeight: 1.6,
+              fontSize: '1rem'
+            }}>
+              Save a shop, mechanic, or quote from elsewhere in the app.
+            </p>
+          </div>
         ) : (
           <ul style={styles.list}>
             {items.map((item) => (
-              <li key={item.id} style={styles.card}>
+              <li
+                key={item.id}
+                style={styles.card}
+                onMouseEnter={(e) => {
+                  Object.assign(e.currentTarget.style, {
+                    transform: 'translateY(-6px)',
+                    boxShadow: '0 20px 50px rgba(0, 0, 0, 0.45)',
+                    borderColor: 'rgba(255, 255, 255, 0.22)'
+                  });
+                }}
+                onMouseLeave={(e) => {
+                  Object.assign(e.currentTarget.style, styles.card);
+                }}
+              >
                 <div style={styles.cardTop}>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={styles.cardTitleRow}>
@@ -278,7 +331,7 @@ const SavedItems = () => {
                       <p style={styles.notesPreview}>{item.notes}</p>
                     )}
                   </div>
-                  <div style={styles.cardActions}>
+                  <div style={styles.cardActions} className="saved-items-card-actions">
                     {['shop', 'mechanic', 'appointment', 'cost_insight', 'quote_snapshot', 'parts_bundle'].includes(
                       item.entity_type
                     ) && (
@@ -286,15 +339,29 @@ const SavedItems = () => {
                         type="button"
                         style={styles.btnGhost}
                         onClick={() => openTarget(navigate, item)}
+                        onMouseEnter={(e) => Object.assign(e.currentTarget.style, styles.btnGhostHover)}
+                        onMouseLeave={(e) => Object.assign(e.currentTarget.style, styles.btnGhost)}
                       >
                         <ExternalLink size={16} />
                         Open
                       </button>
                     )}
-                    <button type="button" style={styles.btnGhost} onClick={() => startEdit(item)}>
+                    <button
+                      type="button"
+                      style={styles.btnGhost}
+                      onClick={() => startEdit(item)}
+                      onMouseEnter={(e) => Object.assign(e.currentTarget.style, styles.btnGhostHover)}
+                      onMouseLeave={(e) => Object.assign(e.currentTarget.style, styles.btnGhost)}
+                    >
                       Edit
                     </button>
-                    <button type="button" style={styles.btnGhostDanger} onClick={() => remove(item.id)}>
+                    <button
+                      type="button"
+                      style={styles.btnGhostDanger}
+                      onClick={() => remove(item.id)}
+                      onMouseEnter={(e) => Object.assign(e.currentTarget.style, styles.btnGhostDangerHover)}
+                      onMouseLeave={(e) => Object.assign(e.currentTarget.style, styles.btnGhostDanger)}
+                    >
                       <Trash2 size={16} />
                     </button>
                   </div>
@@ -302,7 +369,7 @@ const SavedItems = () => {
 
                 {(item.entity_type === 'quote_snapshot' || item.entity_type === 'parts_bundle') && (
                   <details style={styles.details}>
-                    <summary style={{ cursor: 'pointer', color: 'var(--dark-text-secondary)' }}>Details</summary>
+                    <summary style={{ cursor: 'pointer', color: 'rgba(255, 255, 255, 0.55)' }}>Details</summary>
                     <pre style={styles.pre}>{JSON.stringify(item.snapshot, null, 2)}</pre>
                   </details>
                 )}
@@ -339,9 +406,23 @@ const SavedItems = () => {
       </div>
 
       <style>{`
-        .ui-btn { border-radius: 10px; padding: 8px 14px; font-weight: 600; font-size: 14px; cursor: pointer; border: 1px solid transparent; }
-        .ui-btn.primary { background: var(--dark-accent); color: #fff; }
-        .ui-btn.muted { background: transparent; color: var(--dark-text-secondary); border-color: var(--dark-border); }
+        .ui-btn { border-radius: 14px; padding: 12px 18px; font-weight: 700; font-size: 0.875rem; cursor: pointer; border: 1px solid transparent; transition: all 0.2s ease; }
+        .ui-btn.primary { background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%); color: #111111; box-shadow: 0 4px 18px rgba(255, 255, 255, 0.15); }
+        .ui-btn.primary:hover { transform: translateY(-2px); box-shadow: 0 8px 28px rgba(255, 255, 255, 0.2); }
+        .ui-btn.muted { background: rgba(255, 255, 255, 0.05); color: rgba(255, 255, 255, 0.85); border-color: rgba(255, 255, 255, 0.12); }
+        .ui-btn.muted:hover { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.22); }
+        @media (max-width: 1024px) {
+          .saved-items-shell { padding: 100px 40px 60px !important; }
+          .saved-items-inner { padding: 0 40px !important; }
+        }
+        @media (max-width: 768px) {
+          .saved-items-shell { padding: 100px 24px 48px !important; }
+          .saved-items-inner { padding: 0 24px !important; }
+          .saved-items-toolbar { flex-direction: column; align-items: stretch !important; }
+          .saved-items-search { maxWidth: 100% !important; }
+          .saved-items-card-actions { flex-direction: row !important; }
+          .saved-items-card-actions button { flex: 1; }
+        }
       `}</style>
     </div>
   );
@@ -350,154 +431,183 @@ const SavedItems = () => {
 const styles = {
   shell: {
     minHeight: '100vh',
-    background: 'var(--dark-bg)',
-    color: 'var(--dark-text)',
-    paddingTop: '104px',
-    paddingBottom: '48px',
+    background: '#000000',
+    color: '#ffffff',
+    paddingTop: '120px',
+    paddingBottom: '80px',
   },
   inner: {
-    maxWidth: '800px',
+    maxWidth: '1200px',
     margin: '0 auto',
-    padding: '0 20px',
+    padding: '0 80px',
   },
-  header: { marginBottom: '20px' },
-  title: { margin: 0, fontSize: '26px', fontWeight: 700 },
-  subtitle: { margin: '8px 0 0', color: 'var(--dark-text-secondary)', fontSize: '14px', lineHeight: 1.5 },
+  header: { marginBottom: '32px' },
+  title: { margin: 0, fontSize: 'clamp(2rem, 4vw, 3rem)', fontWeight: 700, color: '#ffffff', letterSpacing: '-0.03em' },
+  subtitle: { margin: '12px 0 0', color: 'rgba(255, 255, 255, 0.62)', fontSize: '1.0625rem', lineHeight: 1.55, maxWidth: '680px' },
   alert: {
-    padding: '10px 12px',
-    borderRadius: '10px',
-    background: 'rgba(239,68,68,0.12)',
-    border: '1px solid rgba(239,68,68,0.35)',
-    color: '#fca5a5',
-    marginBottom: '16px',
+    padding: '14px 18px',
+    borderRadius: '14px',
+    background: 'rgba(50, 20, 20, 0.96)',
+    border: '1px solid rgba(248, 113, 113, 0.45)',
+    color: 'rgba(254, 226, 226, 0.95)',
+    marginBottom: '20px',
+    backdropFilter: 'blur(12px)',
+    fontSize: '0.9375rem',
+    fontWeight: 600,
   },
   toolbar: {
     display: 'flex',
     flexWrap: 'wrap',
     alignItems: 'center',
-    gap: '12px',
-    marginBottom: '20px',
+    gap: '14px',
+    marginBottom: '28px',
   },
-  check: { display: 'flex', alignItems: 'center', gap: 8, fontSize: '14px', color: 'var(--dark-text-secondary)' },
+  check: { display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.875rem', color: 'rgba(255, 255, 255, 0.62)', fontWeight: 500 },
   search: {
-    flex: '1 1 160px',
-    maxWidth: '240px',
-    padding: '8px 12px',
-    borderRadius: '10px',
-    border: '1px solid var(--dark-border)',
-    background: 'rgba(255,255,255,0.05)',
-    color: 'var(--dark-text)',
+    flex: '1 1 180px',
+    maxWidth: '280px',
+    padding: '12px 16px',
+    borderRadius: '16px',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    background: 'rgba(255, 255, 255, 0.05)',
+    color: '#ffffff',
+    fontSize: '0.95rem',
+    outline: 'none',
   },
   btnPrimary: {
     display: 'inline-flex',
     alignItems: 'center',
-    background: 'var(--dark-accent)',
-    color: '#fff',
+    background: 'linear-gradient(135deg, #ffffff 0%, #e0e0e0 100%)',
+    color: '#111111',
     border: 'none',
-    borderRadius: '10px',
-    padding: '8px 14px',
-    fontWeight: 600,
+    borderRadius: '14px',
+    padding: '12px 18px',
+    fontWeight: 700,
     cursor: 'pointer',
-    fontSize: '14px',
+    fontSize: '0.875rem',
+    boxShadow: '0 4px 18px rgba(255, 255, 255, 0.15)',
+    transition: 'transform 0.2s ease, box-shadow 0.2s ease',
   },
   addCard: {
-    background: 'rgba(255,255,255,0.04)',
-    border: '1px solid var(--dark-border)',
-    borderRadius: '14px',
-    padding: '16px',
-    marginBottom: '20px',
+    background: 'rgba(255, 255, 255, 0.05)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.15)',
+    borderRadius: '24px',
+    padding: '24px',
+    marginBottom: '24px',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
   },
   input: {
     width: '100%',
     boxSizing: 'border-box',
-    marginBottom: '10px',
-    padding: '10px 12px',
-    borderRadius: '10px',
-    border: '1px solid var(--dark-border)',
-    background: 'rgba(0,0,0,0.25)',
-    color: 'var(--dark-text)',
-    fontSize: '14px',
-  },
-  list: { listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '14px' },
-  card: {
-    background: 'rgba(255,255,255,0.05)',
-    border: '1px solid var(--dark-border)',
+    marginBottom: '12px',
+    padding: '12px 16px',
     borderRadius: '14px',
-    padding: '16px',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    background: 'rgba(255, 255, 255, 0.05)',
+    color: '#ffffff',
+    fontSize: '0.925rem',
+    outline: 'none',
   },
-  cardTop: { display: 'flex', gap: '12px', flexWrap: 'wrap', justifyContent: 'space-between' },
-  cardTitleRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
+  list: { listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '20px' },
+  card: {
+    background: 'rgba(255, 255, 255, 0.05)',
+    backdropFilter: 'blur(10px)',
+    border: '1px solid rgba(255, 255, 255, 0.15)',
+    borderRadius: '24px',
+    padding: '24px',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
+    transition: 'transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease',
+  },
+  cardTop: { display: 'flex', gap: '16px', flexWrap: 'wrap', justifyContent: 'space-between' },
+  cardTitleRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   badge: {
-    fontSize: '11px',
+    fontSize: '0.7rem',
     textTransform: 'uppercase',
-    letterSpacing: '0.06em',
-    color: 'var(--dark-text-muted)',
-    fontWeight: 600,
+    letterSpacing: '0.1em',
+    color: 'rgba(255, 255, 255, 0.55)',
+    fontWeight: 700,
   },
-  iconBtn: { background: 'none', border: 'none', cursor: 'pointer', padding: 4 },
-  cardTitle: { margin: '6px 0 4px', fontSize: '18px', fontWeight: 600 },
-  meta: { margin: 0, fontSize: '12px', color: 'var(--dark-text-muted)' },
-  tags: { display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 },
+  iconBtn: { background: 'none', border: 'none', cursor: 'pointer', padding: 4, transition: 'transform 0.2s ease' },
+  cardTitle: { margin: '8px 0 6px', fontSize: '1.35rem', fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em' },
+  meta: { margin: 0, fontSize: '0.8125rem', color: 'rgba(255, 255, 255, 0.45)' },
+  tags: { display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 },
   tag: {
-    fontSize: '12px',
-    padding: '2px 8px',
+    fontSize: '0.78rem',
+    padding: '6px 12px',
     borderRadius: '999px',
-    background: 'rgba(255,255,255,0.08)',
-    border: '1px solid var(--dark-border)',
-    color: 'var(--dark-text-secondary)',
+    background: 'rgba(255, 255, 255, 0.08)',
+    border: '1px solid rgba(255, 255, 255, 0.14)',
+    color: 'rgba(255, 255, 255, 0.85)',
+    fontWeight: 500,
   },
-  notesPreview: { margin: '8px 0 0', fontSize: '14px', color: 'var(--dark-text-secondary)', lineHeight: 1.45 },
-  cardActions: { display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'stretch' },
+  notesPreview: { margin: '10px 0 0', fontSize: '0.925rem', color: 'rgba(255, 255, 255, 0.55)', lineHeight: 1.55 },
+  cardActions: { display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'stretch' },
   btnGhost: {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    background: 'transparent',
-    border: '1px solid var(--dark-border)',
-    color: 'var(--dark-text)',
-    borderRadius: '10px',
-    padding: '8px 12px',
+    gap: 8,
+    background: 'rgba(255, 255, 255, 0.05)',
+    border: '1px solid rgba(255, 255, 255, 0.12)',
+    color: '#ffffff',
+    borderRadius: '14px',
+    padding: '12px 16px',
     cursor: 'pointer',
-    fontSize: '13px',
+    fontSize: '0.875rem',
+    fontWeight: 600,
+    transition: 'all 0.2s ease',
+  },
+  btnGhostHover: {
+    background: 'rgba(255, 255, 255, 0.1)',
+    borderColor: 'rgba(255, 255, 255, 0.22)',
   },
   btnGhostDanger: {
     display: 'inline-flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    background: 'transparent',
-    border: '1px solid rgba(239,68,68,0.4)',
-    color: '#fca5a5',
-    borderRadius: '10px',
-    padding: '8px 12px',
+    gap: 8,
+    background: 'rgba(248, 113, 113, 0.08)',
+    border: '1px solid rgba(248, 113, 113, 0.35)',
+    color: 'rgba(254, 226, 226, 0.95)',
+    borderRadius: '14px',
+    padding: '12px 16px',
     cursor: 'pointer',
-    fontSize: '13px',
+    fontSize: '0.875rem',
+    fontWeight: 600,
+    transition: 'all 0.2s ease',
   },
-  details: { marginTop: 12 },
+  btnGhostDangerHover: {
+    background: 'rgba(248, 113, 113, 0.15)',
+    borderColor: 'rgba(248, 113, 113, 0.5)',
+  },
+  details: { marginTop: 16 },
   pre: {
-    margin: '8px 0 0',
-    padding: 12,
-    background: 'rgba(0,0,0,0.35)',
-    borderRadius: 8,
-    fontSize: '12px',
+    margin: '10px 0 0',
+    padding: '14px 16px',
+    background: 'rgba(0, 0, 0, 0.4)',
+    borderRadius: '12px',
+    fontSize: '0.8125rem',
     overflow: 'auto',
-    maxHeight: 200,
-    color: 'var(--dark-text-secondary)',
+    maxHeight: 220,
+    color: 'rgba(255, 255, 255, 0.55)',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
   },
-  editBox: { marginTop: 14, paddingTop: 14, borderTop: '1px solid var(--dark-border)' },
-  label: { display: 'block', fontSize: '12px', color: 'var(--dark-text-muted)', marginBottom: 4 },
+  editBox: { marginTop: 18, paddingTop: 18, borderTop: '1px solid rgba(255, 255, 255, 0.1)' },
+  label: { display: 'block', fontSize: '0.75rem', color: 'rgba(255, 255, 255, 0.45)', marginBottom: 6, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' },
   textarea: {
     width: '100%',
     boxSizing: 'border-box',
-    borderRadius: '10px',
-    border: '1px solid var(--dark-border)',
-    background: 'rgba(0,0,0,0.25)',
-    color: 'var(--dark-text)',
-    padding: '10px 12px',
-    marginBottom: 10,
-    fontSize: '14px',
+    borderRadius: '14px',
+    border: '1px solid rgba(255, 255, 255, 0.1)',
+    background: 'rgba(255, 255, 255, 0.05)',
+    color: '#ffffff',
+    padding: '12px 16px',
+    marginBottom: 12,
+    fontSize: '0.925rem',
     fontFamily: 'inherit',
+    outline: 'none',
+    resize: 'vertical',
   },
 };
 
