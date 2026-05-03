@@ -35,7 +35,7 @@ const LP_Video = () => {
       }}>
       {/* Video Background */}
       <video
-        src="/Gearshift/video.mp4"
+        src="/GearShift/video.mp4"
         autoPlay
         loop
         muted

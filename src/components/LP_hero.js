@@ -21,8 +21,8 @@ const LP_hero = () => {
   }, []);
 
 //   const heroCarImg = "https://images.unsplash.com/photo-1762316815514-feaf60191bb9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzbGVlayUyMHNwb3J0cyUyMGNhciUyMHJvYWQlMjBkcml2aW5nfGVufDF8fHx8MTc3MjU0NjA2OXww&ixlib=rb-4.1.0&q=80&w=1080";
-     const heroCarImg = "/Gearshift/nbgn.jpg";
-     const coverCarImg = "/Gearshift/car_cover2.png";
+     const heroCarImg = "/GearShift/nbgn.jpg";
+     const coverCarImg = "/GearShift/car_cover2.png";
 
   return (
     <section className="hero-section">
