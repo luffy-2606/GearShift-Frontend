@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../lib/apiClient';
 import AppointmentBooking from './AppointmentBooking';
-import { Star, MapPin, Phone, User, Wrench, Search, Filter, ArrowRight, Globe } from 'lucide-react';
+import { Star, MapPin, Phone, User, Wrench, Search, Filter, ArrowRight, Globe, Bookmark } from 'lucide-react';
 import './ShopsList.css';
 
 function workshopWebsiteHref(url) {
@@ -274,6 +274,28 @@ const ShopsList = () => {
 const ShopCard = ({ shop, onBookAppointment }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [selectedServices, setSelectedServices] = useState([]);
+  const [savingBm, setSavingBm] = useState(false);
+
+  const saveWorkshop = async (e) => {
+    e.stopPropagation();
+    try {
+      setSavingBm(true);
+      await apiClient.post('/api/bookmarks', {
+        entity_type: 'shop',
+        entity_id: shop.id,
+        tags: ['workshop'],
+      });
+      alert('Workshop saved. View it under Saved in the menu.');
+    } catch (err) {
+      if (err.response?.status === 409) {
+        alert('Already in your saved list.');
+      } else {
+        alert(err.response?.data?.message || 'Could not save workshop.');
+      }
+    } finally {
+      setSavingBm(false);
+    }
+  };
 
   const handleServiceToggle = (service) => {
     setSelectedServices(prev => 
@@ -311,18 +333,42 @@ const ShopCard = ({ shop, onBookAppointment }) => {
           </div>
         </div>
         
-        {shop.average_rating >= 4.5 && (
-          <div style={{
-            background: 'var(--dark-accent)',
-            color: 'var(--dark-text)',
-            padding: '0.25rem 0.75rem',
-            borderRadius: '9999px',
-            fontSize: '0.75rem',
-            fontWeight: '600'
-          }}>
-            Top Rated
-          </div>
-        )}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+          <button
+            type="button"
+            onClick={saveWorkshop}
+            disabled={savingBm}
+            title="Save workshop"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'rgba(255,255,255,0.08)',
+              border: '1px solid var(--dark-border)',
+              color: 'var(--dark-text)',
+              borderRadius: '9999px',
+              padding: '0.35rem 0.75rem',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              cursor: savingBm ? 'wait' : 'pointer',
+            }}
+          >
+            <Bookmark size={14} />
+            {savingBm ? '…' : 'Save'}
+          </button>
+          {shop.average_rating >= 4.5 && (
+            <div style={{
+              background: 'var(--dark-accent)',
+              color: 'var(--dark-text)',
+              padding: '0.25rem 0.75rem',
+              borderRadius: '9999px',
+              fontSize: '0.75rem',
+              fontWeight: '600'
+            }}>
+              Top Rated
+            </div>
+          )}
+        </div>
       </div>
       
       {/* Shop Description */}

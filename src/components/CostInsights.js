@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../lib/apiClient';
-import { TrendingUp, DollarSign, Car, Wrench, Calendar, BarChart3 } from 'lucide-react';
+import { TrendingUp, DollarSign, Car, Wrench, Calendar, BarChart3, Bookmark } from 'lucide-react';
 
 const CostInsights = () => {
   const [insights, setInsights] = useState(null);
@@ -621,6 +621,45 @@ const CostInsights = () => {
                     </span>
                   </div>
                 </div>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await apiClient.post('/api/bookmarks', {
+                        entity_type: 'quote_snapshot',
+                        title: `Spending: ${serviceType}`,
+                        snapshot: {
+                          source: 'cost_insights_by_service',
+                          serviceType,
+                          totalSpent: data.totalSpent,
+                          serviceCount: data.serviceCount,
+                          averageCost: data.averageCost,
+                        },
+                        tags: ['cost-insights'],
+                      });
+                      alert('Saved to your Saved list.');
+                    } catch (e) {
+                      alert(e.response?.data?.message || 'Could not save.');
+                    }
+                  }}
+                  style={{
+                    marginTop: '16px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    background: 'rgba(255,255,255,0.08)',
+                    border: '1px solid rgba(255,255,255,0.2)',
+                    color: '#fff',
+                    borderRadius: '10px',
+                    padding: '8px 14px',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <Bookmark size={16} />
+                  Save insight
+                </button>
               </div>
             ))}
         </div>

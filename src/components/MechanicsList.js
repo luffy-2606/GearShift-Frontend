@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import apiClient from '../lib/apiClient';
-import { Star, Search, Filter, MapPin, Phone, Mail, Wrench, User, Clock, DollarSign } from 'lucide-react';
+import { Star, Search, Filter, MapPin, Phone, Mail, Wrench, User, Clock, DollarSign, Bookmark } from 'lucide-react';
 import './MechanicsList.css';
 
 const MechanicsList = () => {
@@ -278,6 +278,28 @@ const MechanicsList = () => {
 
 const MechanicCard = ({ mechanic }) => {
   const [showDetails, setShowDetails] = useState(false);
+  const [savingBm, setSavingBm] = useState(false);
+
+  const saveMechanic = async (e) => {
+    e.stopPropagation();
+    try {
+      setSavingBm(true);
+      await apiClient.post('/api/bookmarks', {
+        entity_type: 'mechanic',
+        entity_id: mechanic.id,
+        tags: ['mechanic'],
+      });
+      alert('Mechanic saved. View under Saved in the menu.');
+    } catch (err) {
+      if (err.response?.status === 409) {
+        alert('Already in your saved list.');
+      } else {
+        alert(err.response?.data?.message || 'Could not save mechanic.');
+      }
+    } finally {
+      setSavingBm(false);
+    }
+  };
 
   const formatDistance = (distance) => {
     if (distance === null) return 'Distance unknown';
@@ -305,15 +327,39 @@ const MechanicCard = ({ mechanic }) => {
           </div>
         </div>
         
-        <div style={{
-          background: mechanic.is_independent ? 'var(--dark-accent)' : 'var(--dark-glass-border)',
-          color: 'var(--dark-text)',
-          padding: '0.25rem 0.75rem',
-          borderRadius: '9999px',
-          fontSize: '0.75rem',
-          fontWeight: '600'
-        }}>
-          {mechanic.is_independent ? 'Independent' : 'Shop'}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '0.5rem' }}>
+          <button
+            type="button"
+            onClick={saveMechanic}
+            disabled={savingBm}
+            title="Save mechanic"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'rgba(255,255,255,0.08)',
+              border: '1px solid var(--dark-border)',
+              color: 'var(--dark-text)',
+              borderRadius: '9999px',
+              padding: '0.35rem 0.75rem',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              cursor: savingBm ? 'wait' : 'pointer',
+            }}
+          >
+            <Bookmark size={14} />
+            {savingBm ? '…' : 'Save'}
+          </button>
+          <div style={{
+            background: mechanic.is_independent ? 'var(--dark-accent)' : 'var(--dark-glass-border)',
+            color: 'var(--dark-text)',
+            padding: '0.25rem 0.75rem',
+            borderRadius: '9999px',
+            fontSize: '0.75rem',
+            fontWeight: '600'
+          }}>
+            {mechanic.is_independent ? 'Independent' : 'Shop'}
+          </div>
         </div>
       </div>
 

@@ -10,6 +10,7 @@ const AppointmentBooking = ({ shop, selectedServices, onClose }) => {
   const [scheduledTime, setScheduledTime] = useState('');
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
+  const [savingQuote, setSavingQuote] = useState(false);
   const [step, setStep] = useState(1); // 1: vehicle, 2: date/time, 3: confirm
   const [vehiclesLoading, setVehiclesLoading] = useState(true);
   const [vehiclesError, setVehiclesError] = useState('');
@@ -64,6 +65,44 @@ const AppointmentBooking = ({ shop, selectedServices, onClose }) => {
     setStep(3);
   };
 
+  const handleSaveQuoteOnly = async () => {
+    if (!selectedVehicle || !scheduledDate || !scheduledTime) {
+      alert('Complete vehicle, date, and time before saving this quote.');
+      return;
+    }
+    const v = vehicles.find((x) => x.id === selectedVehicle);
+    try {
+      setSavingQuote(true);
+      await apiClient.post('/api/bookmarks', {
+        entity_type: 'quote_snapshot',
+        title: `Quote: ${shop?.name || 'Shop'}`,
+        snapshot: {
+          shopId: shop?.id,
+          shopName: shop?.name,
+          shopAddress: shop?.address,
+          vehicleId: selectedVehicle,
+          vehicleLabel: v ? `${v.year} ${v.make} ${v.model}` : null,
+          scheduledDate,
+          scheduledTime,
+          services: (selectedServices || []).map((s) => ({
+            id: s.id,
+            name: s.name,
+            base_price: s.base_price,
+          })),
+          estimatedTotal: totalCost,
+          notes: notes || null,
+        },
+        tags: ['quote'],
+      });
+      alert('Quote saved. Open Saved in the menu anytime.');
+    } catch (error) {
+      console.error('Save quote error:', error);
+      alert(error.response?.data?.message || 'Could not save quote.');
+    } finally {
+      setSavingQuote(false);
+    }
+  };
+
   const handleBookAppointment = async () => {
     try {
       setLoading(true);
@@ -82,13 +121,24 @@ const AppointmentBooking = ({ shop, selectedServices, onClose }) => {
       const response = await apiClient.post('/api/appointments', appointmentData);
 
       if (response.data.success) {
+        const appt = response.data.data;
         alert('Appointment booked successfully!');
-        
-        // Add system message for later confirmation
-        if (window.addAppointmentConfirmation) {
-          window.addAppointmentConfirmation(response.data.data);
+        if (appt?.id) {
+          try {
+            await apiClient.post('/api/bookmarks', {
+              entity_type: 'appointment',
+              entity_id: appt.id,
+              tags: ['appointment'],
+            });
+          } catch (bmErr) {
+            if (bmErr.response?.status !== 409) {
+              console.warn('Could not add appointment to saved list', bmErr);
+            }
+          }
         }
-        
+        if (window.addAppointmentConfirmation) {
+          window.addAppointmentConfirmation(appt);
+        }
         onClose();
       }
     } catch (error) {
@@ -376,9 +426,19 @@ const AppointmentBooking = ({ shop, selectedServices, onClose }) => {
             )}
 
             {step === 3 && (
-              <button className="appointment-btn primary" onClick={handleBookAppointment} disabled={loading}>
-                {loading ? 'Booking…' : 'Confirm appointment'}
-              </button>
+              <>
+                <button
+                  type="button"
+                  className="appointment-btn"
+                  onClick={handleSaveQuoteOnly}
+                  disabled={savingQuote || loading}
+                >
+                  {savingQuote ? 'Saving…' : 'Save quote only'}
+                </button>
+                <button className="appointment-btn primary" onClick={handleBookAppointment} disabled={loading}>
+                  {loading ? 'Booking…' : 'Confirm appointment'}
+                </button>
+              </>
             )}
           </div>
         </div>

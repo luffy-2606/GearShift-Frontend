@@ -94,6 +94,18 @@ const NavBar = () => {
                   transition: 'color 0.2s ease, filter 0.2s ease',
                   filter: hoveredLink === 'chat' ? 'brightness(1.3)' : 'brightness(1)'
                 }} onMouseEnter={() => setHoveredLink('chat')} onMouseLeave={() => setHoveredLink(null)}>Chat</Link>
+                <Link to="/saved" style={{
+                  display: 'block',
+                  color: hoveredLink === null || hoveredLink === 'saved' ? 'white' : 'rgba(255, 255, 255, 0.4)',
+                  textDecoration: 'none',
+                  padding: '12px 0',
+                  fontSize: '3rem',
+                  fontWeight: '500',
+                  fontFamily: 'Times New Roman, serif',
+                  whiteSpace: 'nowrap',
+                  transition: 'color 0.2s ease, filter 0.2s ease',
+                  filter: hoveredLink === 'saved' ? 'brightness(1.3)' : 'brightness(1)'
+                }} onMouseEnter={() => setHoveredLink('saved')} onMouseLeave={() => setHoveredLink(null)}>Saved</Link>
                 <Link to="/shops" style={{
                   display: 'block',
                   color: hoveredLink === null || hoveredLink === 'shops' ? 'white' : 'rgba(255, 255, 255, 0.4)',

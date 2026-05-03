@@ -16,6 +16,7 @@ import LandingPage from './components/LandingPage';
 import SystemMessagesCenter from './components/SystemMessagesCenter';
 import NavBar from './components/NavBar';
 import Chat from './components/Chat';
+import SavedItems from './components/SavedItems';
 import './App.css';
 
 function ProtectedRoute({ children, adminOnly = false }) {
@@ -122,6 +123,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Chat />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/saved"
+              element={
+                <ProtectedRoute>
+                  <SavedItems />
                 </ProtectedRoute>
               }
             />
