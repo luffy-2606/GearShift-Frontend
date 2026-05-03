@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../lib/apiClient';
+import { Mail, Calendar, DollarSign, Car, Pencil, Trash2 } from 'lucide-react';
+import './Profile.css';
 
 const defaultVehicleForm = {
   make: '',
@@ -16,31 +18,67 @@ const defaultVehicleForm = {
   notes: ''
 };
 
+const getGreeting = () => {
+  const hour = new Date().getHours();
+  if (hour < 12) return 'Good morning';
+  if (hour < 18) return 'Good afternoon';
+  return 'Good evening';
+};
+
+function formatBudgetDisplay(raw) {
+  if (raw == null || raw === '') return null;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0
+  }).format(n);
+}
+
+function initials(first, last) {
+  const a = ((first || '').trim()[0] || '').toUpperCase();
+  const b = ((last || '').trim()[0] || '').toUpperCase();
+  const s = `${a}${b}`;
+  return s || 'U';
+}
+
+function truncateVin(vin) {
+  if (!vin) return null;
+  const v = String(vin).trim();
+  if (v.length <= 14) return v;
+  return `${v.slice(0, 14)}…`;
+}
+
 const Profile = () => {
   const { user, updateUser } = useAuth();
   const navigate = useNavigate();
+  const [editMode, setEditMode] = useState(false);
   const [formData, setFormData] = useState({ firstName: '', lastName: '', budget: '' });
   const [vehicleForm, setVehicleForm] = useState(defaultVehicleForm);
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [vehicleLoading, setVehicleLoading] = useState(false);
   const [showVehicleModal, setShowVehicleModal] = useState(false);
+  const [deletingVehicleId, setDeletingVehicleId] = useState(null);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState('');
 
+  const syncFormFromUser = useCallback(() => {
+    if (!user) return;
+    setFormData({
+      firstName: user.firstName || user.first_name || '',
+      lastName: user.lastName || user.last_name || '',
+      budget: user.budget != null && user.budget !== '' ? String(user.budget) : ''
+    });
+  }, [user]);
+
   useEffect(() => {
     if (user) {
-      setFormData({
-        firstName: user.firstName || user.first_name || '',
-        lastName: user.lastName || user.last_name || '',
-        budget:
-          user.budget != null && user.budget !== ''
-            ? String(user.budget)
-            : ''
-      });
+      syncFormFromUser();
       fetchVehicles();
     }
-  }, [user]);
+  }, [user, syncFormFromUser]);
 
   const fetchVehicles = async () => {
     try {
@@ -62,6 +100,19 @@ const Profile = () => {
     setVehicleForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const enterEditMode = () => {
+    setMessage('');
+    syncFormFromUser();
+    setEditMode(true);
+  };
+
+  const cancelEdit = () => {
+    syncFormFromUser();
+    setEditMode(false);
+    setShowVehicleModal(false);
+    setMessage('');
+  };
+
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -73,10 +124,11 @@ const Profile = () => {
         budget: formData.budget === '' ? null : Number(formData.budget)
       });
       updateUser(response.data.user);
-      setMessage('Profile updated successfully.');
+      setMessage('Profile saved.');
       setMessageType('success');
+      setEditMode(false);
     } catch (error) {
-      setMessage(error.response?.data?.message || 'Failed to update profile.');
+      setMessage(error.response?.data?.message || 'Could not save profile.');
       setMessageType('error');
     } finally {
       setLoading(false);
@@ -95,19 +147,37 @@ const Profile = () => {
       });
       setVehicleForm(defaultVehicleForm);
       setShowVehicleModal(false);
-      setMessage('Vehicle added successfully.');
+      setMessage('Vehicle added.');
       setMessageType('success');
       fetchVehicles();
     } catch (error) {
-      setMessage(error.response?.data?.message || 'Failed to add vehicle.');
+      setMessage(error.response?.data?.message || 'Could not add vehicle.');
       setMessageType('error');
     } finally {
       setVehicleLoading(false);
     }
   };
 
+  const handleDeleteVehicle = async (vehicleId) => {
+    if (!window.confirm('Remove this vehicle from your garage?')) return;
+    setDeletingVehicleId(vehicleId);
+    setMessage('');
+    try {
+      await apiClient.delete(`/api/vehicles/${vehicleId}`);
+      setMessage('Vehicle removed.');
+      setMessageType('success');
+      fetchVehicles();
+    } catch (error) {
+      const msg = error.response?.data?.message || 'Could not remove vehicle.';
+      setMessage(msg);
+      setMessageType('error');
+    } finally {
+      setDeletingVehicleId(null);
+    }
+  };
+
   const formatDate = (dateString) => {
-    if (!dateString) return 'Unknown';
+    if (!dateString) return '—';
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -115,158 +185,318 @@ const Profile = () => {
     });
   };
 
-  const fullName = `${user?.first_name || user?.firstName || ''} ${user?.last_name || user?.lastName || ''}`.trim() || 'User';
+  const fn = user?.first_name || user?.firstName || '';
+  const ln = user?.last_name || user?.lastName || '';
+  const fullName = `${fn} ${ln}`.trim() || 'Member';
+  const budgetLabel = formatBudgetDisplay(user?.budget);
+
+  const displayName =
+    user?.first_name?.trim() ||
+    [user?.first_name || user?.firstName, user?.last_name || user?.lastName].filter(Boolean).join(' ').trim() ||
+    'there';
 
   return (
-    <div className="profile-shell">
-      <div className="container profile-page">
-        <div className="profile-header">
+    <div className="profile-screen">
+      <div className="profile-screen__inner">
+        <header className="profile-screen__hero">
           <div>
-            <h1>Profile</h1>
-            <p>Manage your account and vehicles</p>
+            <p
+              style={{
+                fontSize: '0.8125rem',
+                color: 'rgba(255, 255, 255, 0.5)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.14em',
+                fontWeight: 600,
+                margin: '0 0 10px'
+              }}
+            >
+              {getGreeting()}, {displayName}
+            </p>
+            <h1
+              style={{
+                fontSize: 'clamp(1.85rem, 3.5vw, 2.75rem)',
+                fontWeight: 700,
+                margin: '0 0 8px',
+                letterSpacing: '-0.03em',
+                color: '#ffffff'
+              }}
+            >
+              Profile
+            </h1>
+            <p style={{ margin: 0, fontSize: '1rem', color: 'rgba(255, 255, 255, 0.55)', maxWidth: 520, lineHeight: 1.55 }}>
+              {editMode
+                ? 'Update your name and monthly budget, and manage vehicles below.'
+                : 'Your account snapshot — edit when you need to change details or garage.'}
+            </p>
           </div>
-          <div className="header-actions">
-            <button className="ui-btn muted" onClick={() => navigate('/dashboard')}>
-              Back to Dashboard
+          <div className="profile-screen__actions">
+            <button type="button" className="profile-screen__btn profile-screen__btn--ghost" onClick={() => navigate('/dashboard')}>
+              Dashboard
             </button>
-            <button className="ui-btn primary" onClick={() => setShowVehicleModal(true)}>
-              Add Vehicle
-            </button>
+            {!editMode ? (
+              <button type="button" className="profile-screen__btn profile-screen__btn--primary" onClick={enterEditMode}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+                  <Pencil size={16} strokeWidth={2} /> Edit profile
+                </span>
+              </button>
+            ) : (
+              <button type="button" className="profile-screen__btn profile-screen__btn--ghost" onClick={cancelEdit}>
+                Cancel editing
+              </button>
+            )}
           </div>
-        </div>
+        </header>
 
-        {message && <div className={`alert alert-${messageType}`}>{message}</div>}
+        {message ? (
+          <div className={`profile-screen__alert profile-screen__alert--${messageType === 'success' ? 'success' : 'error'}`}>
+            {message}
+          </div>
+        ) : null}
 
-        <div className="stats-row">
-          <div className="stat-card"><span>Vehicles</span><strong>{vehicles.length}</strong></div>
-          <div className="stat-card"><span>Status</span><strong>{user?.status || 'active'}</strong></div>
-          <div className="stat-card"><span>Role</span><strong>{user?.role || 'customer'}</strong></div>
-          <div className="stat-card"><span>Member Since</span><strong>{formatDate(user?.created_at)}</strong></div>
-        </div>
+        <section className="profile-screen__stats">
+          <div className="profile-screen__stat">
+            <p className="profile-screen__stat-label">Garage</p>
+            <p className="profile-screen__stat-value">{vehicles.length}</p>
+            <p className="profile-screen__stat-hint">Vehicles on file</p>
+          </div>
+          <div className="profile-screen__stat">
+            <p className="profile-screen__stat-label">Monthly budget</p>
+            <p className="profile-screen__stat-value">{budgetLabel || '—'}</p>
+            <p className="profile-screen__stat-hint">{budgetLabel ? 'Tracked on dashboard' : 'Not set yet'}</p>
+          </div>
+          <div className="profile-screen__stat">
+            <p className="profile-screen__stat-label">Member since</p>
+            <p className="profile-screen__stat-value" style={{ fontSize: '1.05rem', fontWeight: 700 }}>
+              {formatDate(user?.created_at)}
+            </p>
+            <p className="profile-screen__stat-hint">Account opened</p>
+          </div>
+          <div className="profile-screen__stat">
+            <p className="profile-screen__stat-label">Status</p>
+            <p className="profile-screen__stat-value" style={{ fontSize: '1.05rem', fontWeight: 700 }}>
+              {user?.status || 'active'}
+            </p>
+            <p className="profile-screen__stat-hint">{user?.role === 'admin' ? 'Administrator' : 'Customer'}</p>
+          </div>
+        </section>
 
-        <div className="main-grid">
-          <section className="panel">
-            <div className="identity-row">
-              <div className="avatar-circle">{fullName[0]?.toUpperCase() || 'U'}</div>
+        <div className="profile-screen__grid">
+          <section className="profile-screen__panel">
+            <div className="profile-screen__panel-head">
               <div>
-                <h2>{fullName}</h2>
-                <p>{user?.email}</p>
+                <h2 className="profile-screen__panel-title">Account</h2>
+                <p className="profile-screen__panel-sub">
+                  {editMode ? 'Changes apply after you save.' : 'Read-only overview of how GearShift knows you.'}
+                </p>
+              </div>
+              {!editMode ? <span className="profile-screen__badge">View</span> : <span className="profile-screen__badge">Editing</span>}
+            </div>
+
+            <div className="profile-screen__identity">
+              <div className="profile-screen__avatar" aria-hidden>
+                {initials(fn, ln)}
+              </div>
+              <div>
+                <p className="profile-screen__identity-name">{fullName}</p>
+                <p className="profile-screen__identity-email">
+                  <Mail size={16} style={{ opacity: 0.55 }} />
+                  {user?.email || '—'}
+                </p>
               </div>
             </div>
-            <form onSubmit={handleProfileUpdate} className="profile-form">
-              <div className="two-col">
-                <div className="form-group">
-                  <label htmlFor="firstName">First Name</label>
-                  <input id="firstName" name="firstName" value={formData.firstName} onChange={handleInputChange} required />
+
+            {!editMode ? (
+              <dl className="profile-screen__dl">
+                <div className="profile-screen__dl-row">
+                  <dt className="profile-screen__dl-dt">Full name</dt>
+                  <dd className="profile-screen__dl-dd">{fullName}</dd>
                 </div>
-                <div className="form-group">
-                  <label htmlFor="lastName">Last Name</label>
-                  <input id="lastName" name="lastName" value={formData.lastName} onChange={handleInputChange} required />
+                <div className="profile-screen__dl-row">
+                  <dt className="profile-screen__dl-dt">
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <Calendar size={13} style={{ opacity: 0.55 }} /> Member since
+                    </span>
+                  </dt>
+                  <dd className="profile-screen__dl-dd">{formatDate(user?.created_at)}</dd>
                 </div>
-              </div>
-              <div className="form-group">
-                <label>Email</label>
-                <input value={user?.email || ''} disabled />
-              </div>
-              <div className="form-group">
-                <label htmlFor="budget">Monthly spending budget (USD)</label>
-                <input
-                  id="budget"
-                  name="budget"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="e.g. 1000"
-                  value={formData.budget}
-                  onChange={handleInputChange}
-                />
-                <small style={{ color: 'var(--dark-text-secondary)', fontSize: 12 }}>
-                  Optional. Used on your dashboard to compare against this month&apos;s service spending.
-                </small>
-              </div>
-              <button type="submit" className="ui-btn primary" disabled={loading}>
-                {loading ? 'Saving...' : 'Save Profile'}
-              </button>
-            </form>
+                <div className="profile-screen__dl-row">
+                  <dt className="profile-screen__dl-dt">
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                      <DollarSign size={13} style={{ opacity: 0.55 }} /> Monthly budget
+                    </span>
+                  </dt>
+                  <dd className="profile-screen__dl-dd">
+                    {budgetLabel || 'Not set — used on your dashboard when added.'}
+                  </dd>
+                </div>
+              </dl>
+            ) : (
+              <form className="profile-screen__form" onSubmit={handleProfileUpdate}>
+                <div className="profile-screen__two">
+                  <div className="profile-screen__field">
+                    <label htmlFor="firstName">First name</label>
+                    <input id="firstName" name="firstName" value={formData.firstName} onChange={handleInputChange} required />
+                  </div>
+                  <div className="profile-screen__field">
+                    <label htmlFor="lastName">Last name</label>
+                    <input id="lastName" name="lastName" value={formData.lastName} onChange={handleInputChange} required />
+                  </div>
+                </div>
+                <div className="profile-screen__field">
+                  <label htmlFor="email-ro">Email</label>
+                  <input id="email-ro" value={user?.email || ''} disabled />
+                  <p className="profile-screen__field-hint">Email sign-in cannot be changed here.</p>
+                </div>
+                <div className="profile-screen__field">
+                  <label htmlFor="budget">Monthly spending budget (USD)</label>
+                  <input
+                    id="budget"
+                    name="budget"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="e.g. 800"
+                    value={formData.budget}
+                    onChange={handleInputChange}
+                  />
+                  <p className="profile-screen__field-hint">
+                    Optional. Compared with this month&apos;s service spending on your dashboard.
+                  </p>
+                </div>
+                <button type="submit" className="profile-screen__btn profile-screen__btn--primary" disabled={loading}>
+                  {loading ? 'Saving…' : 'Save profile'}
+                </button>
+              </form>
+            )}
           </section>
 
-          <section className="panel">
-            <div className="vehicle-header">
-              <h3>My Vehicles</h3>
-              <button className="ui-btn muted small" onClick={() => setShowVehicleModal(true)}>
-                Add Vehicle
-              </button>
+          <section className="profile-screen__panel">
+            <div className="profile-screen__panel-head">
+              <div>
+                <h2 className="profile-screen__panel-title">
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}>
+                    <Car size={22} strokeWidth={1.75} /> Vehicles
+                  </span>
+                </h2>
+                <p className="profile-screen__panel-sub">
+                  {editMode ? 'Add or remove vehicles from your garage.' : 'Specs and mileage at a glance.'}
+                </p>
+              </div>
+              {editMode ? (
+                <button type="button" className="profile-screen__btn profile-screen__btn--primary" onClick={() => setShowVehicleModal(true)}>
+                  Add vehicle
+                </button>
+              ) : null}
             </div>
-            <div className="vehicle-list">
-              {vehicles.length === 0 ? (
-                <div className="empty-state">
-                  <p>No vehicles added yet.</p>
-                  <button className="ui-btn primary" onClick={() => setShowVehicleModal(true)}>
-                    Add First Vehicle
-                  </button>
-                </div>
-              ) : (
-                vehicles.map((vehicle) => (
-                  <div className="vehicle-card" key={vehicle.id}>
+
+            {vehicles.length === 0 ? (
+              <div className="profile-screen__empty">
+                {editMode ? (
+                  <>
+                    No vehicles yet. Use <strong>Add vehicle</strong> above to register your first car.
+                  </>
+                ) : (
+                  <>No vehicles on file. Choose <strong>Edit profile</strong> to add your garage.</>
+                )}
+              </div>
+            ) : (
+              <div className="profile-screen__vehicle-list">
+                {vehicles.map((vehicle) => (
+                  <div key={vehicle.id} className="profile-screen__vehicle-card">
                     <div>
-                      <h4>{vehicle.year} {vehicle.make} {vehicle.model}</h4>
-                      <p>{vehicle.license_plate || 'No plate'} • {vehicle.fuel_type} • {vehicle.transmission}</p>
+                      <p className="profile-screen__vehicle-title">
+                        {vehicle.year} {vehicle.make} {vehicle.model}
+                      </p>
+                      <p className="profile-screen__vehicle-meta">
+                        <strong>{vehicle.license_plate || 'No plate'}</strong>
+                        {' · '}
+                        {vehicle.fuel_type}
+                        {' · '}
+                        {vehicle.transmission}
+                        {truncateVin(vehicle.vin) ? (
+                          <>
+                            <br />
+                            VIN {truncateVin(vehicle.vin)}
+                          </>
+                        ) : null}
+                        {vehicle.color ? (
+                          <>
+                            <br />
+                            Color {vehicle.color}
+                          </>
+                        ) : null}
+                      </p>
                     </div>
-                    <div className="vehicle-info">
-                      <strong>{(vehicle.mileage || 0).toLocaleString()} mi</strong>
-                      {vehicle.color ? <span>{vehicle.color}</span> : null}
+                    <div className="profile-screen__vehicle-side">
+                      <div className="profile-screen__vehicle-mileage">{(vehicle.mileage || 0).toLocaleString()} mi</div>
+                      {editMode ? (
+                        <button
+                          type="button"
+                          className="profile-screen__btn profile-screen__btn--danger"
+                          style={{ marginTop: 12, padding: '8px 12px', fontSize: '0.78rem' }}
+                          onClick={() => handleDeleteVehicle(vehicle.id)}
+                          disabled={deletingVehicleId === vehicle.id}
+                        >
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                            <Trash2 size={14} />
+                            {deletingVehicleId === vehicle.id ? 'Removing…' : 'Remove'}
+                          </span>
+                        </button>
+                      ) : null}
                     </div>
                   </div>
-                ))
-              )}
-            </div>
+                ))}
+              </div>
+            )}
           </section>
         </div>
       </div>
 
-      {showVehicleModal && (
+      {showVehicleModal ? (
         <div
-          className="modal-overlay"
+          className="profile-screen__modal-overlay"
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) setShowVehicleModal(false);
           }}
           role="dialog"
           aria-modal="true"
-          aria-label="Add vehicle"
+          aria-labelledby="add-vehicle-title"
         >
-          <div className="modal-card" onMouseDown={(e) => e.stopPropagation()}>
-            <div className="modal-title">
-              <h3>Add Vehicle</h3>
-              <button className="close-btn" onClick={() => setShowVehicleModal(false)}>x</button>
+          <div className="profile-screen__modal" onMouseDown={(e) => e.stopPropagation()}>
+            <div className="profile-screen__modal-head">
+              <h3 id="add-vehicle-title">Add vehicle</h3>
+              <button type="button" className="profile-screen__modal-close" onClick={() => setShowVehicleModal(false)} aria-label="Close">
+                ×
+              </button>
             </div>
-            <form onSubmit={handleAddVehicle} className="profile-form">
-              <div className="two-col">
-                <div className="form-group">
+            <form className="profile-screen__form" onSubmit={handleAddVehicle}>
+              <div className="profile-screen__two">
+                <div className="profile-screen__field">
                   <label htmlFor="make">Make</label>
                   <input id="make" name="make" value={vehicleForm.make} onChange={handleVehicleChange} required />
                 </div>
-                <div className="form-group">
+                <div className="profile-screen__field">
                   <label htmlFor="model">Model</label>
                   <input id="model" name="model" value={vehicleForm.model} onChange={handleVehicleChange} required />
                 </div>
-                <div className="form-group">
+                <div className="profile-screen__field">
                   <label htmlFor="year">Year</label>
                   <input id="year" type="number" name="year" min="1950" max="2100" value={vehicleForm.year} onChange={handleVehicleChange} required />
                 </div>
-                <div className="form-group">
+                <div className="profile-screen__field">
                   <label htmlFor="mileage">Mileage</label>
                   <input id="mileage" type="number" name="mileage" min="0" value={vehicleForm.mileage} onChange={handleVehicleChange} />
                 </div>
-                <div className="form-group">
-                  <label htmlFor="license_plate">License Plate</label>
+                <div className="profile-screen__field">
+                  <label htmlFor="license_plate">License plate</label>
                   <input id="license_plate" name="license_plate" value={vehicleForm.license_plate} onChange={handleVehicleChange} />
                 </div>
-                <div className="form-group">
+                <div className="profile-screen__field">
                   <label htmlFor="vin">VIN</label>
                   <input id="vin" name="vin" value={vehicleForm.vin} onChange={handleVehicleChange} />
                 </div>
-                <div className="form-group">
-                  <label htmlFor="fuel_type">Fuel Type</label>
+                <div className="profile-screen__field">
+                  <label htmlFor="fuel_type">Fuel type</label>
                   <select id="fuel_type" name="fuel_type" value={vehicleForm.fuel_type} onChange={handleVehicleChange}>
                     <option value="gasoline">Gasoline</option>
                     <option value="diesel">Diesel</option>
@@ -274,7 +504,7 @@ const Profile = () => {
                     <option value="electric">Electric</option>
                   </select>
                 </div>
-                <div className="form-group">
+                <div className="profile-screen__field">
                   <label htmlFor="transmission">Transmission</label>
                   <select id="transmission" name="transmission" value={vehicleForm.transmission} onChange={handleVehicleChange}>
                     <option value="automatic">Automatic</option>
@@ -282,310 +512,26 @@ const Profile = () => {
                   </select>
                 </div>
               </div>
-              <div className="form-group">
+              <div className="profile-screen__field">
                 <label htmlFor="color">Color</label>
                 <input id="color" name="color" value={vehicleForm.color} onChange={handleVehicleChange} />
               </div>
-              <div className="form-group">
+              <div className="profile-screen__field">
                 <label htmlFor="notes">Notes</label>
-                <textarea id="notes" name="notes" rows="3" value={vehicleForm.notes} onChange={handleVehicleChange} />
+                <textarea id="notes" name="notes" rows={3} value={vehicleForm.notes} onChange={handleVehicleChange} />
               </div>
-              <div className="modal-actions">
-                <button type="button" className="ui-btn muted" onClick={() => setShowVehicleModal(false)}>
+              <div className="profile-screen__modal-actions">
+                <button type="button" className="profile-screen__btn profile-screen__btn--ghost" onClick={() => setShowVehicleModal(false)}>
                   Cancel
                 </button>
-                <button type="submit" className="ui-btn primary" disabled={vehicleLoading}>
-                  {vehicleLoading ? 'Adding...' : 'Add Vehicle'}
+                <button type="submit" className="profile-screen__btn profile-screen__btn--primary" disabled={vehicleLoading}>
+                  {vehicleLoading ? 'Adding…' : 'Add vehicle'}
                 </button>
               </div>
             </form>
           </div>
         </div>
-      )}
-
-      <style jsx>{`
-        .profile-shell {
-          min-height: 100vh;
-          background: var(--dark-bg);
-          color: var(--dark-text);
-          padding: 22px 0 36px;
-        }
-        .profile-page {
-          max-width: 1180px;
-        }
-        .profile-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 16px;
-        }
-        .profile-header h1 {
-          margin: 0;
-          font-size: 30px;
-          letter-spacing: -0.02em;
-        }
-        .profile-header p {
-          margin: 4px 0 0;
-          color: var(--dark-text-secondary);
-        }
-        .header-actions {
-          display: flex;
-          gap: 8px;
-        }
-        .ui-btn {
-          border-radius: 10px;
-          padding: 10px 14px;
-          border: 1px solid transparent;
-          cursor: pointer;
-          font-weight: 600;
-          font-size: 14px;
-        }
-        .ui-btn.primary {
-          background: var(--dark-accent);
-          color: var(--dark-text);
-        }
-        .ui-btn.muted {
-          background: transparent;
-          color: var(--dark-text-secondary);
-          border-color: var(--dark-border);
-        }
-        .ui-btn.small {
-          padding: 7px 12px;
-          font-size: 13px;
-        }
-        .alert {
-          margin-bottom: 14px;
-          border-radius: 10px;
-          border: 1px solid;
-          padding: 10px 12px;
-        }
-        .alert-success {
-          background: rgba(34, 197, 94, 0.15);
-          border-color: rgba(34, 197, 94, 0.4);
-          color: #86efac;
-        }
-        .alert-error {
-          background: rgba(239, 68, 68, 0.15);
-          border-color: rgba(239, 68, 68, 0.4);
-          color: #fca5a5;
-        }
-        .stats-row {
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 10px;
-          margin-bottom: 14px;
-        }
-        .stat-card {
-          background: var(--dark-surface);
-          border: 1px solid var(--dark-border);
-          border-radius: 12px;
-          padding: 12px 14px;
-          display: grid;
-          gap: 5px;
-        }
-        .stat-card span {
-          color: var(--dark-text-secondary);
-          font-size: 12px;
-        }
-        .main-grid {
-          display: grid;
-          grid-template-columns: 1fr 1.1fr;
-          gap: 14px;
-        }
-        .panel {
-          background: var(--dark-surface);
-          border: 1px solid var(--dark-border);
-          border-radius: 16px;
-          padding: 16px;
-        }
-        .identity-row {
-          display: flex;
-          gap: 12px;
-          align-items: center;
-          margin-bottom: 14px;
-        }
-        .avatar-circle {
-          width: 62px;
-          height: 62px;
-          border-radius: 50%;
-          background: linear-gradient(140deg, #ef4444, #7f1d1d);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 24px;
-          font-weight: 700;
-        }
-        .identity-row h2 {
-          margin: 0;
-        }
-        .identity-row p {
-          margin: 3px 0 0;
-          color: var(--dark-text-secondary);
-          font-size: 14px;
-        }
-        .profile-form {
-          display: grid;
-          gap: 12px;
-        }
-        .two-col {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 10px;
-        }
-        .form-group {
-          display: grid;
-          gap: 6px;
-        }
-        .form-group label {
-          color: var(--dark-text-secondary);
-          font-size: 12px;
-          font-weight: 600;
-        }
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-          background: #0b0b0e;
-          color: var(--dark-text);
-          border: 1px solid var(--dark-border);
-          border-radius: 10px;
-          padding: 10px 12px;
-          font-size: 14px;
-        }
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-          outline: none;
-          border-color: #ef4444;
-        }
-        .vehicle-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 10px;
-        }
-        .vehicle-header h3 {
-          margin: 0;
-        }
-        .vehicle-list {
-          display: grid;
-          gap: 10px;
-          max-height: 520px;
-          overflow: auto;
-          padding-right: 4px;
-        }
-        .vehicle-card {
-          border: 1px solid var(--dark-border);
-          border-radius: 12px;
-          background: #09090b;
-          padding: 12px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          gap: 12px;
-        }
-        .vehicle-card h4 {
-          margin: 0 0 4px;
-        }
-        .vehicle-card p {
-          margin: 0;
-          color: var(--dark-text-secondary);
-          font-size: 14px;
-        }
-        .vehicle-info {
-          text-align: right;
-          display: grid;
-          gap: 3px;
-        }
-        .vehicle-info span {
-          color: var(--dark-text-secondary);
-          font-size: 13px;
-        }
-        .empty-state {
-          border: 1px dashed var(--dark-border);
-          border-radius: 12px;
-          padding: 24px;
-          text-align: center;
-          display: grid;
-          gap: 10px;
-        }
-        .empty-state p {
-          margin: 0;
-          color: var(--dark-text-secondary);
-        }
-        .modal-overlay {
-          position: fixed;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.72);
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          padding: 18px;
-          z-index: 60;
-        }
-        .modal-card {
-          width: 100%;
-          max-width: 840px;
-          background: #111114;
-          border: 1px solid var(--dark-border);
-          border-radius: 16px;
-          padding: 16px;
-        }
-        .modal-title {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 12px;
-        }
-        .modal-title h3 {
-          margin: 0;
-        }
-        .close-btn {
-          width: 32px;
-          height: 32px;
-          border-radius: 8px;
-          border: 1px solid var(--dark-border);
-          background: transparent;
-          color: var(--dark-text-secondary);
-          cursor: pointer;
-          font-weight: 700;
-        }
-        .modal-actions {
-          display: flex;
-          justify-content: flex-end;
-          gap: 8px;
-        }
-        @media (max-width: 980px) {
-          .stats-row,
-          .main-grid {
-            grid-template-columns: 1fr 1fr;
-          }
-        }
-        @media (max-width: 760px) {
-          .profile-header {
-            flex-direction: column;
-            align-items: flex-start;
-          }
-          .header-actions {
-            width: 100%;
-          }
-          .header-actions .ui-btn {
-            flex: 1;
-          }
-          .stats-row,
-          .main-grid,
-          .two-col {
-            grid-template-columns: 1fr;
-          }
-          .vehicle-card {
-            flex-direction: column;
-            align-items: flex-start;
-          }
-          .vehicle-info {
-            text-align: left;
-          }
-        }
-      `}</style>
+      ) : null}
     </div>
   );
 };

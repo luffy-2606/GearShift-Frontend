@@ -1,12 +1,24 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useAuth } from '../context/AuthContext';
 import apiClient from '../lib/apiClient';
-import { Calendar, DollarSign, Wrench, Car, User, Clock, TrendingUp, MapPin, Phone, Mail, Settings, ArrowRight, Bell } from 'lucide-react';
+import {
+  Calendar,
+  DollarSign,
+  Wrench,
+  Car,
+  MapPin,
+  Bell,
+  ArrowRight,
+  UserCircle,
+  Store,
+  Users,
+  ClipboardList,
+  PieChart
+} from 'lucide-react';
 import { countSystemMessages } from '../lib/systemMessagesStore';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import './UserDashboard.css';
 
 const UserDashboard = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   
   const [loading, setLoading] = useState(true);
@@ -391,22 +403,67 @@ const UserDashboard = () => {
     borderColor: 'rgba(255, 255, 255, 0.25)'
   };
 
+  const shortcutLinks = useMemo(
+    () => [
+      {
+        to: '/profile',
+        icon: UserCircle,
+        title: 'Profile',
+        description: 'Account, budget, and vehicle garage'
+      },
+      {
+        to: '/shops',
+        icon: Store,
+        title: 'Shops',
+        description: 'Browse verified shops and book service'
+      },
+      {
+        to: '/mechanics',
+        icon: Users,
+        title: 'Mechanics',
+        description: 'Independent technicians and specialists'
+      },
+      {
+        to: '/service-history',
+        icon: ClipboardList,
+        title: 'Service history',
+        description: 'Past repairs, dates, and costs'
+      },
+      {
+        to: '/cost-insights',
+        icon: PieChart,
+        title: 'Cost insights',
+        description: 'Trends, totals, and expensive jobs'
+      },
+      {
+        to: '/system-messages',
+        icon: Bell,
+        title: 'System messages',
+        description:
+          unreadMessages > 0
+            ? `${unreadMessages} unread notification${unreadMessages === 1 ? '' : 's'}`
+            : 'Alerts and booking confirmations',
+        badge: unreadMessages
+      }
+    ],
+    [unreadMessages]
+  );
+
   if (loading) {
     return (
-      <div style={{ 
-        padding: '120px 2rem 2rem 2rem',
-        minHeight: '100vh',
-        background: '#000000',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <div style={{
-          color: '#ffffff',
-          fontSize: '1.5rem',
-          fontWeight: 500
-        }}>
-          Loading dashboard...
+      <div className="user-dashboard-page">
+        <div
+          style={{
+            padding: '120px 2rem 2rem',
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <div style={{ color: '#ffffff', fontSize: '1.5rem', fontWeight: 500 }}>
+            Loading dashboard…
+          </div>
         </div>
       </div>
     );
@@ -414,62 +471,93 @@ const UserDashboard = () => {
 
   if (error || !dashboardData) {
     return (
-      <div style={{ 
-        padding: '120px 2rem 2rem 2rem',
-        minHeight: '100vh',
-        background: '#000000',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <div style={{
-          color: '#ffffff',
-          fontSize: '1.5rem',
-          fontWeight: 500
-        }}>
-          {error || 'No vehicle data found. Please add a vehicle to view your dashboard.'}
+      <div className="user-dashboard-page">
+        <div
+          style={{
+            padding: '120px 2rem 2rem',
+            minHeight: '100vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <div style={{ color: '#ffffff', fontSize: '1.5rem', fontWeight: 500, textAlign: 'center', maxWidth: 480 }}>
+            {error || 'No vehicle data found. Please add a vehicle to view your dashboard.'}
+          </div>
         </div>
       </div>
     );
   }
 
-  return (
-    <div style={{
-      padding: '30px 80px',
-      minHeight: '100vh',
-      background: '#000000',
-      borderRadius: '24px',
-      overflowX: 'hidden',
-      maxWidth: '100%'
-    }}>
-      {/* Greeting Section */}
-      <div style={{ marginBottom: '60px' }}>
-        <h1 style={{
-          fontSize: '4rem',
-          fontWeight: 700,
-          color: '#ffffff',
-          marginBottom: '16px',
-          letterSpacing: '-0.03em'
-        }}>
-          {getGreeting()}, {dashboardData.userName}!
-        </h1>
-        <p style={{
-          fontSize: '1.25rem',
-          color: 'rgba(255, 255, 255, 0.7)',
-          fontWeight: 400,
-          letterSpacing: '0.01em'
-        }}>
-          Welcome back to your dashboard
-        </p>
-      </div>
+  const servicesRecorded = serviceHistory?.length ?? 0;
 
-      {/* Stats Cards */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
-        gap: '32px',
-        marginBottom: '60px'
-      }}>
+  return (
+    <div className="user-dashboard-page">
+      <div className="user-dashboard-page__inner">
+        {/* Hero */}
+        <header className="user-dashboard-page__hero">
+          <div>
+            <p
+              style={{
+                fontSize: '0.8125rem',
+                color: 'rgba(255, 255, 255, 0.5)',
+                textTransform: 'uppercase',
+                letterSpacing: '0.14em',
+                fontWeight: 600,
+                margin: '0 0 12px'
+              }}
+            >
+              Your overview
+            </p>
+            <h1
+              style={{
+                fontSize: 'clamp(2rem, 4vw, 3.25rem)',
+                fontWeight: 700,
+                color: '#ffffff',
+                margin: '0 0 12px',
+                letterSpacing: '-0.03em',
+                lineHeight: 1.1
+              }}
+            >
+              {getGreeting()}, {dashboardData.userName.split(' ')[0] || dashboardData.userName}!
+            </h1>
+            <p
+              style={{
+                fontSize: '1.0625rem',
+                color: 'rgba(255, 255, 255, 0.62)',
+                fontWeight: 400,
+                letterSpacing: '0.01em',
+                margin: 0,
+                maxWidth: 520,
+                lineHeight: 1.55
+              }}
+            >
+              Garage health, spending, and shortcuts to every part of GearShift — stay ahead of maintenance in one place.
+            </p>
+          </div>
+          <div className="user-dashboard-page__hero-stats" aria-label="Quick facts">
+            <div className="user-dashboard-page__hero-stat">
+              <p className="user-dashboard-page__hero-stat-value">{vehicles.length}</p>
+              <p className="user-dashboard-page__hero-stat-label">Vehicles</p>
+            </div>
+            <div className="user-dashboard-page__hero-stat">
+              <p className="user-dashboard-page__hero-stat-value">{servicesRecorded}</p>
+              <p className="user-dashboard-page__hero-stat-label">Services logged</p>
+            </div>
+            <div className="user-dashboard-page__hero-stat">
+              <p className="user-dashboard-page__hero-stat-value">{shops.length}</p>
+              <p className="user-dashboard-page__hero-stat-label">Shops listed</p>
+            </div>
+          </div>
+        </header>
+
+        {/* Stats Cards */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
+          gap: '28px',
+          marginBottom: '36px'
+        }}>
         {/* Garage Condition Card */}
         <div 
           style={cardStyle}
@@ -651,9 +739,11 @@ const UserDashboard = () => {
         </div>
       </div>
 
+
+
       {/* Quick Actions */}
       <div 
-        style={{ ...cardStyle, marginTop: '32px' }}
+        style={{ ...cardStyle, marginTop: '28px' }}
         onMouseEnter={(e) => {
           Object.assign(e.currentTarget.style, cardHoverStyle);
         }}
@@ -662,55 +752,39 @@ const UserDashboard = () => {
         }}
       >
         <h3 style={{
-          fontSize: '1.5rem',
+          fontSize: '1.35rem',
           color: '#ffffff',
-          marginBottom: '32px',
+          marginBottom: '8px',
           fontWeight: 600,
           letterSpacing: '-0.02em'
         }}>
-          Quick Actions
+          Quick actions
         </h3>
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '20px'
+        <p style={{
+          margin: '0 0 24px',
+          fontSize: '0.875rem',
+          color: 'rgba(255, 255, 255, 0.45)',
+          lineHeight: 1.5
         }}>
+          One-tap tasks — booking sends you to shops to pick services.
+        </p>
+        <div className="user-dashboard-page__quick-grid">
           {[
-            { icon: Calendar, label: 'Book Appointment', color: '#ffffff' },
-            { icon: Bell, label: systemMessagesLabel, color: '#ffffff', onClick: () => navigate('/system-messages') },
-            { icon: MapPin, label: 'Find Shops', color: '#ffffff' },
-            { icon: Wrench, label: 'Contact Mechanics', color: '#ffffff' },
-            { icon: Car, label: 'My Vehicles', color: '#ffffff' }
+            { icon: Calendar, label: 'Book appointment', onClick: () => navigate('/shops') },
+            { icon: Bell, label: systemMessagesLabel, onClick: () => navigate('/system-messages') },
+            { icon: MapPin, label: 'Find shops', onClick: () => navigate('/shops') },
+            { icon: Wrench, label: 'Contact mechanics', onClick: () => navigate('/mechanics') },
+            { icon: Car, label: 'My vehicles', onClick: () => navigate('/profile') }
           ].map((action, index) => (
             <button
+              type="button"
               key={index}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '12px',
-                padding: '24px',
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '16px',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
-              }}
+              className="user-dashboard-page__quick-btn"
               onClick={action.onClick}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-                e.currentTarget.style.transform = 'translateY(-4px)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.1)';
-                e.currentTarget.style.transform = 'translateY(0)';
-              }}
             >
-              <action.icon size={32} style={{ color: action.color }} />
+              <action.icon size={28} style={{ color: '#ffffff' }} />
               <span style={{
-                fontSize: '0.95rem',
+                fontSize: '0.9rem',
                 color: '#ffffff',
                 fontWeight: 500,
                 textAlign: 'center'
@@ -724,7 +798,7 @@ const UserDashboard = () => {
 
       {/* My Vehicle Catalogue */}
       <div 
-        style={{ ...cardStyle, marginTop: '32px' }}
+        style={{ ...cardStyle, marginTop: '28px' }}
         onMouseEnter={(e) => {
           Object.assign(e.currentTarget.style, cardHoverStyle);
         }}
@@ -777,12 +851,7 @@ const UserDashboard = () => {
       </div>
 
       {/* Maintenance Reminders & Shops Frequently Visited */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))',
-        gap: '32px',
-        marginTop: '32px'
-      }}>
+      <div className="user-dashboard-page__two-col" style={{ marginTop: '28px' }}>
         <div 
           style={cardStyle}
           onMouseEnter={(e) => {
@@ -853,7 +922,7 @@ const UserDashboard = () => {
         </div>
 
         <div 
-          style={{ ...cardStyle, marginTop: '32px' }}
+          style={cardStyle}
           onMouseEnter={(e) => {
             Object.assign(e.currentTarget.style, cardHoverStyle);
           }}
@@ -931,7 +1000,7 @@ const UserDashboard = () => {
 
       {/* Most Expensive Services */}
       <div 
-        style={{ ...cardStyle, marginTop: '32px' }}
+        style={{ ...cardStyle, marginTop: '28px', marginBottom: '24px' }}
         onMouseEnter={(e) => {
           Object.assign(e.currentTarget.style, cardHoverStyle);
         }}
@@ -984,6 +1053,7 @@ const UserDashboard = () => {
             </p>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

@@ -1,14 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
-import HeroSection from './HeroSection';
-import HowItWorks from './HowItWorks';
-import FeaturesSection from './FeaturesSection';
-import ShopsSection from './ShopsSection';
-import UpgradesSection from './UpgradesSection';
-import TestimonialsSection from './TestimonialsSection';
-import CTASection from './CTASection';
-import Footer from './Footer';
 import UserDashboard from './UserDashboard';
 
 const Dashboard = () => {
@@ -19,7 +11,6 @@ const Dashboard = () => {
 
   return (
     <div style={{ background: 'var(--dark-bg)', overflowX: 'hidden', width: '100%' }}>
-      {/* Blur overlay when menu is open */}
       {(menuOpen || rightMenuOpen) && (
         <div style={{
           position: 'fixed',
@@ -35,7 +26,6 @@ const Dashboard = () => {
         }} />
       )}
 
-      {/* Navigation Bar from Landing Page */}
       <nav style={{
         position: 'fixed',
         top: 0,
@@ -48,7 +38,6 @@ const Dashboard = () => {
         justifyContent: 'space-between',
         alignItems: 'center'
       }}>
-        {/* Left - GearShift with hover menu for navigation */}
         <div style={{ position: 'relative' }}>
           <div
             style={{
@@ -63,7 +52,6 @@ const Dashboard = () => {
           >
             GearShift
 
-            {/* Hover menu - appears below with navigation links */}
             {menuOpen && (
               <div
                 onMouseEnter={() => setMenuOpen(true)}
@@ -133,12 +121,10 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Center - Logo */}
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <img className="logo-spin" src="/GearShift/logo.png" alt="Logo" style={{ height: '50px', width: 'auto' }} />
         </div>
 
-        {/* Right - 3 lines with hover menu for Profile/Logout */}
         <div style={{ position: 'relative' }}>
           <div
             style={{
@@ -150,11 +136,10 @@ const Dashboard = () => {
             onMouseEnter={() => setRightMenuOpen(true)}
             onMouseLeave={() => setRightMenuOpen(false)}
           >
-            <div style={{ width: '25px', height: '2px', backgroundColor: 'white' }}></div>
-            <div style={{ width: '25px', height: '2px', backgroundColor: 'white' }}></div>
-            <div style={{ width: '25px', height: '2px', backgroundColor: 'white' }}></div>
+            <div style={{ width: '25px', height: '2px', backgroundColor: 'white' }} />
+            <div style={{ width: '25px', height: '2px', backgroundColor: 'white' }} />
+            <div style={{ width: '25px', height: '2px', backgroundColor: 'white' }} />
 
-            {/* Hover menu - appears below with Profile/Logout */}
             {rightMenuOpen && user && (
               <div
                 onMouseEnter={() => setRightMenuOpen(true)}
@@ -183,7 +168,7 @@ const Dashboard = () => {
                   transition: 'color 0.2s ease, filter 0.2s ease',
                   filter: hoveredLink === 'profile' ? 'brightness(1.3)' : 'brightness(1)'
                 }} onMouseEnter={() => setHoveredLink('profile')} onMouseLeave={() => setHoveredLink(null)}>Profile</Link>
-                <button onClick={logout} style={{
+                <button type="button" onClick={logout} style={{
                   display: 'block',
                   color: hoveredLink === null || hoveredLink === 'logout' ? 'white' : 'rgba(255, 255, 255, 0.4)',
                   textDecoration: 'none',
@@ -205,30 +190,20 @@ const Dashboard = () => {
         </div>
       </nav>
 
-      {/* Landing Page Sections */}
       <div style={{
         position: 'relative',
         paddingLeft: '3rem',
-         paddingRight: '3rem', 
-         backgroundColor: 'white', 
-         paddingTop: '16rem',
-         paddingBottom: '2rem',
-         backgroundImage: 'url(/GearShift/engine.png)',
-         backgroundSize: '100%',
+        paddingRight: '3rem',
+        backgroundColor: 'white',
+        paddingTop: '16rem',
+        paddingBottom: '2rem',
+        backgroundImage: 'url(/GearShift/engine.png)',
+        backgroundSize: '100%',
         backgroundPosition: 'center -140px',
         backgroundRepeat: 'no-repeat',
         overflowX: 'hidden',
-        maxWidth: '100vw'}}>
-        {/* <HeroSection />
-        <HowItWorks />
-        <FeaturesSection />
-        <ShopsSection />
-        <UpgradesSection />
-        <TestimonialsSection />
-        <CTASection /> */}
-        {/* <Footer /> */}
-        
-        {/* Cover Rectangle behind UserDashboard */}
+        maxWidth: '100vw'
+      }}>
         <div style={{
           position: 'absolute',
           top: '560px',
@@ -239,14 +214,12 @@ const Dashboard = () => {
           background: '#1b1b1b',
           zIndex: 1
         }} />
-        
-        {/* User Dashboard */}
+
         <div style={{ position: 'relative', zIndex: 2 }}>
           {user && <UserDashboard />}
         </div>
       </div>
 
-      {/* Admin Panel Link (if admin) */}
       {user?.role === 'admin' && (
         <div style={{
           position: 'fixed',
@@ -254,8 +227,8 @@ const Dashboard = () => {
           right: '2rem',
           zIndex: '40'
         }}>
-          <a 
-            href="/admin" 
+          <a
+            href="/admin"
             className="btn"
             style={{
               background: 'var(--dark-accent)',
