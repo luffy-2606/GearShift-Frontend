@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import apiClient from '../lib/apiClient';
 import AppointmentBooking from './AppointmentBooking';
-import { Star, MapPin, Phone, User, Wrench, Search, Filter, ArrowRight, Store, Globe, Bookmark } from 'lucide-react';
+import { Star, MapPin, Phone, User, Wrench, Search, Filter, ArrowRight, Store, Globe, Bookmark, Check } from 'lucide-react';
 import PageLoadSkeleton from './PageLoadSkeleton';
 import './ShopsList.css';
 
@@ -55,6 +55,8 @@ const ShopsList = () => {
     selectedServices: []
   });
   const [searchTerm, setSearchTerm] = useState('');
+  const [savedShopIds, setSavedShopIds] = useState(() => new Set());
+  const [toast, setToast] = useState(null);
 
   const displayName =
     user?.first_name?.trim() ||
@@ -114,6 +116,40 @@ const ShopsList = () => {
     fetchShops();
   }, [filters.service_type, filters.radius]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (!user) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await apiClient.get('/api/bookmarks', { params: { entity_type: 'shop' } });
+        if (cancelled) return;
+        const ids = new Set(
+          (data.data || []).map((b) => b.entity_id).filter(Boolean)
+        );
+        setSavedShopIds(ids);
+      } catch {
+        /* ignore — bookmarks optional for listing */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = window.setTimeout(() => setToast(null), 4200);
+    return () => window.clearTimeout(t);
+  }, [toast]);
+
+  const showToast = (message, variant = 'info') => {
+    setToast({ message, variant });
+  };
+
+  const markShopSaved = (shopId) => {
+    setSavedShopIds((prev) => new Set([...prev, shopId]));
+  };
+
   const filteredShops = useMemo(
     () =>
       shops.filter(
@@ -168,6 +204,15 @@ const ShopsList = () => {
 
   return (
     <div className="shops-page">
+      {toast && (
+        <div
+          className={`shops-toast shops-toast--${toast.variant}`}
+          role="status"
+          aria-live="polite"
+        >
+          {toast.message}
+        </div>
+      )}
       <div className="shops-page__inner">
         {/* Hero — dashboard-style greeting, left-aligned */}
         <header className="shops-page__hero">
@@ -317,6 +362,9 @@ const ShopsList = () => {
                   shop={shop}
                   onBookAppointment={handleBookAppointment}
                   highlight={savedHighlightId === shop.id}
+                  isSaved={savedShopIds.has(shop.id)}
+                  onMarkSaved={markShopSaved}
+                  onToast={showToast}
                 />
               ))}
             </div>
@@ -375,7 +423,7 @@ const saveBtnStyle = {
   cursor: 'pointer',
 };
 
-const ShopCard = ({ shop, onBookAppointment, highlight }) => {
+const ShopCard = ({ shop, onBookAppointment, highlight, isSaved, onMarkSaved, onToast }) => {
   const [showDetails, setShowDetails] = useState(false);
   const [selectedServices, setSelectedServices] = useState([]);
   const [savingBm, setSavingBm] = useState(false);
@@ -390,7 +438,7 @@ const ShopCard = ({ shop, onBookAppointment, highlight }) => {
 
   const handleBookAppointment = () => {
     if (selectedServices.length === 0) {
-      alert('Please select at least one service');
+      onToast('Please select at least one service.', 'info');
       return;
     }
 
@@ -399,6 +447,10 @@ const ShopCard = ({ shop, onBookAppointment, highlight }) => {
 
   const saveWorkshop = async (e) => {
     e.stopPropagation();
+    if (isSaved) {
+      onToast('This workshop is already in your saved list.', 'info');
+      return;
+    }
     try {
       setSavingBm(true);
       await apiClient.post('/api/bookmarks', {
@@ -409,12 +461,14 @@ const ShopCard = ({ shop, onBookAppointment, highlight }) => {
           website: shop.website || undefined,
         },
       });
-      alert('Workshop saved. View it anytime under Saved.');
+      onMarkSaved(shop.id);
+      onToast('Workshop saved. View it anytime under Saved.', 'success');
     } catch (err) {
       if (err.response?.status === 409) {
-        alert('Already in your saved list.');
+        onMarkSaved(shop.id);
+        onToast('Already in your saved list.', 'info');
       } else {
-        alert(err.response?.data?.message || 'Could not save workshop.');
+        onToast(err.response?.data?.message || 'Could not save workshop.', 'error');
       }
     } finally {
       setSavingBm(false);
@@ -448,12 +502,19 @@ const ShopCard = ({ shop, onBookAppointment, highlight }) => {
           <button
             type="button"
             onClick={saveWorkshop}
-            disabled={savingBm}
-            title="Save workshop"
-            style={{ ...saveBtnStyle, cursor: savingBm ? 'wait' : 'pointer', opacity: savingBm ? 0.7 : 1 }}
+            disabled={savingBm || isSaved}
+            title={isSaved ? 'Saved to your list' : 'Save workshop'}
+            style={{
+              ...saveBtnStyle,
+              cursor: isSaved ? 'default' : savingBm ? 'wait' : 'pointer',
+              opacity: savingBm ? 0.7 : isSaved ? 0.95 : 1,
+              borderColor: isSaved ? 'rgba(74, 222, 128, 0.45)' : saveBtnStyle.border,
+              background: isSaved ? 'rgba(34, 197, 94, 0.15)' : saveBtnStyle.background,
+              color: isSaved ? 'rgba(187, 247, 208, 0.95)' : saveBtnStyle.color,
+            }}
           >
-            <Bookmark size={14} />
-            {savingBm ? '…' : 'Save'}
+            {isSaved ? <Check size={14} strokeWidth={2.5} /> : <Bookmark size={14} />}
+            {savingBm ? '…' : isSaved ? 'Saved' : 'Save'}
           </button>
           {shop.average_rating >= 4.5 && (
             <div className="shop-card-badge">
